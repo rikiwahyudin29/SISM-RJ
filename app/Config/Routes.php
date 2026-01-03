@@ -7,92 +7,80 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 // =========================================================================
-// 1. PUBLIC ROUTES (Landing Page & Test)
+// 1. PUBLIC & AUTH ROUTES (Tanpa Filter)
 // =========================================================================
+
+// Landing Page & Test
 $routes->get('/', 'Home::index');
 $routes->get('test-ui', function() {
     return view('test_ui');
 });
 
-// =========================================================================
-// 2. AUTHENTICATION ROUTES
-// =========================================================================
-// Mengelompokkan semua yang berhubungan dengan login/auth
+// Authentication System
 $routes->group('auth', function($routes) {
-    $routes->get('/', 'Auth::index');
-    $routes->post('login', 'Auth::auth'); // Proses Login via Form
-    $routes->get('logout', 'Auth::logout');
-    
+    // Login Manual
+    $routes->get('/', 'Auth::index');           // Form Login
+    $routes->get('login', 'Auth::login');       // Alias Form Login
+    $routes->post('login', 'Auth::auth');       // Proses Submit Login
+    $routes->get('logout', 'Auth::logout');     // Logout
+
     // Google OAuth
     $routes->get('google', 'Auth::google_login');
     $routes->get('google_callback', 'Auth::google_callback');
-    
-    // OTP System
+
+    // OTP Verification (Telegram/WA)
     $routes->get('verify_otp', 'Auth::verify_otp');
     $routes->post('check_otp', 'Auth::check_otp');
     $routes->get('resend_otp', 'Auth::resend_otp');
 });
 
-// Alias URL pendek untuk kemudahan akses
-$routes->get('login', 'Auth::login'); // Menampilkan Halaman Login
+// Alias URL Pendek
+$routes->get('login', 'Auth::login');
 $routes->get('logout', 'Auth::logout');
 
+// ROUTE PENYELAMAT (Traffic Cop)
+// Mengarahkan user ke dashboard sesuai role masing-masing
+$routes->get('dashboard', 'Dashboard::index', ['filter' => 'role']);
+
+
 // =========================================================================
-// 3. ADMIN ROUTES
+// 2. ADMIN ROUTES (Protected: Admin Only)
 // =========================================================================
-// Semua URL diawali dengan /admin/
-$routes->group('admin', function($routes) {
+$routes->group('admin', ['filter' => 'role:admin'], function($routes) {
     
     // Dashboard Admin
     $routes->get('dashboard', 'Admin::index');
 
-    // --- Manajemen User (Pengguna Sistem) ---
+    // --- Manajemen User System ---
     $routes->group('users', function($routes) {
         $routes->get('/', 'Admin::users');
         $routes->get('tambah', 'Admin::tambah_user');
         $routes->post('simpan', 'Admin::simpan_user');
+        $routes->post('simpan_role', 'Admin::simpan_user_role');
+        // Tambahkan edit/delete user disini nanti
     });
 
-    // --- Manajemen Guru ---
-    $routes->get('guru', 'Admin::guru');                 // Ke fungsi guru()
-    $routes->get('guru/tambah', 'Admin::guru_tambah');   // Ke fungsi guru_tambah()
-    $routes->post('guru/simpan', 'Admin::guru_simpan');  // Ke fungsi guru_simpan()
-    $routes->get('guru/edit/(:num)', 'Admin::guru_edit/$1');
-    $routes->post('guru/update/(:num)', 'Admin::guru_update/$1');
-    $routes->get('guru/hapus/(:num)', 'Admin::guru_hapus/$1');
+    // --- Manajemen Data Guru ---
+    $routes->group('guru', function($routes) {
+        $routes->get('/', 'Admin::guru');
+        $routes->get('tambah', 'Admin::guru_tambah');
+        $routes->post('simpan', 'Admin::guru_simpan');
+        $routes->get('edit/(:num)', 'Admin::guru_edit/$1');
+        $routes->post('update/(:num)', 'Admin::guru_update/$1');
+        $routes->get('hapus/(:num)', 'Admin::guru_hapus/$1');
+    });
 
-    // --- Manajemen Siswa ---
+    // --- Manajemen Data Siswa ---
     $routes->group('siswa', function($routes) {
         $routes->get('/', 'Admin::data_siswa');
         $routes->get('tambah', 'Admin::tambah_siswa');
-        $routes->post('simpan', 'Admin::simpan_siswa'); // Proses Simpan
-        
-        // --- TAMBAHAN BARU ---
-        $routes->get('edit/(:num)', 'Admin::edit_siswa/$1');     // Form Edit
-        $routes->post('update/(:num)', 'Admin::update_siswa/$1'); // Proses Update
-        $routes->get('delete/(:num)', 'Admin::delete_siswa/$1');  // Proses Hapus
-        // Tambahkan route edit/delete siswa disini nanti
-    // Proses hapus// Method hapus_kelas()
+        $routes->post('simpan', 'Admin::simpan_siswa');
+        $routes->get('edit/(:num)', 'Admin::edit_siswa/$1');
+        $routes->post('update/(:num)', 'Admin::update_siswa/$1');
+        $routes->get('delete/(:num)', 'Admin::delete_siswa/$1');
     });
-           // --- CRUD KELAS (Pastikan ada di DALAM group admin) ---
-    $routes->get('kelas', 'Admin::kelas');                  // Menampilkan tabel
-    $routes->get('kelas/tambah', 'Admin::tambah_kelas');    // Form tambah
-    $routes->post('kelas/simpan', 'Admin::simpan_kelas');   // Proses simpan
-    $routes->get('kelas/edit/(:num)', 'Admin::edit_kelas/$1');      // Form edit
-    $routes->post('kelas/update/(:num)', 'Admin::update_kelas/$1'); // Proses update
-    $routes->get('kelas/hapus/(:num)', 'Admin::hapus_kelas/$1'); 
 
-    // --- Manajemen Ekskul ---
-    $routes->get('ekskul', 'Admin::ekskul');
-    $routes->get('ekskul/tambah', 'Admin::ekskul_tambah');
-    $routes->post('ekskul/simpan', 'Admin::ekskul_simpan');
-    $routes->get('ekskul/detail/(:num)', 'Admin::ekskul_detail/$1');
-    $routes->get('ekskul/edit/(:num)', 'Admin::ekskul_edit/$1');
-    $routes->post('ekskul/update/(:num)', 'Admin::ekskul_update/$1');
-    $routes->get('ekskul/hapus/(:num)', 'Admin::ekskul_hapus/$1');
-
-
-    // --- Manajemen Orang Tua ---
+    // --- Manajemen Data Orang Tua ---
     $routes->group('ortu', function($routes) {
         $routes->get('/', 'Admin::data_ortu');
         $routes->get('tambah', 'Admin::tambah_ortu');
@@ -101,21 +89,55 @@ $routes->group('admin', function($routes) {
         $routes->post('update/(:num)', 'Admin::update_ortu/$1');
         $routes->get('delete/(:num)', 'Admin::delete_ortu/$1');
     });
-    $routes->get('ortu', 'Admin::data_ortu');
+
+    // --- Manajemen Kelas ---
+    $routes->group('kelas', function($routes) {
+        $routes->get('/', 'Admin::kelas');
+        $routes->get('tambah', 'Admin::tambah_kelas');
+        $routes->post('simpan', 'Admin::simpan_kelas');
+        $routes->get('edit/(:num)', 'Admin::edit_kelas/$1');
+        $routes->post('update/(:num)', 'Admin::update_kelas/$1');
+        $routes->get('hapus/(:num)', 'Admin::hapus_kelas/$1');
+    });
+
+    // --- Manajemen Ekskul ---
+    $routes->group('ekskul', function($routes) {
+        $routes->get('/', 'Admin::ekskul');
+        $routes->get('tambah', 'Admin::ekskul_tambah');
+        $routes->post('simpan', 'Admin::ekskul_simpan');
+        $routes->get('detail/(:num)', 'Admin::ekskul_detail/$1');
+        $routes->get('edit/(:num)', 'Admin::ekskul_edit/$1');
+        $routes->post('update/(:num)', 'Admin::ekskul_update/$1');
+        $routes->get('hapus/(:num)', 'Admin::ekskul_hapus/$1');
+    });
 });
-// app/Config/Routes.php
 
 
 // =========================================================================
-// 4. GURU ROUTES
+// 3. GURU ROUTES (Protected: Guru Only)
 // =========================================================================
-$routes->group('guru', function($routes) {
+$routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     $routes->get('dashboard', 'Guru::index'); 
+    
+    // Nanti tambah route jadwal, penilaian, dll disini
+    // $routes->get('jadwal', 'Guru::jadwal');
 });
 
+
 // =========================================================================
-// 5. SISWA ROUTES
+// 4. SISWA ROUTES (Protected: Siswa Only)
 // =========================================================================
-$routes->group('siswa', function($routes) {
+$routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
     $routes->get('dashboard', 'Siswa::index');
+    
+    // Nanti tambah route lihat nilai, jadwal siswa disini
+});
+
+
+// =========================================================================
+// 5. PIKET ROUTES (Protected: Piket Only)
+// =========================================================================
+$routes->group('piket', ['filter' => 'role:piket'], function($routes) {
+    $routes->get('dashboard', 'Piket::index');
+    $routes->get('jurnal', 'Piket::jurnal');
 });

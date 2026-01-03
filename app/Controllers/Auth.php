@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Models\UserModel; // Menggunakan Model yang sudah kita buat
+use App\Models\UserModel;
 use Google\Client as GoogleClient;
 use Google\Service\Oauth2;
 
@@ -24,51 +24,52 @@ class Auth extends BaseController
 
     public function index()
     {
-        // Cek sesi login
         if (session()->get('logged_in')) {
-            return redirect()->to(base_url(session()->get('role') . '/dashboard'));
+            return redirect()->to(base_url(session()->get('role_active') . '/dashboard'));
         }
         return view('auth/login');
     }
 
-    // --- LOGIKA LOGIN MANUAL (FORM) ---
-    public function login() // Di Routes ini dipanggil via POST 'auth/login'
+    public function login()
     {
-        // Ini hanya alias jika diakses via GET (menampilkan view)
         if ($this->request->getMethod() === 'get') {
             return $this->index();
         }
-
-        // Proses Auth
         return $this->auth();
     }
 
-    // Proses Cek Database Manual
+    // --- LOGIKA LOGIN MANUAL ---
     public function auth()
     {
         $model = new UserModel();
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
 
-        $user = $model->where('username', $username)->first();
+        $user = $model->groupStart()
+                      ->where('username', $username)
+                      ->orWhere('email', $username)
+                      ->groupEnd()
+                      ->first();
 
         if ($user) {
-            // Verifikasi Password (Hash atau Plain text untuk dev)
             $verify_pass = password_verify($password, $user['password']);
-            
-            // BYPASS: Jika password di DB masih 'admin' polos (belum hash), izinkan login
-            if (!$verify_pass && $password == $user['password']) {
-                $verify_pass = true;
-            }
+            if (!$verify_pass && $password == $user['password']) { $verify_pass = true; } // Bypass dev
 
             if ($verify_pass) {
-                // Cek apakah punya Nomor WA untuk OTP
-                if (empty($user['nomor_wa'])) {
-                    return redirect()->back()->with('error', 'Akun ini belum memiliki Nomor WA untuk verifikasi OTP. Hubungi Admin.');
+                // 1. CEK MULTI-ROLE
+                $rawRoles = $model->getRoles($user['id']);
+                if (empty($rawRoles)) {
+                    return redirect()->back()->with('error', 'Akun valid tapi tidak memiliki Jabatan.');
+                }
+                $roles = array_column($rawRoles, 'role_key');
+
+                // 2. CEK ID TELEGRAM (GANTI DARI WA KE TELEGRAM)
+                if (empty($user['telegram_chat_id'])) {
+                    return redirect()->back()->with('error', 'ID Telegram belum terhubung. Silakan hubungi Admin untuk update data.');
                 }
 
-                // Kirim OTP
-                return $this->_initiateOTP($user, $user['nama_lengkap']);
+                // 3. KIRIM OTP VIA TELEGRAM
+                return $this->_initiateOTP($user, $user['nama_lengkap'], $roles);
             }
         }
 
@@ -84,10 +85,7 @@ class Auth extends BaseController
     public function google_callback()
     {
         $code = $this->request->getVar('code');
-        
-        if(!$code){
-             return redirect()->to(base_url('login'))->with('error', 'Gagal login Google (No Code).');
-        }
+        if(!$code){ return redirect()->to(base_url('login'))->with('error', 'Gagal login Google.'); }
 
         $token = $this->googleClient->fetchAccessTokenWithAuthCode($code);
 
@@ -97,28 +95,30 @@ class Auth extends BaseController
             $googleUser = $googleService->userinfo->get();
 
             $model = new UserModel();
-            // Cek user berdasarkan email google
             $user = $model->where('email', $googleUser->email)->first();
 
             if ($user) {
-                // Jika user ada, lanjut OTP
-                if (empty($user['nomor_wa'])) {
-                    return redirect()->to(base_url('login'))->with('error', 'Email Google terdaftar, tapi Nomor WA kosong. Hubungi Admin.');
+                $rawRoles = $model->getRoles($user['id']);
+                if (empty($rawRoles)) { return redirect()->to(base_url('login'))->with('error', 'Tidak punya jabatan.'); }
+                $roles = array_column($rawRoles, 'role_key');
+
+                // CEK TELEGRAM
+                if (empty($user['telegram_chat_id'])) {
+                    return redirect()->to(base_url('login'))->with('error', 'ID Telegram kosong. Hubungi Admin.');
                 }
-                return $this->_initiateOTP($user, $googleUser->name);
+
+                return $this->_initiateOTP($user, $googleUser->name, $roles);
             } else {
-                return redirect()->to(base_url('login'))->with('error', 'Email Google tidak terdaftar di sistem!');
+                return redirect()->to(base_url('login'))->with('error', 'Email tidak terdaftar.');
             }
         }
         return redirect()->to(base_url('login'))->with('error', 'Gagal autentikasi Google.');
     }
 
-    // --- LOGIKA VERIFIKASI OTP ---
+    // --- VERIFIKASI OTP ---
     public function verify_otp()
     {
-        if (!session()->get('temp_user_id')) {
-            return redirect()->to(base_url('login'));
-        }
+        if (!session()->get('temp_user_id')) { return redirect()->to(base_url('login')); }
         return view('auth/verify_otp');
     }
 
@@ -126,107 +126,155 @@ class Auth extends BaseController
     {
         $input_otp = $this->request->getPost('otp_code');
         
+        // Cek Kesesuaian OTP
         if ($input_otp == session()->get('otp_code')) {
-            // SET SESSION UTAMA (LOGIN SUKSES)
+            
+            // 1. Ambil Data Session Sementara
+            $roles = session()->get('temp_roles');
+            $idUser = session()->get('temp_user_id');
+            $namaUser = session()->get('temp_nama');
+            $chatId = session()->get('temp_telegram'); // ID Telegram User
+
+            // 2. Tentukan Role Utama
+            $activeRole = 'siswa';
+            if (in_array('admin', $roles)) $activeRole = 'admin';
+            elseif (in_array('kepsek', $roles)) $activeRole = 'kepsek';
+            elseif (in_array('guru', $roles)) $activeRole = 'guru';
+
+            // 3. Set Session Utama (Resmi Login)
             session()->set([
-                'id'           => session()->get('temp_user_id'),
+                'id_user'      => $idUser,
                 'username'     => session()->get('temp_username'),
-                'nama_lengkap' => session()->get('temp_nama'),
-                'role'         => session()->get('temp_role'),
+                'nama_lengkap' => $namaUser,
+                'roles'        => $roles,
+                'role_active'  => $activeRole,
                 'logged_in'    => true,
             ]);
 
-            // Bersihkan temp session
-            session()->remove(['temp_user_id', 'temp_username', 'temp_nama', 'temp_role', 'otp_code', 'temp_phone']);
+            // =====================================================
+            // 🔥 FITUR BARU: KIRIM NOTIFIKASI LOGIN SUKSES
+            // =====================================================
+            $this->_kirimNotifLogin($chatId, $namaUser); 
+            // =====================================================
+
+            // 4. Bersihkan Session Sampah
+            session()->remove(['temp_user_id', 'temp_username', 'temp_nama', 'temp_roles', 'otp_code', 'temp_telegram']);
             
-            return redirect()->to(base_url(session()->get('role') . '/dashboard'));
+            // 5. Redirect ke Dashboard
+            return redirect()->to(base_url($activeRole . '/dashboard'));
         }
 
         return redirect()->back()->with('error', 'Kode OTP salah!');
     }
 
+    /**
+     * FUNGSI TAMBAHAN: DETEKSI PERANGKAT & LOKASI (IP)
+     */
+    private function _kirimNotifLogin($chatId, $namaUser)
+    {
+        // 1. Deteksi User Agent (Perangkat)
+        $agent = $this->request->getUserAgent();
+        
+        if ($agent->isBrowser()) {
+            $device = $agent->getBrowser() . ' ' . $agent->getVersion();
+        } elseif ($agent->isRobot()) {
+            $device = $agent->getRobot();
+        } elseif ($agent->isMobile()) {
+            $device = $agent->getMobile();
+        } else {
+            $device = 'Aplikasi Tidak Dikenal';
+        }
+        
+        $platform = $agent->getPlatform(); // Windows, Android, iOS, dll
+        
+        // 2. Deteksi IP Address
+        $ip = $this->request->getIPAddress();
+        
+        // 3. Waktu Login
+        $waktu = date('d-m-Y H:i:s');
+
+        // 4. Susun Pesan
+        $pesan = "🔔 *LOGIN ALERT - SISM RJ*\n\n";
+        $pesan .= "Halo *$namaUser*,\n";
+        $pesan .= "Akun Anda baru saja berhasil login.\n\n";
+        $pesan .= "📱 *Perangkat:* $device ($platform)\n";
+        $pesan .= "🌐 *IP Address:* $ip\n";
+        $pesan .= "📅 *Waktu:* $waktu\n\n";
+        $pesan .= "_Jika ini bukan Anda, segera hubungi Admin!_";
+
+        // 5. Kirim via Telegram (Pakai fungsi yg sudah ada)
+        $this->_sendTelegram($chatId, 0, $namaUser, $pesan); 
+    }
     public function resend_otp()
     {
-        if (!session()->get('temp_user_id')) {
-            return redirect()->to(base_url('login'))->with('error', 'Sesi berakhir.');
-        }
+        if (!session()->get('temp_user_id')) { return redirect()->to(base_url('login'))->with('error', 'Sesi berakhir.'); }
 
-        $target = session()->get('temp_phone');
+        $target = session()->get('temp_telegram');
         $nama_user = session()->get('temp_nama');
         $new_otp = rand(100000, 999999);
         session()->set('otp_code', $new_otp);
 
-        $this->_sendOneSender($target, $new_otp, $nama_user);
-        return redirect()->back()->with('success', 'OTP baru telah dikirim!');
+        $this->_sendTelegram($target, $new_otp, $nama_user); // PANGGIL FUNGSI TELEGRAM
+        return redirect()->back()->with('success', 'OTP baru telah dikirim ke Telegram!');
     }
 
-    // --- FUNGSI HELPER (PRIVATE) ---
+    // --- HELPER FUNCTIONS ---
 
-    private function _initiateOTP($user, $display_name)
+    private function _initiateOTP($user, $display_name, $roles)
     {
         $otp = rand(100000, 999999);
         
-        // Simpan data user di session sementara sebelum OTP valid
         session()->set([
             'temp_user_id'  => $user['id'],
             'temp_username' => $user['username'],
-            'temp_nama'     => $user['nama_lengkap'], // Pakai nama dari DB
-            'temp_role'     => $user['role'],
-            'temp_phone'    => $user['nomor_wa'],
+            'temp_nama'     => $user['nama_lengkap'], 
+            'temp_roles'    => $roles,
+            'temp_telegram' => $user['telegram_chat_id'], // Simpan Chat ID Telegram
             'otp_code'      => $otp
         ]);
 
-        // Kirim WA
-        $this->_sendOneSender($user['nomor_wa'], $otp, $display_name);
+        // Kirim Telegram
+        $this->_sendTelegram($user['telegram_chat_id'], $otp, $display_name);
         
         return redirect()->to(base_url('auth/verify_otp'));
     }
 
-    private function _sendOneSender($target, $otp, $nama_user) 
+    /**
+     * FUNGSI PENGIRIM PESAN TELEGRAM
+     */
+    private function _sendTelegram($chatId, $otpCode = 0, $nama_user = '', $customMessage = null) 
     {
-        $apiKey = "u72643b10aaf6428.f1b2f2c6564344f7b48cde5a92424bf4"; // API KEY ANDA
+        $token = getenv('TELEGRAM_BOT_TOKEN');
         
-        $sapaan = ['Halo', 'Hi', 'SIAKAD Info:'];
-        $random_sapaan = $sapaan[array_rand($sapaan)];
-        $ref_id = strtoupper(substr(uniqid(), -5));
+        // LOGIKA: Kalau ada Custom Message, pakai itu. Kalau tidak, pakai format OTP.
+        if ($customMessage) {
+            $pesan = $customMessage;
+        } else {
+            // Format OTP Bawaan
+            $pesan = "🔐 *SISM-RJ LOGIN*\n\n";
+            $pesan .= "Halo *$nama_user*,\n";
+            $pesan .= "Kode OTP Anda adalah: `$otpCode`\n\n";
+            $pesan .= "_(Jangan berikan kode ini kepada siapapun)_";
+        }
 
-        $isi_pesan = "$random_sapaan *$nama_user*,\n\n";
-        $isi_pesan .= "Kode verifikasi (OTP) login Anda: *$otp*\n\n";
-        $isi_pesan .= "_Jaga kerahasiaan kode ini._";
-
+        $url = "https://api.telegram.org/bot" . $token . "/sendMessage";
+        
         $data = [
-            "recipient_type" => "individual",
-            "to"             => $target,
-            "type"           => "text",
-            "text"           => [
-                "body" => $isi_pesan
-            ]
+            'chat_id'    => $chatId,
+            'text'       => $pesan,
+            'parse_mode' => 'Markdown'
         ];
 
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://wa3409.cloudwa.my.id/api/v1/messages',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_HTTPHEADER => array(
-                "Authorization: Bearer $apiKey",
-                "Content-Type: application/json"
-            ),
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => 0
-        ));
-
-        $response = curl_exec($curl);
-        curl_close($curl);
-        return $response;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        
+        return $result;
     }
-
     public function logout()
     {
         session()->destroy();

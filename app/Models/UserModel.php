@@ -65,4 +65,15 @@ class UserModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+    public function getRoles($userId)
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('user_roles');
+        // Kita ambil kode role (misal: 'guru') dan nama aslinya (misal: 'Guru Mapel')
+        $builder->select('roles.role_key, roles.role_name');
+        $builder->join('roles', 'roles.id = user_roles.role_id');
+        $builder->where('user_roles.user_id', $userId);
+        
+        return $builder->get()->getResultArray();
+    }
 }

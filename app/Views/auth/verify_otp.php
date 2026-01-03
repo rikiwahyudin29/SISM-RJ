@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifikasi OTP | SIAKAD</title>
+    <title>Verifikasi OTP Telegram | SIAKAD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
     <style>
@@ -14,8 +14,8 @@
             margin: 0;
         }
         .otp-input:focus {
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
-            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2); /* Warna Biru Langit Telegram */
+            border-color: #38bdf8;
         }
     </style>
 </head>
@@ -23,19 +23,31 @@
 
     <div class="max-w-md w-full bg-white dark:bg-gray-800 shadow-2xl rounded-3xl p-8 border border-gray-100 dark:border-gray-700">
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full mb-6 ring-8 ring-green-50 dark:ring-green-900/10">
-                <svg class="w-10 h-10 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-sky-100 dark:bg-sky-900/20 rounded-full mb-6 ring-8 ring-sky-50 dark:ring-sky-900/10">
+                <svg class="w-10 h-10 text-sky-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.56 8.16l-1.99 9.41c-.15.66-.54.82-1.1.51l-3.05-2.25-1.47 1.42c-.16.16-.3.3-.61.3l.22-3.11 5.66-5.11c.25-.22-.05-.34-.38-.12l-6.99 4.4-3.02-.94c-.66-.21-.67-.66.14-.97l11.78-4.54c.55-.2 1.02.12.81.9z"/>
                 </svg>
             </div>
-            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Verifikasi Akun</h2>
+            
+            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Cek Telegram Anda</h2>
             <p class="text-gray-500 dark:text-gray-400 mt-3 text-sm leading-relaxed">
-                Kode unik telah dikirim ke WhatsApp Anda <br>
-                <span class="font-bold text-blue-600 dark:text-blue-400 text-lg tracking-wide">
+                Kode unik telah dikirim ke akun Telegram bot <br>
+                <span class="font-bold text-sky-600 dark:text-sky-400 text-lg tracking-wide">
                     <?php 
-                        $phone = session()->get('temp_phone');
-                        // Masking nomor: 0812****789
-                        echo substr($phone, 0, 4) . '****' . substr($phone, -3); 
+                        // UBAH: Ambil ID Telegram dari session (sesuai AuthController)
+                        $teleID = session()->get('temp_telegram');
+                        
+                        if ($teleID) {
+                            // Masking ID Telegram: 123****89
+                            $len = strlen($teleID);
+                            if($len > 4) {
+                                echo substr($teleID, 0, 3) . '****' . substr($teleID, -2); 
+                            } else {
+                                echo $teleID;
+                            }
+                        } else {
+                            echo "ID Tidak Terdeteksi";
+                        }
                     ?>
                 </span>
             </p>
@@ -60,7 +72,7 @@
             <div class="flex justify-between gap-2 mb-10">
                 <?php for($i=1; $i<=6; $i++): ?>
                     <input type="tel" 
-                           class="otp-input w-full h-14 text-center text-2xl font-black text-gray-900 bg-gray-50 dark:bg-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-blue-500 focus:ring-0 transition-all duration-200" 
+                           class="otp-input w-full h-14 text-center text-2xl font-black text-gray-900 bg-gray-50 dark:bg-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-sky-500 focus:ring-0 transition-all duration-200" 
                            maxlength="1" 
                            inputmode="numeric"
                            autocomplete="one-time-code"
@@ -69,24 +81,24 @@
                 <?php endfor; ?>
             </div>
 
-            <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center gap-3 active:scale-[0.98]">
-                <span>Verifikasi Sekarang</span>
+            <button type="submit" class="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white font-bold text-lg rounded-2xl transition-all shadow-xl shadow-sky-500/30 flex items-center justify-center gap-3 active:scale-[0.98]">
+                <span>Verifikasi Masuk</span>
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
             </button>
         </form>
 
         <div class="mt-12 text-center">
             <p class="text-sm text-gray-500 dark:text-gray-400">
-                Tidak menerima kode? 
+                Belum menerima pesan? 
                 <a href="<?= base_url('auth/resend_otp') ?>" 
                    id="resend-btn"
-                   class="pointer-events-none opacity-50 text-blue-600 dark:text-blue-400 font-bold hover:underline transition-opacity">
-                    Kirim Ulang
+                   class="pointer-events-none opacity-50 text-sky-600 dark:text-sky-400 font-bold hover:underline transition-opacity">
+                    Kirim Ulang ke Telegram
                 </a>
             </p>
             
             <div id="timer-box" class="mt-4 flex items-center justify-center gap-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
                 <span id="timer-label">Tunggu 60 detik</span>
             </div>
         </div>
@@ -97,17 +109,13 @@
         const hiddenInput = document.getElementById('otp_code_hidden');
         const form = document.getElementById('otp-form');
 
-        // --- Fitur Auto Focus & Input Control ---
+        // --- Fitur Auto Focus & Input Control (Tetap Sama) ---
         inputs.forEach((input, index) => {
             input.addEventListener('input', (e) => {
-                // Hanya angka
                 e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                
                 if (e.target.value.length > 1) {
                     e.target.value = e.target.value.slice(0, 1);
                 }
-                
-                // Auto focus next
                 if (e.target.value && index < inputs.length - 1) {
                     inputs[index + 1].focus();
                 }
@@ -115,7 +123,6 @@
             });
 
             input.addEventListener('keydown', (e) => {
-                // Backspace auto focus prev
                 if (e.key === 'Backspace' && !e.target.value && index > 0) {
                     inputs[index - 1].focus();
                 }
@@ -141,9 +148,8 @@
             hiddenInput.value = fullCode;
         }
 
-        // --- Submit Handler ---
         form.addEventListener('submit', (e) => {
-            combineCode(); // Pastikan value terisi sebelum submit
+            combineCode();
             if(hiddenInput.value.length < 6) {
                 e.preventDefault();
                 alert('Harap masukkan 6 digit kode OTP!');
@@ -162,7 +168,6 @@
 
             if (secondsLeft <= 0) {
                 clearInterval(countdown);
-                // Aktifkan tombol Kirim Ulang
                 resendBtn.classList.remove('pointer-events-none', 'opacity-50');
                 timerBox.classList.add('opacity-0'); 
             }
