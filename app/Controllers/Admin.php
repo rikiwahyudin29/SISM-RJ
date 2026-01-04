@@ -192,50 +192,62 @@ class Admin extends BaseController
         return view('admin/guru/edit', $data);
     }
 
-    public function guru_update($id)
-    {
-        $guruLama = $this->guruModel->find($id);
-        if (!$guruLama) return redirect()->back()->with('error', 'Data tidak ditemukan.');
+   public function guru_update($id)
+{
+    $guruLama = $this->guruModel->find($id);
+    if (!$guruLama) return redirect()->back()->with('error', 'Data tidak ditemukan.');
 
-        // 1. UPDATE USER
-        $userData = [
-            'username'     => $this->request->getPost('username'),
-            'email'        => $this->request->getPost('email'),
-            'nama_lengkap' => $this->request->getPost('nama_lengkap'),
-            'nomor_wa'     => $this->request->getPost('nomor_wa'),
-        ];
-        $passwordBaru = $this->request->getPost('password');
-        if (!empty($passwordBaru)) {
-            $userData['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
+    // 1. UPDATE USER (Tabel tbl_users)
+    $userData = [
+        'username'         => $this->request->getPost('username'),
+        'email'            => $this->request->getPost('email'),
+        'nama_lengkap'     => $this->request->getPost('nama_lengkap'),
+        'nomor_wa'         => $this->request->getPost('nomor_wa'),
+        'telegram_chat_id' => $this->request->getPost('telegram_chat_id'), // 🔥 SEKARANG SUDAH DITAMBAHKAN
+    ];
+
+    $passwordBaru = $this->request->getPost('password');
+    if (!empty($passwordBaru)) {
+        $userData['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
+    }
+    
+    // Eksekusi Update ke tbl_users
+    $this->userModel->update($guruLama['user_id'], $userData);
+
+    // 2. UPDATE FOTO
+    $fileFoto = $this->request->getFile('foto');
+    $namaFoto = $guruLama['foto'];
+
+    if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
+        // Hapus foto lama jika bukan default
+        if ($guruLama['foto'] != 'default.png' && file_exists('uploads/guru/' . $guruLama['foto'])) {
+            unlink('uploads/guru/' . $guruLama['foto']);
         }
-        $this->userModel->update($guruLama['user_id'], $userData);
+        
+        $namaFoto = $fileFoto->getRandomName();
+        $fileFoto->move('uploads/guru', $namaFoto);
 
-        // 2. UPDATE FOTO
-        $fileFoto = $this->request->getFile('foto');
-        $namaFoto = $guruLama['foto'];
-        if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
-            if ($guruLama['foto'] != 'default.png' && file_exists('uploads/guru/' . $guruLama['foto'])) {
-                unlink('uploads/guru/' . $guruLama['foto']);
-            }
-            $namaFoto = $fileFoto->getRandomName();
-            $fileFoto->move('uploads/guru', $namaFoto);
+        // 🔥 EXTRA: Jika yang diedit adalah akun sendiri, update session fotonya
+        if (session()->get('id_user') == $guruLama['user_id']) {
+            session()->set('foto', $namaFoto);
         }
-
-        // 3. UPDATE GURU
-        $guruData = [
-            'nip'            => $this->request->getPost('nip'),
-            'nama_lengkap'   => $this->request->getPost('nama_lengkap'),
-            'gelar_depan'    => $this->request->getPost('gelar_depan'),
-            'gelar_belakang' => $this->request->getPost('gelar_belakang'),
-            'jenis_kelamin'  => $this->request->getPost('jenis_kelamin'),
-            'alamat'         => $this->request->getPost('alamat'),
-            'foto'           => $namaFoto
-        ];
-        $this->guruModel->update($id, $guruData);
-
-        return redirect()->to(base_url('admin/guru'))->with('success', 'Data guru berhasil diperbarui!');
     }
 
+    // 3. UPDATE GURU (Tabel tbl_guru)
+    $guruData = [
+        'nip'            => $this->request->getPost('nip'),
+        'nama_lengkap'   => $this->request->getPost('nama_lengkap'),
+        'gelar_depan'    => $this->request->getPost('gelar_depan'),
+        'gelar_belakang' => $this->request->getPost('gelar_belakang'),
+        'jenis_kelamin'  => $this->request->getPost('jenis_kelamin'),
+        'alamat'         => $this->request->getPost('alamat'),
+        'foto'           => $namaFoto
+    ];
+    
+    $this->guruModel->update($id, $guruData);
+
+    return redirect()->to(base_url('admin/guru'))->with('success', 'Data guru dan ID Telegram berhasil diperbarui!');
+}
     public function guru_hapus($id)
     {
         $guru = $this->guruModel->find($id);

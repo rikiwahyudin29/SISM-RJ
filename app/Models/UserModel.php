@@ -30,7 +30,7 @@ class UserModel extends Model
      * bisa membaca/menyimpan data saat Login Google & kirim OTP.
      */
     protected $allowedFields    = [
-        'nama_lengkap', 'username', 'email', 'nomor_wa', 'password', 'role'
+        'nama_lengkap', 'username', 'email', 'nomor_wa','telegram_chat_id', 'password', 'role'
     ];
 
     protected bool $allowEmptyInserts = false;

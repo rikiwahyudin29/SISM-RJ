@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?? 'SIAKAD' ?></title>
+    <title><?= $title ?? 'SIAKAD SISM-RJ' ?></title>
     
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
+        // Cek Tema saat loading awal
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -35,13 +36,11 @@
                 <div class="flex items-center">
                     <button data-drawer-target="top-bar-sidebar" data-drawer-toggle="top-bar-sidebar" aria-controls="top-bar-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
                         <span class="sr-only">Open sidebar</span>
-                        <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                           <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
-                        </svg>
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path></svg>
                      </button>
-                    <a href="<?= base_url('admin/dashboard') ?>" class="flex ms-2 md:me-24 items-center gap-2">
-                        <img src="<?= base_url('assets/img/logo.svg') ?>" class="h-9 w-9" alt="Logo Sekolah" />
-                        <span class="self-center text-xl font-bold whitespace-nowrap dark:text-white">SIAKAD</span>
+                    <a href="<?= base_url(session()->get('role_active') . '/dashboard') ?>" class="flex ms-2 md:me-24 items-center gap-2">
+                        <img src="<?= base_url('assets/img/logo.svg') ?>" class="h-9 w-9" alt="Logo" />
+                        <span class="self-center text-xl font-bold whitespace-nowrap dark:text-white uppercase tracking-tighter italic">SIAKAD</span>
                     </a>
                 </div>
                 
@@ -58,15 +57,23 @@
 
                     <div class="flex items-center ms-3">
                         <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" aria-expanded="false" data-dropdown-toggle="dropdown-user">
-                            <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=<?= urlencode(session()->get('nama_lengkap')) ?>&background=0D8ABC&color=fff" alt="user photo">
+                            <?php 
+                                $foto = session()->get('foto');
+                                $path = 'uploads/guru/' . $foto;
+                                if (!empty($foto) && file_exists(FCPATH . $path)): 
+                            ?>
+                                <img class="w-8 h-8 rounded-full object-cover" src="<?= base_url($path) ?>" alt="user photo">
+                            <?php else: ?>
+                                <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=<?= urlencode(session()->get('nama_lengkap')) ?>&background=0D8ABC&color=fff" alt="user photo">
+                            <?php endif; ?>
                         </button>
                         <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600" id="dropdown-user">
                             <div class="px-4 py-3">
-                                <p class="text-sm text-gray-900 dark:text-white"><?= session()->get('nama_lengkap') ?? 'Administrator' ?></p>
-                                <p class="text-xs font-bold text-blue-600 truncate dark:text-blue-400 uppercase"><?= session()->get('role_active') ?? 'GUEST' ?></p>
+                                <p class="text-sm font-bold text-gray-900 dark:text-white"><?= session()->get('nama_lengkap') ?></p>
+                                <p class="text-xs font-bold text-blue-600 truncate dark:text-blue-400 uppercase tracking-widest"><?= session()->get('role_active') ?></p>
                             </div>
                             <ul class="py-1">
-                                <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600">Edit Profil</a></li>
+                                <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 italic">Edit Profil</a></li>
                                 <li><a href="<?= base_url('logout') ?>" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 font-bold">Sign out</a></li>
                             </ul>
                         </div>
@@ -76,57 +83,7 @@
         </div>
     </nav>
 
-    <aside id="top-bar-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700">
-        <div class="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
-            <ul class="space-y-2 font-medium">
-                <li>
-                    <a href="<?= base_url('admin/dashboard') ?>" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                       <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 22 21">
-                          <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z"/>
-                          <path d="M12.5 0c-.157 0-.311.01-.465.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z"/>
-                       </svg>
-                       <span class="ms-3">Dashboard</span>
-                    </a>
-                </li>
-
-                <?php if (in_array('admin', session()->get('roles') ?? [])) : ?>
-                <li>
-                    <a href="<?= base_url('admin/users') ?>" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                        <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"></path>
-                        </svg>
-                        <span class="ms-3 text-left whitespace-nowrap">Manajemen User</span>
-                    </a>
-                </li>
-                <?php endif; ?>
-
-                <li>
-                    <button type="button" class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-master" data-collapse-toggle="dropdown-master">
-                        <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 18">
-                           <path d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z"/>
-                        </svg>
-                        <span class="flex-1 ms-3 text-left whitespace-nowrap">Data Master</span>
-                        <svg class="w-3 h-3" aria-hidden="true" fill="none" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-                        </svg>
-                    </button>
-                    <ul id="dropdown-master" class="hidden py-2 space-y-2">
-                        <li><a href="<?= base_url('admin/guru') ?>" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 dark:text-white dark:hover:bg-gray-700">Data Guru</a></li>
-                        <li><a href="<?= base_url('admin/siswa') ?>" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 dark:text-white dark:hover:bg-gray-700">Data Siswa</a></li>
-                        <li><a href="<?= base_url('admin/ortu') ?>" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 dark:text-white dark:hover:bg-gray-700">Data Wali</a></li>
-                        <li><a href="<?= base_url('admin/kelas') ?>" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 dark:text-white dark:hover:bg-gray-700">Data Kelas</a></li>
-                    </ul>
-                </li>
-
-                <li class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                    <a href="<?= base_url('logout') ?>" class="flex items-center p-2 text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 group">
-                       <svg class="w-5 h-5 transition duration-75 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                       <span class="ms-3 font-bold">Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </aside>
+    <?= $this->include('layout/sidebar') ?>
 
     <div class="p-4 sm:ml-64">
         <div class="p-4 mt-14">
@@ -136,23 +93,18 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
     <script>
-        // Logika Ping
+        // Logika Ping Sensor
         function checkPing() {
             const start = Date.now();
             const text = document.getElementById('ping-text');
             const dot = document.getElementById('ping-dot');
-            
             fetch('<?= base_url('favicon.ico') ?>', { mode: 'no-cors', cache: 'no-store' })
                 .then(() => {
                     const diff = Date.now() - start;
                     text.innerText = diff + ' ms';
-                    if (diff < 150) {
-                        dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse';
-                    } else if (diff < 400) {
-                        dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-400';
-                    } else {
-                        dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
-                    }
+                    if (diff < 150) dot.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse';
+                    else if (diff < 400) dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-400';
+                    else dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
                 })
                 .catch(() => {
                     text.innerText = 'Offline';
@@ -162,21 +114,18 @@
         setInterval(checkPing, 5000);
         checkPing();
 
-        // Logika Dark Mode
+        // Dark Mode Logic
         var themeToggleBtn = document.getElementById('theme-toggle');
         var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
         var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             themeToggleLightIcon.classList.remove('hidden');
         } else {
             themeToggleDarkIcon.classList.remove('hidden');
         }
-
         themeToggleBtn.addEventListener('click', function() {
             themeToggleDarkIcon.classList.toggle('hidden');
             themeToggleLightIcon.classList.toggle('hidden');
-
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('color-theme', 'light');

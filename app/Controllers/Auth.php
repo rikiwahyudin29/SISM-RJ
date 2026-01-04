@@ -126,16 +126,21 @@ class Auth extends BaseController
     {
         $input_otp = $this->request->getPost('otp_code');
         
-        // Cek Kesesuaian OTP
         if ($input_otp == session()->get('otp_code')) {
             
-            // 1. Ambil Data Session Sementara
             $roles = session()->get('temp_roles');
             $idUser = session()->get('temp_user_id');
             $namaUser = session()->get('temp_nama');
-            $chatId = session()->get('temp_telegram'); // ID Telegram User
+            $chatId = session()->get('temp_telegram');
 
-            // 2. Tentukan Role Utama
+            // --- PERBAIKAN: Ambil foto dari tbl_guru ---
+            $db = \Config\Database::connect();
+            $guru = $db->table('tbl_guru')->where('user_id', $idUser)->get()->getRowArray();
+            
+            // Jika data guru ditemukan, ambil fotonya. Jika tidak, pakai default.
+            $fotoUser = ($guru && isset($guru['foto'])) ? $guru['foto'] : 'default.png';
+            // ------------------------------------------
+
             $activeRole = 'siswa';
             if (in_array('admin', $roles)) $activeRole = 'admin';
             elseif (in_array('kepsek', $roles)) $activeRole = 'kepsek';
@@ -146,21 +151,18 @@ class Auth extends BaseController
                 'id_user'      => $idUser,
                 'username'     => session()->get('temp_username'),
                 'nama_lengkap' => $namaUser,
+                'foto'         => $fotoUser, // 🔥 Sekarang mengambil dari tbl_guru
                 'roles'        => $roles,
                 'role_active'  => $activeRole,
                 'logged_in'    => true,
             ]);
 
-            // =====================================================
-            // 🔥 FITUR BARU: KIRIM NOTIFIKASI LOGIN SUKSES
-            // =====================================================
+            // Kirim Notif Login Sukses
             $this->_kirimNotifLogin($chatId, $namaUser); 
-            // =====================================================
 
             // 4. Bersihkan Session Sampah
             session()->remove(['temp_user_id', 'temp_username', 'temp_nama', 'temp_roles', 'otp_code', 'temp_telegram']);
             
-            // 5. Redirect ke Dashboard
             return redirect()->to(base_url($activeRole . '/dashboard'));
         }
 
