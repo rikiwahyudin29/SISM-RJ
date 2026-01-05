@@ -30,12 +30,10 @@ class RoleCheck implements FilterInterface
         // 4. Cek: Apakah user punya tiket untuk masuk?
         // Logic: Jika halaman butuh 'admin', cek apakah 'admin' ada di saku user
         if ($requiredRole && !in_array($requiredRole, $userRoles)) {
-            
-            // Kalau gak punya akses, tendang ke dashboard dia sendiri
-            $myDashboard = session()->get('role_active'); 
-            return redirect()->to(base_url($myDashboard . '/dashboard'))
-                             ->with('error', 'Eits! Anda tidak punya akses ke halaman itu.');
-        }
+    $myDashboard = session()->get('role_active'); 
+    return redirect()->to(base_url($myDashboard . '/dashboard'))
+                     ->with('access_denied', 'Eits! Anda tidak punya akses ke halaman itu.');
+}
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)

@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/admin_layout') ?>
+<?= $this->extend('layout/template') ?>
 <?= $this->section('content') ?>
 
 <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow dark:bg-gray-800">

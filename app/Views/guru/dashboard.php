@@ -1,6 +1,11 @@
 <?= $this->extend('layout/template'); ?> 
 
 <?= $this->section('content'); ?>
+<?php if(session()->getFlashdata('error')): ?>
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-2xl bg-red-50 dark:bg-gray-800 dark:text-red-400 border border-red-200 dark:border-red-900/50" role="alert">
+        <span class="font-black">Akses Ditolak:</span> <?= session()->getFlashdata('error') ?>
+    </div>
+<?php endif; ?>
 
 <div class="space-y-6">
     

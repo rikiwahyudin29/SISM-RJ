@@ -59,6 +59,8 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
         $routes->post('simpan_role', 'Admin::simpan_user_role');
         // Tambahkan edit/delete user disini nanti
     });
+    $routes->get('pengaturan', 'Admin::pengaturan');
+    $routes->post('pengaturan/update', 'Admin::pengaturan_update');
 
     // --- Manajemen Data Guru ---
     $routes->group('guru', function($routes) {

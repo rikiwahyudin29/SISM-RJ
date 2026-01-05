@@ -135,5 +135,36 @@
             }
         });
     </script>
+    <?php if (session()->getFlashdata('access_denied')) : ?>
+<div id="denied-popup" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 max-w-sm w-full border-t-4 border-red-500 transform transition-all animate-bounce-short">
+        <div class="flex flex-col items-center text-center">
+            <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-black text-gray-900 dark:text-white mb-2">Akses Terlarang!</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed font-medium">
+                <?= session()->getFlashdata('access_denied') ?>
+            </p>
+            <button onclick="document.getElementById('denied-popup').remove()" class="mt-6 w-full py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold rounded-2xl transition-colors">
+                Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Popup denied juga hilang otomatis dalam 5 detik jika tidak diklik
+    setTimeout(function() {
+        const popup = document.getElementById('denied-popup');
+        if (popup) {
+            popup.classList.add('opacity-0');
+            setTimeout(() => popup.remove(), 300);
+        }
+    }, 5000);
+</script>
+<?php endif; ?>
 </body>
 </html>

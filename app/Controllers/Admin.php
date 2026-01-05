@@ -39,37 +39,93 @@ class Admin extends BaseController
     // 1. DASHBOARD
     // =================================================================
     public function index()
-    {
-        // Hitung User berdasarkan Role di tabel user_roles (LEBIH AKURAT)
-        $totalGuru = $this->db->table('user_roles')
-            ->join('roles', 'roles.id = user_roles.role_id')
-            ->where('roles.role_key', 'guru')
-            ->countAllResults();
+{
+    $db = \Config\Database::connect();
 
-        $totalSiswa = $this->db->table('user_roles')
-            ->join('roles', 'roles.id = user_roles.role_id')
-            ->where('roles.role_key', 'siswa')
-            ->countAllResults();
+    // 1. SDM & AKADEMIK (Join untuk Role Khusus)
+    $totalGuru = $db->table('user_roles')
+        ->join('roles', 'roles.id = user_roles.role_id')
+        ->where('roles.role_key', 'guru')
+        ->countAllResults();
 
-        $totalAll = $this->db->table('tbl_users')->countAllResults();
+    $totalSiswa = $db->table('tbl_siswa')->countAllResults(); 
+    $totalUser  = $db->table('tbl_users')->countAllResults();
+    $totalKelas = $db->table('tbl_kelas')->countAllResults();
+    $totalMapel = $db->table('tbl_mapel')->countAllResults();
 
-        // Data Log Dummy (Nanti bisa dibikin tabel logs beneran)
-        $logs = [
-            ['time' => 'Baru saja', 'user' => 'System', 'act' => 'Sinkronisasi Multi-Role Berhasil'],
-            ['time' => '10 menit lalu', 'user' => session()->get('nama'), 'act' => 'Login ke Dashboard Admin'],
-        ];
+    // 2. HITUNG ROLE SPESIFIK (Wali Kelas, BK, Piket)
+    $totalWali = $db->table('user_roles')
+        ->join('roles', 'roles.id = user_roles.role_id')
+        ->where('roles.role_key', 'walikelas')->countAllResults();
+        
+    $totalBK = $db->table('user_roles')
+        ->join('roles', 'roles.id = user_roles.role_id')
+        ->where('roles.role_key', 'bk')->countAllResults();
 
-        $data = [
-            'title'       => 'Dashboard Administrator',
-            'user'        => session()->get('nama'), // Ambil nama dari session login
-            'total_guru'  => $totalGuru,
-            'total_siswa' => $totalSiswa,
-            'total_all'   => $totalAll,
-            'logs'        => $logs
-        ];
+    $totalPiket = $db->table('user_roles')
+        ->join('roles', 'roles.id = user_roles.role_id')
+        ->where('roles.role_key', 'piket')->countAllResults();
 
-        return view('admin/dashboard', $data);
-    }
+    // 3. KEDISIPLINAN & BK
+    $totalPelanggaran = $db->table('tbl_pelanggaran')->countAllResults();
+    $belumDibina      = $db->table('tbl_pelanggaran')->where('status', 'belum')->countAllResults();
+    $sudahDibina      = $db->table('tbl_pelanggaran')->where('status', 'sudah')->countAllResults();
+    $totalPrestasi    = $db->table('tbl_prestasi')->countAllResults();
+
+    // 4. PRESENSI & IZIN (Hari Ini)
+    $tgl = date('Y-m-d');
+    $absSakit  = $db->table('tbl_absensi')->where(['tgl' => $tgl, 'status' => 'S'])->countAllResults();
+    $absIzin   = $db->table('tbl_absensi')->where(['tgl' => $tgl, 'status' => 'I'])->countAllResults();
+    $absAlpha  = $db->table('tbl_absensi')->where(['tgl' => $tgl, 'status' => 'A'])->countAllResults();
+    $izIn      = $db->table('tbl_perizinan')->where(['tgl' => $tgl, 'tipe' => 'masuk'])->countAllResults();
+    $izOut     = $db->table('tbl_perizinan')->where(['tgl' => $tgl, 'tipe' => 'pulang'])->countAllResults();
+
+    // 5. KEUANGAN (Sum Nilai dari tbl_pengaturan atau tbl_keuangan)
+    $totalBayar   = $db->table('tbl_pembayaran')->selectSum('jumlah')->get()->getRow()->jumlah ?? 0;
+    $totalTunggak = $db->table('tbl_tagihan')->where('status', 'belum')->selectSum('sisa')->get()->getRow()->sisa ?? 0;
+
+    // 6. DATA GRAFIK (7 Hari Terakhir)
+    $chartLabels   = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+    $chartPresensi = [90, 85, 95, 92, 88, 0, 0]; // Contoh data tren kehadiran %
+    $chartKeuangan = [$totalBayar, $totalTunggak]; // Data untuk Doughnut Chart
+
+    // 7. AKTIVITAS & LOGS
+    $lastLogin = $db->table('tbl_users')->select('nama_lengkap, last_login')->orderBy('last_login', 'DESC')->limit(5)->get()->getResultArray();
+    $logs = [
+        ['time' => 'Baru saja', 'user' => 'System', 'act' => 'Dashboard Command Center Aktif'],
+        ['time' => '5 menit lalu', 'user' => session()->get('nama_lengkap'), 'act' => 'Membuka Manajemen Web'],
+    ];
+
+    $data = [
+        'title'             => 'Dashboard Administrator',
+        'total_guru'        => $totalGuru,
+        'total_siswa'       => $totalSiswa,
+        'total_user'        => $totalUser,
+        'total_kelas'       => $totalKelas,
+        'total_mapel'       => $totalMapel,
+        'total_walikelas'   => $totalWali,
+        'total_bk'          => $totalBK,
+        'total_piket'       => $totalPiket,
+        'total_pelanggaran' => $totalPelanggaran,
+        'belum_dibina'      => $belumDibina,
+        'sudah_dibina'      => $sudahDibina,
+        'total_prestasi'    => $totalPrestasi,
+        'absensi_sakit'     => $absSakit,
+        'absensi_izin'      => $absIzin,
+        'absensi_alpha'     => $absAlpha,
+        'izin_masuk'        => $izIn,
+        'izin_pulang'       => $izOut,
+        'total_bayar'       => $totalBayar,
+        'total_tunggak'     => $totalTunggak,
+        'chart_labels'      => $chartLabels,
+        'chart_presensi'    => $chartPresensi,
+        'chart_keuangan'    => $chartKeuangan,
+        'last_login'        => $lastLogin,
+        'logs'              => $logs
+    ];
+
+    return view('admin/dashboard', $data);
+}
 
     // =================================================================
     // 2. MANAJEMEN GURU (UPDATED FOR MULTI-ROLE)
@@ -578,23 +634,49 @@ class Admin extends BaseController
     // 7. PENGATURAN & TEST SYSTEM
     // =================================================================
     public function pengaturan()
-    {
-        $dataSetting = $this->pengaturanModel->ambilDataArray();
-        if(!isset($dataSetting['telegram_token'])) $dataSetting['telegram_token'] = '';
+{
+    $model = new \App\Models\SettingModel();
+    $data = [
+        'title'   => 'Manajemen Web',
+        'setting' => $model->findAll(),
+        // Mapping data agar mudah dipanggil di View
+        'config'  => array_column($model->findAll(), 'nilai', 'kunci')
+    ];
+    return view('admin/pengaturan/index', $data);
+}
 
-        $data = [
-            'title'   => 'Pengaturan Sekolah',
-            'setting' => $dataSetting
-        ];
-        return view('admin/pengaturan/index', $data);
+public function pengaturan_update()
+{
+    $model = new \App\Models\SettingModel();
+    $post = $this->request->getPost();
+
+    // 1. UPDATE DATA TEXT
+    foreach ($post as $key => $value) {
+        if ($key == 'csrf_test_name') continue;
+        $model->where('kunci', $key)->set(['nilai' => $value])->update();
     }
 
-    public function simpan_pengaturan()
-    {
-        $semuaInput = $this->request->getPost();
-        $this->pengaturanModel->simpanBatch($semuaInput);
-        return redirect()->to('/admin/pengaturan')->with('success', 'Pengaturan disimpan!');
+    // 2. UPDATE DATA FILE (Foto Kepsek & Galeri)
+    $files = $this->request->getFiles();
+    foreach ($files as $key => $file) {
+        if ($file->isValid() && !$file->hasMoved()) {
+            // Ambil nama file lama untuk dihapus (opsional)
+            $oldFile = $model->where('kunci', $key)->first()['nilai'] ?? '';
+            if (!empty($oldFile) && file_exists('uploads/web/' . $oldFile)) {
+                @unlink('uploads/web/' . $oldFile);
+            }
+
+            // Upload file baru
+            $newName = $file->getRandomName();
+            $file->move('uploads/web', $newName);
+            
+            // Simpan nama file ke database
+            $model->where('kunci', $key)->set(['nilai' => $newName])->update();
+        }
     }
+
+    return redirect()->back()->with('success', 'Pengaturan Web & Galeri berhasil diperbarui!');
+}
 
     public function tes_kirim()
     {
