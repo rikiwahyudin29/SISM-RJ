@@ -54,9 +54,10 @@ class Admin extends BaseController
     $totalMapel = $db->table('tbl_mapel')->countAllResults();
 
     // 2. HITUNG ROLE SPESIFIK (Wali Kelas, BK, Piket)
-    $totalWali = $db->table('user_roles')
-        ->join('roles', 'roles.id = user_roles.role_id')
-        ->where('roles.role_key', 'walikelas')->countAllResults();
+   $total_walikelas = $db->table('tbl_kelas')
+                          ->where('guru_id !=', null) // Pastikan bukan yang 'Belum Set'
+                          ->selectCount('guru_id', 'total')
+                          ->get()->getRow()->total;
         
     $totalBK = $db->table('user_roles')
         ->join('roles', 'roles.id = user_roles.role_id')
@@ -103,7 +104,7 @@ class Admin extends BaseController
         'total_user'        => $totalUser,
         'total_kelas'       => $totalKelas,
         'total_mapel'       => $totalMapel,
-        'total_walikelas'   => $totalWali,
+        'total_walikelas'   => $total_walikelas,
         'total_bk'          => $totalBK,
         'total_piket'       => $totalPiket,
         'total_pelanggaran' => $totalPelanggaran,
@@ -737,4 +738,137 @@ public function pengaturan_update()
         
         return redirect()->back()->with('error', 'Gagal memperbarui hak akses.');
     }
+    public function users_save()
+{
+    $db = \Config\Database::connect();
+    $roles = $this->request->getPost('roles');
+
+    // 1. Simpan ke tbl_users
+    $dataUser = [
+        'nama_lengkap' => $this->request->getPost('nama_lengkap'),
+        'username'     => $this->request->getPost('username'),
+        'password'     => password_hash($this->request->getPost('password'), PASSWORD_BCRYPT),
+        'created_at'   => date('Y-m-d H:i:s')
+    ];
+    $db->table('tbl_users')->insert($dataUser);
+    $userId = $db->insertID();
+
+    // 2. Simpan Multi-Role (Assign Jabatan)
+    if (!empty($roles)) {
+        foreach ($roles as $roleId) {
+            $db->table('user_roles')->insert([
+                'user_id' => $userId,
+                'role_id' => $roleId
+            ]);
+        }
+    }
+
+    return redirect()->to(base_url('admin/users'))->with('success', 'User dan Role berhasil ditambahkan!');
+}
+public function users_index()
+{
+    $db = \Config\Database::connect();
+
+    // 1. Ambil data dasar user
+    $queryUsers = $db->table('tbl_users')->get()->getResultArray();
+
+    $dataUsers = [];
+    foreach ($queryUsers as $u) {
+        // 2. Ambil foto secara manual dari tbl_guru berdasarkan nama_lengkap
+        // Ini langkah 'Pasti' agar key 'foto' selalu ada meskipun isinya null
+        $guru = $db->table('tbl_guru')
+                   ->where('nama_lengkap', $u['nama_lengkap'])
+                   ->get()
+                   ->getRowArray();
+
+        // 3. Ambil Roles
+        $roles = $db->table('user_roles')
+            ->join('roles', 'roles.id = user_roles.role_id')
+            ->where('user_id', $u['id'])
+            ->get()->getResultArray();
+
+        // 4. Masukkan ke array (PASTIKAN KEY 'foto' ADA DI SINI)
+        $dataUsers[] = [
+            'id'           => $u['id'],
+            'nama_lengkap' => $u['nama_lengkap'],
+            'username'     => $u['username'],
+            'foto'         => $guru['foto'] ?? '', // JIKA GURU TIDAK DITEMUKAN, ISI STRING KOSONG
+            'roles'        => $roles
+        ];
+    }
+
+    $data = [
+        'title' => 'Manajemen Hak Akses',
+        'users' => $dataUsers
+    ];
+
+    return view('admin/users/index', $data);
+}
+public function update_user_profile($id)
+{
+    $db = \Config\Database::connect();
+    $password = $this->request->getPost('password');
+    
+    $data = [
+        'nama_lengkap' => $this->request->getPost('nama_lengkap'),
+        'username'     => $this->request->getPost('username'),
+    ];
+
+    // Jika password diisi, maka update password (Hashed)
+    if (!empty($password)) {
+        $data['password'] = password_hash($password, PASSWORD_BCRYPT);
+    }
+
+    $db->table('tbl_users')->where('id', $id)->update($data);
+
+    return redirect()->back()->with('success', 'Profil & Password User berhasil diperbarui!');
+}
+public function users_update($id)
+{
+    $db = \Config\Database::connect();
+    
+    // Ambil input dari Modal Kuning
+    $nama     = $this->request->getPost('nama_lengkap');
+    $username = $this->request->getPost('username');
+    $password = $this->request->getPost('password');
+
+    $data = [
+        'nama_lengkap' => $nama,
+        'username'     => $username,
+    ];
+
+    // Jika password diisi (tidak kosong), maka enkripsi dan masukkan ke array update
+    if (!empty($password)) {
+        $data['password'] = password_hash($password, PASSWORD_BCRYPT);
+    }
+
+    // Eksekusi Update ke Database
+    $db->table('tbl_users')->where('id', $id)->update($data);
+
+    // Beri feedback popup sukses
+    return redirect()->to(base_url('admin/users'))->with('success', 'Akun ' . $nama . ' berhasil diperbarui!');
+}
+public function users_tambah()
+{
+    $db = \Config\Database::connect();
+    
+    // Ambil data dari form modal tambah
+    $nama     = $this->request->getPost('nama_lengkap');
+    $username = $this->request->getPost('username');
+    $password = $this->request->getPost('password');
+
+    // Persiapkan data untuk tbl_users
+    $data = [
+        'nama_lengkap' => $nama,
+        'username'     => $username,
+        'password'     => password_hash($password, PASSWORD_BCRYPT), // Wajib di-hash 
+        'created_at'   => date('Y-m-d H:i:s')
+    ];
+
+    // Simpan ke database
+    $db->table('tbl_users')->insert($data);
+
+    // Kirim feedback sukses ke dashboard 
+    return redirect()->to(base_url('admin/users'))->with('success', 'User ' . $nama . ' berhasil didaftarkan!');
+}
 }

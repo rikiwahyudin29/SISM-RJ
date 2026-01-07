@@ -58,7 +58,34 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
         $routes->post('simpan', 'Admin::simpan_user');
         $routes->post('simpan_role', 'Admin::simpan_user_role');
         // Tambahkan edit/delete user disini nanti
+        // Route untuk memproses update data user (Nama & Password)
+$routes->post('update/(:num)', 'Admin::users_update/$1');
+$routes->post('tambah', 'Admin::users_tambah');
     });
+    // Grouping Master Data
+$routes->group('master', ['filter' => 'role:admin'], function($routes) {
+    // Tahun Ajaran
+    $routes->get('tahun_ajaran', 'Admin\Master::tahun_ajaran');
+    $routes->post('ta_simpan', 'Admin\Master::ta_simpan');
+    $routes->get('ta_aktif/(:num)', 'Admin\Master::ta_aktif/$1');
+    $routes->get('ta_hapus/(:num)', 'Admin\Master::ta_hapus/$1');
+
+    // Jurusan
+    $routes->get('jurusan', 'Admin\Master::jurusan');
+    $routes->post('jurusan_simpan', 'Admin\Master::jurusan_simpan');
+
+    // Ruangan
+   $routes->get('ruangan', 'Admin\Master::ruangan');
+$routes->post('ruangan_simpan', 'Admin\Master::ruangan_simpan');
+$routes->get('ruangan_hapus/(:num)', 'Admin\Master::ruangan_hapus/$1');
+
+$routes->get('kelas', 'Admin\Master::kelas'); 
+$routes->post('kelas_simpan', 'Admin\Master::kelas_simpan');
+$routes->post('kelas_update/(:num)', 'Admin\Master::kelas_update/$1');
+        $routes->get('mapel', 'Admin\Master::mapel'); // Menampilkan halaman
+        $routes->post('mapel_simpan', 'Admin\Master::mapel_simpan'); // PINTU SIMPAN (POST)
+        $routes->get('mapel_hapus/(:num)', 'Admin\Master::mapel_hapus/$1'); // PINTU HAPUS
+});
     $routes->get('pengaturan', 'Admin::pengaturan');
     $routes->post('pengaturan/update', 'Admin::pengaturan_update');
 

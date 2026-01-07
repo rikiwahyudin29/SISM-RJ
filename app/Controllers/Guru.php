@@ -25,4 +25,22 @@ public function index()
 
     return view('guru/dashboard', $data);
 }
+public function update_profile()
+{
+    $id = session()->get('id_user');
+    $password = $this->request->getPost('password');
+    $confirm  = $this->request->getPost('confirm_password');
+
+    if (!empty($password)) {
+        if ($password !== $confirm) {
+            return redirect()->back()->with('error', 'Konfirmasi password tidak cocok!');
+        }
+        $data['password'] = password_hash($password, PASSWORD_BCRYPT);
+        $db->table('tbl_users')->where('id', $id)->update($data);
+    }
+
+    // Logic Upload Foto juga bisa ditaruh di sini
+    
+    return redirect()->back()->with('success', 'Profil Anda berhasil diperbarui!');
+}
 }
