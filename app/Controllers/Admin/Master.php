@@ -74,6 +74,24 @@ public function ta_hapus($id)
 
     return redirect()->back()->with('success', 'Jurusan baru berhasil ditambahkan!');
 }
+public function jurusan_update($id)
+{
+    // Validasi target Jumat 
+    if (!$this->validate([
+        'kode_jurusan' => "required|is_unique[tbl_jurusan.kode_jurusan,id,$id]",
+        'nama_jurusan' => 'required'
+    ])) {
+        return redirect()->back()->with('error', 'Data tidak valid atau kode jurusan sudah digunakan!');
+    }
+
+    $db = \Config\Database::connect();
+    $db->table('tbl_jurusan')->where('id', $id)->update([
+        'kode_jurusan' => strtoupper($this->request->getPost('kode_jurusan')),
+        'nama_jurusan' => $this->request->getPost('nama_jurusan')
+    ]);
+
+    return redirect()->back()->with('success', 'Entitas jurusan berhasil diperbarui!');
+}
 
 public function ruangan()
 {
@@ -106,17 +124,18 @@ public function ruangan_hapus($id)
 }
 public function kelas()
 {
+    // Menggunakan Model agar logic lebih bersih sesuai target Refactor 
+    $modelKelas = new \App\Models\KelasModel();
     $db = \Config\Database::connect();
     
     $data = [
-        'title' => 'Data Kelas',
-        'kelas' => $db->table('tbl_kelas')
-                      // Sesuaikan dengan kolom di tabel guru Bos (misal: nama_lengkap)
-                      ->select('tbl_kelas.*, tbl_guru.nama_lengkap as nama_guru')
-                      // REVISI: Pakai guru_id sesuai screenshot database Bos!
-                      ->join('tbl_guru', 'tbl_guru.id = tbl_kelas.guru_id', 'left') 
-                      ->get()->getResultArray(),
-        'guru'  => $db->table('tbl_guru')->get()->getResultArray()
+        'title'   => 'Manajemen Kelas',
+        // Mengambil data lengkap (Join Guru, Jurusan, & Hitung Siswa) dari Model
+        'kelas'   => $modelKelas->getKelasLengkap(), 
+        // Data untuk dropdown Wali Kelas di Modal 
+        'guru'    => $db->table('tbl_guru')->get()->getResultArray(),
+        // Data untuk dropdown Jurusan di Modal agar tidak Undefined Variable
+        'jurusan' => $db->table('tbl_jurusan')->get()->getResultArray() 
     ];
     
     return view('admin/master/kelas', $data);
@@ -124,28 +143,85 @@ public function kelas()
 
 public function kelas_simpan()
 {
-    $db = \Config\Database::connect();
-    $db->table('tbl_kelas')->insert([
+    $modelKelas = new \App\Models\KelasModel();
+    
+    // Validasi input wajib sesuai target target Jumat 
+    if (!$this->validate([
+        'nama_kelas' => 'required|is_unique[tbl_kelas.nama_kelas]',
+        'id_jurusan' => 'required',
+        'guru_id'    => 'required'
+    ])) {
+        return redirect()->back()->withInput()->with('error', 'Nama Kelas, Jurusan, dan Wali Kelas wajib diisi!');
+    }
+
+    // Menggunakan save() agar sinkron dengan allowedFields di Model
+    $modelKelas->save([
         'nama_kelas' => $this->request->getPost('nama_kelas'),
-        // REVISI: Simpan ke kolom guru_id
-        'guru_id'    => $this->request->getPost('id_guru') 
+        'id_jurusan' => $this->request->getPost('id_jurusan'),
+        'guru_id'    => $this->request->getPost('guru_id') 
     ]);
     
     return redirect()->to(base_url('admin/master/kelas'))->with('success', 'Entitas Kelas Berhasil Didaftarkan!');
 }
+
 public function kelas_update($id)
 {
-    $db = \Config\Database::connect();
+    $modelKelas = new \App\Models\KelasModel();
     
-    // Sesuaikan kolom guru_id sesuai database Bos tadi
-    $db->table('tbl_kelas')->where('id', $id)->update([
+    // Validasi update (mencegah duplikat kecuali id milik sendiri) 
+    if (!$this->validate([
+        'nama_kelas' => "required|is_unique[tbl_kelas.nama_kelas,id,$id]",
+        'id_jurusan' => 'required',
+        'guru_id'    => 'required'
+    ])) {
+        return redirect()->back()->withInput()->with('error', 'Update gagal! Pastikan form terisi benar.');
+    }
+
+    $modelKelas->update($id, [
         'nama_kelas' => $this->request->getPost('nama_kelas'),
+        'id_jurusan' => $this->request->getPost('id_jurusan'),
         'guru_id'    => $this->request->getPost('guru_id') 
     ]);
     
     return redirect()->back()->with('success', 'Data entitas kelas berhasil diperbarui!');
 }
+public function kelas_detail($id_kelas)
+{
+    $db = \Config\Database::connect();
+    
+    // Ambil info kelas untuk judul halaman
+    $kelas = $db->table('tbl_kelas')->where('id', $id_kelas)->get()->getRowArray();
+    
+    if (!$kelas) {
+        return redirect()->back()->with('error', 'Data kelas tidak ditemukan!');
+    }
 
+    $data = [
+        'title'      => 'Daftar Siswa Kelas ' . $kelas['nama_kelas'],
+        'nama_kelas' => $kelas['nama_kelas'],
+        // Ambil siswa yang memiliki kelas_id sesuai dengan ID kelas ini
+        'siswa'      => $db->table('tbl_siswa')
+                             ->where('kelas_id', $id_kelas)
+                             ->get()->getResultArray()
+    ];
+
+    // Karena modul Siswa baru dikerjakan hari Selasa, 
+    // pastikan Bos sudah punya view 'admin/master/siswa_list' atau sesuaikan namanya.
+    return view('admin/master/siswa_list', $data); 
+}
+public function kelas_hapus($id)
+{
+    $modelKelas = new \App\Models\KelasModel();
+    
+    // Cek apakah data ada sebelum dihapus
+    $data = $modelKelas->find($id);
+    if ($data) {
+        $modelKelas->delete($id);
+        return redirect()->to(base_url('admin/master/kelas'))->with('success', 'Data kelas berhasil dimusnahkan! 🗑️');
+    } else {
+        return redirect()->to(base_url('admin/master/kelas'))->with('error', 'Data tidak ditemukan, Bos!');
+    }
+}
 public function mapel()
 {
     $db = \Config\Database::connect();

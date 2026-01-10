@@ -73,6 +73,7 @@ $routes->group('master', ['filter' => 'role:admin'], function($routes) {
     // Jurusan
     $routes->get('jurusan', 'Admin\Master::jurusan');
     $routes->post('jurusan_simpan', 'Admin\Master::jurusan_simpan');
+    $routes->post('jurusan_update/(:num)', 'Admin\Master::jurusan_update/$1');
 
     // Ruangan
    $routes->get('ruangan', 'Admin\Master::ruangan');
@@ -82,6 +83,9 @@ $routes->get('ruangan_hapus/(:num)', 'Admin\Master::ruangan_hapus/$1');
 $routes->get('kelas', 'Admin\Master::kelas'); 
 $routes->post('kelas_simpan', 'Admin\Master::kelas_simpan');
 $routes->post('kelas_update/(:num)', 'Admin\Master::kelas_update/$1');
+$routes->get('kelas_detail/(:num)', 'Admin\Master::kelas_detail/$1');
+$routes->get('kelas_hapus/(:num)', 'Admin\Master::kelas_hapus/$1');
+
         $routes->get('mapel', 'Admin\Master::mapel'); // Menampilkan halaman
         $routes->post('mapel_simpan', 'Admin\Master::mapel_simpan'); // PINTU SIMPAN (POST)
         $routes->get('mapel_hapus/(:num)', 'Admin\Master::mapel_hapus/$1'); // PINTU HAPUS
@@ -170,3 +174,4 @@ $routes->group('piket', ['filter' => 'role:piket'], function($routes) {
     $routes->get('dashboard', 'Piket::index');
     $routes->get('jurnal', 'Piket::jurnal');
 });
+$routes->post('admin/import/kelas', 'Admin\Import::kelas');
