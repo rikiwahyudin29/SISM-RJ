@@ -6,10 +6,27 @@ class SiswaModel extends Model
 {
     protected $table = 'tbl_siswa';
     protected $primaryKey = 'id';
-    protected $allowedFields = [
-        'nis', 'nisn', 'nama', 'tempat_lahir', 'tanggal_lahir', 
-        'jk', 'nik', 'nama_ibu', 'kelas_id', 'ekskul_id', 'status'
-    ];
+   protected $allowedFields = [
+    'user_id',         // <--- INI WAJIB ADA (Kunci Relasi)
+    'nisn',            // Username Login
+    'nis', 
+    'nama_lengkap', 
+    'kelas_id',
+    'jurusan_id',
+    'jenis_kelamin',
+    'tempat_lahir',
+    'tanggal_lahir',
+    'agama',
+    'alamat',
+    'no_hp_siswa',
+    'email_siswa',
+    'nama_ayah',
+    'nama_ibu',
+    'nama_wali',
+    'no_hp_ortu',
+    'status_siswa',
+    'foto'
+];
 
     // Fungsi JOIN tabel agar yang muncul Nama Kelas & Nama Ekskul (Bukan ID nya)
     public function getSiswaLengkap()

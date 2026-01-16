@@ -1,80 +1,127 @@
 <?= $this->extend('layout/template') ?>
 
 <?= $this->section('content') ?>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<div class="space-y-8" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-    <div class="p-8 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-700 rounded-[2.5rem] shadow-xl shadow-blue-500/5 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-            <h2 class="text-2xl font-[800] text-gray-900 dark:text-white uppercase tracking-tighter leading-none">Manajemen Ruangan</h2>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-2">Daftar Inventaris Ruang Kelas & Lab</p>
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+    <div class="w-full mb-1">
+        <div class="mb-4">
+            <nav class="flex mb-5" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
+                    <li class="inline-flex items-center">
+                        <a href="<?= base_url('admin/dashboard') ?>" class="inline-flex items-center text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-white">
+                            <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                            Home
+                        </a>
+                    </li>
+                    <li><div class="flex items-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><span class="ml-1 text-gray-400 dark:text-gray-500 md:ml-2">Master Data</span></div></li>
+                    <li><div class="flex items-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><span class="ml-1 text-gray-400 dark:text-gray-500 md:ml-2">Data Ruangan</span></div></li>
+                </ol>
+            </nav>
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Manajemen Ruangan</h1>
         </div>
-        <button data-modal-target="modal-tambah-ruangan" data-modal-toggle="modal-tambah-ruangan" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/30 active:scale-95 transition-all flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            Tambah Ruangan
-        </button>
-    </div>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <?php foreach($ruangan as $r): ?>
-        <div class="group p-8 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-700 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-500 relative overflow-hidden text-center">
-            <div class="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 text-indigo-500">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-            </div>
-            <h4 class="font-extrabold text-gray-900 dark:text-white uppercase text-xs tracking-widest leading-tight"><?= $r['nama_ruangan'] ?></h4>
-            <button data-modal-target="popup-delete-<?= $r['id'] ?>" data-modal-toggle="popup-delete-<?= $r['id'] ?>" class="mt-4 text-[9px] font-bold text-red-400 hover:text-red-600 uppercase tracking-widest transition-colors underline underline-offset-4">Hapus</button>
-        </div>
-
-        <div id="popup-delete-<?= $r['id'] ?>" tabindex="-1" class="hidden fixed inset-0 z-[70] justify-center items-center w-full h-full bg-slate-900/60 backdrop-blur-sm">
-            <div class="relative p-4 w-full max-w-md">
-                <div class="relative bg-white rounded-[2.5rem] shadow dark:bg-[#1e293b] border dark:border-slate-700">
-                    <div class="p-8 text-center">
-                        <svg class="mx-auto mb-4 text-red-500 w-12 h-12 shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        <h3 class="mb-5 text-lg font-bold text-gray-900 dark:text-white uppercase tracking-tighter">Hapus Ruangan <?= $r['nama_ruangan'] ?>?</h3>
-                        <div class="flex justify-center gap-3">
-                            <a href="<?= base_url('admin/master/ruangan_hapus/' . $r['id']) ?>" class="text-white bg-red-600 hover:bg-red-800 font-bold rounded-xl text-[10px] px-6 py-3 uppercase tracking-widest transition-all shadow-lg shadow-red-500/30">Ya, Hapus!</a>
-                            <button data-modal-hide="popup-delete-<?= $r['id'] ?>" type="button" class="text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 font-bold rounded-xl text-[10px] px-6 py-3 uppercase tracking-widest dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600 dark:hover:bg-slate-700 transition-all">Batal</button>
-                        </div>
+        
+        <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
+            <div class="flex items-center mb-4 sm:mb-0">
+                <div class="relative w-48 mt-1 sm:w-64 xl:w-96">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
                     </div>
+                    <input type="text" id="ruangan-search" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Cari Nama Ruangan...">
                 </div>
             </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-
-<div id="modal-tambah-ruangan" tabindex="-1" class="hidden fixed inset-0 z-[60] flex justify-center items-center bg-slate-900/80 backdrop-blur-md p-4">
-    <div class="relative w-full max-w-md bg-white dark:bg-[#1e293b] rounded-[3rem] shadow-2xl border dark:border-slate-700 overflow-hidden">
-        <div class="p-8 border-b dark:border-slate-700/50 bg-indigo-600 text-white flex justify-between items-center">
-            <h3 class="font-bold uppercase text-xs tracking-[0.2em]">Input Ruangan Baru</h3>
-            <button data-modal-hide="modal-tambah-ruangan" class="text-white/50 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-        </div>
-        <form action="<?= base_url('admin/master/ruangan_simpan') ?>" method="POST" class="p-10 space-y-6">
-            <?= csrf_field() ?>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1 tracking-widest">Nama Ruangan</label>
-                <input type="text" name="nama_ruangan" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none" required>
+            
+            <div class="flex items-center justify-end flex-1 ml-auto space-x-2 sm:space-x-3">
+                <button type="button" data-modal-target="modal-tambah-ruangan" data-modal-toggle="modal-tambah-ruangan" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                    Tambah Ruangan
+                </button>
             </div>
-            <button type="submit" class="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl text-[11px] uppercase shadow-xl shadow-indigo-500/20 active:scale-95 transition-all tracking-[0.3em]">Simpan Ruangan</button>
-        </form>
+        </div>
     </div>
 </div>
 
 <?php if (session()->getFlashdata('success')) : ?>
-<div id="toast-ruangan" class="fixed bottom-10 right-10 flex items-center w-full max-w-xs p-5 space-x-4 text-gray-500 bg-white rounded-3xl shadow-2xl dark:text-gray-400 dark:bg-[#1e293b] border dark:border-slate-700 animate-slide-in-right" role="alert">
-    <div class="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-emerald-500 bg-emerald-100 rounded-2xl dark:bg-emerald-500/10 dark:text-emerald-400">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-    </div>
-    <div class="text-[11px] font-bold uppercase tracking-widest text-gray-900 dark:text-white"><?= session()->getFlashdata('success') ?></div>
-    <button type="button" class="ms-auto bg-transparent text-gray-400 hover:text-gray-900 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white" data-dismiss-target="#toast-ruangan" aria-label="Close">
-        <svg class="w-3 h-3" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/></svg>
-    </button>
-</div>
-<script>setTimeout(() => { document.getElementById('toast-ruangan')?.remove(); }, 3500);</script>
+    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"><?= session()->getFlashdata('success') ?></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')) : ?>
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"><?= session()->getFlashdata('error') ?></div>
 <?php endif; ?>
 
-<style>
-    @keyframes slide-in-right { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .animate-slide-in-right { animation: slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-</style>
+<div class="flex flex-col">
+    <div class="overflow-x-auto">
+        <div class="inline-block min-w-full align-middle">
+            <div class="overflow-hidden shadow">
+                <table id="tabel-ruangan" class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">ID</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Nama Ruangan</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                        <?php foreach($ruangan as $r): ?>
+                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <td class="p-4 text-sm font-bold text-gray-900 dark:text-white">#<?= $r['id'] ?></td>
+                            <td class="p-4 text-sm text-gray-900 dark:text-white"><?= $r['nama_ruangan'] ?></td>
+                            <td class="p-4 space-x-2">
+                                <a href="<?= base_url('admin/master/ruangan_hapus/' . $r['id']) ?>" onclick="return confirm('Hapus ruangan ini?')" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-2 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none dark:focus:ring-red-900">Hapus</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-tambah-ruangan" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Tambah Ruangan Baru</h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600" data-modal-hide="modal-tambah-ruangan">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <form action="<?= base_url('admin/master/ruangan_simpan') ?>" method="POST">
+                    <?= csrf_field() ?>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Ruangan</label>
+                        <input type="text" name="nama_ruangan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" placeholder="Contoh: Lab Komputer 1" required>
+                    </div>
+                    <button type="submit" class="w-full mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700">Simpan Data</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Live Search
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('ruangan-search');
+        const table = document.getElementById('tabel-ruangan');
+        const rows = table.getElementsByTagName('tr');
+
+        searchInput.addEventListener('input', function() {
+            const filter = searchInput.value.toLowerCase();
+            for (let i = 1; i < rows.length; i++) { // Skip header
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let found = false;
+                // Cek nama ruangan (index 1)
+                if (cells[1]) {
+                    if (cells[1].textContent.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                    }
+                }
+                row.style.display = found ? "" : "none";
+            }
+        });
+    });
+</script>
+
 <?= $this->endSection() ?>

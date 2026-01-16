@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
+use App\Models\GuruModel;
 
 class Master extends BaseController {
     
@@ -54,25 +55,46 @@ public function ta_hapus($id)
     return redirect()->back()->with('success', 'Data Tahun Ajaran berhasil dihapus!');
 }
     // JURUSAN
-    public function jurusan() {
-        $db = \Config\Database::connect();
-        $data = [
-            'title' => 'Data Jurusan',
-            'jurusan' => $db->table('tbl_jurusan')->get()->getResultArray()
-        ];
-        return view('admin/master/jurusan', $data);
-    }
-    public function jurusan_simpan() 
+   public function jurusan()
 {
-    // Tambahkan baris ini untuk koneksi database
-    $db = \Config\Database::connect(); 
+    $jurusanModel = new \App\Models\JurusanModel();
+    $guruModel = new \App\Models\GuruModel();
 
-    $db->table('tbl_jurusan')->insert([
-        'kode_jurusan' => $this->request->getPost('kode_jurusan'),
-        'nama_jurusan' => $this->request->getPost('nama_jurusan')
-    ]);
+    // JOIN TABLE: Ambil data jurusan + Nama Guru (Kajur)
+    $dataJurusan = $jurusanModel
+        ->select('tbl_jurusan.*, tbl_guru.nama_lengkap, tbl_guru.gelar_belakang')
+        ->join('tbl_guru', 'tbl_guru.id = tbl_jurusan.kepala_jurusan_id', 'left') // Left join biar kalau kosong gak error
+        ->findAll();
 
-    return redirect()->back()->with('success', 'Jurusan baru berhasil ditambahkan!');
+    $data = [
+        'title'   => 'Data Jurusan & Program Keahlian',
+        'jurusan' => $dataJurusan,
+        'guru'    => $guruModel->findAll() // Kirim data guru untuk Dropdown
+    ];
+
+    return view('admin/master/jurusan', $data);
+}
+
+public function jurusan_simpan()
+{
+    $jurusanModel = new \App\Models\JurusanModel();
+    
+    $id = $this->request->getVar('id');
+    $data = [
+        'kode_jurusan'      => $this->request->getVar('kode_jurusan'),
+        'nama_jurusan'      => $this->request->getVar('nama_jurusan'),
+        'kepala_jurusan_id' => $this->request->getVar('kepala_jurusan_id'), // Simpan ID Guru
+    ];
+
+    if (empty($id)) {
+        $jurusanModel->insert($data);
+        $msg = 'Jurusan berhasil ditambah!';
+    } else {
+        $jurusanModel->update($id, $data);
+        $msg = 'Jurusan berhasil diupdate!';
+    }
+
+    return redirect()->to(base_url('admin/master/jurusan'))->with('success', $msg);
 }
 public function jurusan_update($id)
 {
@@ -271,5 +293,128 @@ public function mapel_simpan()
     }
 
     return redirect()->to(base_url('admin/master/mapel'))->with('success', 'Mata Pelajaran berhasil ditambahkan dan direlasikan!');
+}
+public function download_template_guru()
+{
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // Header
+    $sheet->setCellValue('A1', 'NIP');
+    $sheet->setCellValue('B1', 'NAMA_LENGKAP');
+    $sheet->setCellValue('C1', 'JENIS_KELAMIN (L/P)');
+    $sheet->setCellValue('D1', 'NO_HP');
+    $sheet->setCellValue('E1', 'PENDIDIKAN');
+    $sheet->setCellValue('F1', 'STATUS (GTY/PNS)');
+
+    // Contoh Data
+    $sheet->setCellValue('A2', '199001012022011001');
+    $sheet->setCellValue('B2', 'Budi Santoso, S.Pd');
+    $sheet->setCellValue('C2', 'L');
+    $sheet->setCellValue('D2', '081234567890');
+    $sheet->setCellValue('E2', 'S1 Pendidikan Matematika');
+    $sheet->setCellValue('F2', 'PNS');
+
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="Template_Import_Guru.xlsx"');
+    $writer->save('php://output');
+    exit;
+}
+public function download_template_siswa()
+{
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    
+    // --- SHEET 1: FORM INPUT SISWA ---
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Form Input Siswa');
+
+    // Header Kolom (DITAMBAH KOLOM M UNTUK TELEGRAM)
+    $headers = [
+        'A1' => 'NISN (Wajib/Username)',
+        'B1' => 'NIS LOKAL',
+        'C1' => 'NAMA LENGKAP',
+        'D1' => 'ID KELAS (Lihat Sheet 2)',
+        'E1' => 'ID JURUSAN (Lihat Sheet 2)',
+        'F1' => 'JENIS KELAMIN (L/P)',
+        'G1' => 'TEMPAT LAHIR',
+        'H1' => 'TANGGAL LAHIR (YYYY-MM-DD)',
+        'I1' => 'NO HP SISWA',
+        'J1' => 'NAMA AYAH',
+        'K1' => 'NAMA IBU',
+        'L1' => 'NO HP ORTU (WA)',
+        'M1' => 'TELEGRAM CHAT ID (Untuk OTP)' // <--- INI DIA YANG KETINGGALAN TADI
+    ];
+
+    foreach ($headers as $cell => $val) {
+        $sheet->setCellValue($cell, $val);
+        $sheet->getStyle($cell)->getFont()->setBold(true);
+        $sheet->getColumnDimension(substr($cell, 0, 1))->setAutoSize(true);
+        
+        // Kasih warna kuning di header biar jelas
+        $sheet->getStyle($cell)->getFill()
+              ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+              ->getStartColor()->setARGB('FFFFFF00');
+    }
+
+    // Contoh Data (Dummy)
+    $sheet->setCellValue('A2', '0054321987');
+    $sheet->setCellValue('B2', '2023001');
+    $sheet->setCellValue('C2', 'Ahmad Siswa Teladan');
+    $sheet->setCellValue('D2', '1'); // ID Kelas
+    $sheet->setCellValue('E2', '1'); // ID Jurusan
+    $sheet->setCellValue('F2', 'L');
+    $sheet->setCellValue('G2', 'Subang');
+    $sheet->setCellValue('H2', '2008-05-20');
+    $sheet->setCellValue('I2', '08123456789');
+    $sheet->setCellValue('J2', 'Budi Ayah');
+    $sheet->setCellValue('K2', 'Siti Ibu');
+    $sheet->setCellValue('L2', '08139876543');
+    $sheet->setCellValue('M2', '123456789'); // Contoh Telegram ID
+
+    // --- SHEET 2: DATA REFERENSI (CONTEKAN ID) ---
+    $spreadsheet->createSheet();
+    $sheet2 = $spreadsheet->getSheet(1);
+    $sheet2->setTitle('Kode Referensi');
+
+    // Header Referensi
+    $sheet2->setCellValue('A1', 'ID KELAS');
+    $sheet2->setCellValue('B1', 'NAMA KELAS');
+    $sheet2->setCellValue('D1', 'ID JURUSAN');
+    $sheet2->setCellValue('E1', 'NAMA JURUSAN');
+    $sheet2->getStyle('A1:E1')->getFont()->setBold(true);
+
+    // Ambil Data Kelas & Jurusan dari Database
+    $kelasModel = new \App\Models\KelasModel();
+    $jurusanModel = new \App\Models\JurusanModel();
+    
+    $dataKelas = $kelasModel->findAll();
+    $dataJurusan = $jurusanModel->findAll();
+
+    // Loop Data Kelas
+    $row = 2;
+    foreach ($dataKelas as $k) {
+        $sheet2->setCellValue('A' . $row, $k['id']);
+        $sheet2->setCellValue('B' . $row, $k['nama_kelas']);
+        $row++;
+    }
+
+    // Loop Data Jurusan
+    $row = 2;
+    foreach ($dataJurusan as $j) {
+        $sheet2->setCellValue('D' . $row, $j['id']);
+        $sheet2->setCellValue('E' . $row, $j['nama_jurusan']);
+        $row++;
+    }
+
+    // Kembali ke Sheet 1
+    $spreadsheet->setActiveSheetIndex(0);
+
+    // Output File
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="Template_Import_Siswa_Lengkap.xlsx"');
+    $writer->save('php://output');
+    exit;
 }
 }

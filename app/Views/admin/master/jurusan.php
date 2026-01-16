@@ -1,148 +1,211 @@
 <?= $this->extend('layout/template') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-6" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-    
-    <div class="p-8 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-700/50 rounded-[2.5rem] shadow-xl shadow-blue-500/5 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex items-center gap-4">
-            <div class="p-3 bg-emerald-500 shadow-lg shadow-emerald-500/30 rounded-2xl text-white">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-            </div>
-            <div>
-                <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white uppercase tracking-tighter leading-none">Manajemen Jurusan</h2>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-2">Daftar Kompetensi Keahlian SISM-RJ</p>
-            </div>
+
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+    <div class="w-full mb-1">
+        <div class="mb-4">
+            <nav class="flex mb-5" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
+                    <li class="inline-flex items-center">
+                        <a href="<?= base_url('admin/dashboard') ?>" class="inline-flex items-center text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-white">
+                            <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                            Home
+                        </a>
+                    </li>
+                    <li><div class="flex items-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><span class="ml-1 text-gray-400 dark:text-gray-500 md:ml-2">Master Data</span></div></li>
+                    <li><div class="flex items-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><span class="ml-1 text-gray-400 dark:text-gray-500 md:ml-2">Data Jurusan</span></div></li>
+                </ol>
+            </nav>
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Data Jurusan</h1>
         </div>
         
-        <button data-modal-target="modal-tambah-jurusan" data-modal-toggle="modal-tambah-jurusan" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
-            + Tambah Jurusan
-        </button>
-    </div>
-
-    <div class="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-700/50 rounded-[2.5rem] shadow-xl shadow-blue-500/5 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50/50 dark:bg-slate-800/50 text-[11px] font-extrabold uppercase text-slate-500 tracking-widest border-b dark:border-slate-700/50">
-                    <tr>
-                        <th class="px-8 py-6">Kode Jurusan</th>
-                        <th class="px-8 py-6">Nama Lengkap Kompetensi</th>
-                        <th class="px-8 py-6 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y dark:divide-slate-700/30">
-                    <?php foreach($jurusan as $j): ?>
-                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all group text-gray-900 dark:text-white">
-                        <td class="px-8 py-6">
-                            <span class="inline-block bg-blue-600 text-white px-4 py-2 rounded-xl font-extrabold text-[11px] uppercase">
-                                <?= $j['kode_jurusan'] ?>
-                            </span>
-                        </td>
-                        <td class="px-8 py-6 font-extrabold text-xs uppercase tracking-tight leading-relaxed">
-                            <?= $j['nama_jurusan'] ?>
-                        </td>
-                        <td class="px-8 py-6 text-center flex items-center justify-center gap-3">
-                            <button data-modal-target="edit-jurusan-<?= $j['id'] ?>" data-modal-toggle="edit-jurusan-<?= $j['id'] ?>" class="p-3 text-amber-500 bg-amber-500/10 rounded-xl hover:bg-amber-500 hover:text-white transition-all">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </button>
-                            <button data-modal-target="delete-jurusan-<?= $j['id'] ?>" data-modal-toggle="delete-jurusan-<?= $j['id'] ?>" class="p-3 text-red-500 bg-red-500/10 rounded-xl hover:bg-red-500 hover:text-white transition-all">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </td>
-                    </tr>
-
-                   <div id="edit-jurusan-<?= $j['id'] ?>" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-[70] flex justify-center items-center bg-slate-900/60 backdrop-blur-md p-4 overflow-y-auto">
-    <div class="relative w-full max-w-xl bg-white dark:bg-[#1e293b] rounded-[3rem] shadow-2xl border dark:border-slate-700 overflow-hidden" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-        
-        <div class="p-10 bg-amber-500 text-white flex justify-between items-center relative overflow-hidden">
-            <svg class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path></svg>
-            
-            <div class="relative z-10">
-                <h3 class="text-xl font-extrabold uppercase tracking-tighter leading-none">Update Kompetensi</h3>
-                <p class="text-[10px] font-bold opacity-80 uppercase tracking-[0.2em] mt-2">Ubah Data Identitas: <?= $j['kode_jurusan'] ?></p>
-            </div>
-            
-            <button data-modal-hide="edit-jurusan-<?= $j['id'] ?>" class="relative z-10 text-white/60 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-
-        <form action="<?= base_url('admin/master/jurusan_update/' . $j['id']) ?>" method="POST" class="p-1 space-y-8 text-left">
-            <?= csrf_field() ?>
-            
-            <div class="grid grid-cols-1 gap-8">
-                <div class="space-y-3">
-                    <label class="block text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Kode Jurusan</label>
-                    <div class="relative">
-                        <input type="text" name="kode_jurusan" value="<?= $j['kode_jurusan'] ?>" 
-                            class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 text-sm font-bold uppercase text-gray-900 dark:text-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none shadow-sm" required>
+        <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
+            <div class="flex items-center mb-4 sm:mb-0">
+                <div class="relative w-48 mt-1 sm:w-64 xl:w-96">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
                     </div>
-                </div>
-
-                <div class="space y-1">
-                    <label class="block text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Nama Lengkap Jurusan</label>
-                    <div class="relative">
-                        <textarea name="nama_jurusan" rows="2" 
-                            class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 text-sm font-bold text-gray-900 dark:text-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all outline-none shadow-sm resize-none" required><?= $j['nama_jurusan'] ?></textarea>
-                    </div>
+                    <input type="text" id="jurusan-search" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Cari Kode atau Nama Jurusan...">
                 </div>
             </div>
+            
+            <div class="flex items-center justify-end flex-1 ml-auto space-x-2 sm:space-x-3">
+                <a href="<?= base_url('admin/master/download_template_jurusan') ?>" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Template
+                </a>
+                
+                <button type="button" data-modal-target="modal-import-jurusan" data-modal-toggle="modal-import-jurusan" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    Import
+                </button>
 
-            <div class="pt-4">
-                <button type="submit" class="w-full py-6 bg-amber-500 hover:bg-amber-600 text-white font-extrabold rounded-[2rem] text-[11px] uppercase shadow-2xl shadow-amber-500/30 active:scale-[0.98] transition-all tracking-[0.3em]">
-                    Simpan Perubahan Data
+                <button type="button" data-modal-target="modal-jurusan" data-modal-toggle="modal-jurusan" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                    Tambah Jurusan
                 </button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
-                    <div id="delete-jurusan-<?= $j['id'] ?>" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-[70] flex justify-center items-center bg-slate-900/60 backdrop-blur-sm p-4">
-                        <div class="relative w-full max-w-md bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-2xl border dark:border-slate-700 overflow-hidden p-8 text-center">
-                            <div class="w-20 h-20 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
-                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            </div>
-                            <h3 class="text-xl font-extrabold text-gray-900 dark:text-white uppercase mb-2 tracking-tighter">Hapus Jurusan?</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold mb-8 uppercase tracking-widest leading-relaxed px-4">Data <span class="text-red-500"><?= $j['nama_jurusan'] ?></span> akan hilang selamanya, Bos!</p>
-                            <div class="flex gap-3">
-                                <button data-modal-hide="delete-jurusan-<?= $j['id'] ?>" class="flex-1 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Batal</button>
-                                <a href="<?= base_url('admin/master/jurusan_hapus/' . $j['id']) ?>" class="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-2xl text-[10px] uppercase shadow-lg shadow-red-500/20 tracking-widest text-center">Ya, Hapus!</a>
-                            </div>
+<?php if (session()->getFlashdata('success')) : ?>
+    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"><?= session()->getFlashdata('success') ?></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')) : ?>
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"><?= session()->getFlashdata('error') ?></div>
+<?php endif; ?>
+
+<div class="flex flex-col">
+    <div class="overflow-x-auto">
+        <div class="inline-block min-w-full align-middle">
+            <div class="overflow-hidden shadow">
+                <table id="tabel-jurusan" class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Kode</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Nama Jurusan</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Kepala Jurusan (Kajur)</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                        <?php foreach($jurusan as $j): ?>
+                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <td class="p-4 text-sm font-bold text-gray-900 dark:text-white"><?= $j['kode_jurusan'] ?></td>
+                            <td class="p-4 text-sm text-gray-900 dark:text-white"><?= $j['nama_jurusan'] ?></td>
+                            <td class="p-4 text-sm text-gray-900 dark:text-white">
+                                <?php if($j['nama_lengkap']): ?>
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-2.5 w-2.5 rounded-full bg-green-500"></div>
+                                        <?= $j['nama_lengkap'] ?> <?= $j['gelar_belakang'] ?>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="text-gray-400 italic text-xs">- Belum ditentukan -</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="p-4 space-x-2">
+                                <button type="button" 
+                                    data-modal-target="modal-jurusan" 
+                                    data-modal-toggle="modal-jurusan"
+                                    data-id="<?= $j['id'] ?>"
+                                    data-kode="<?= $j['kode_jurusan'] ?>"
+                                    data-nama="<?= $j['nama_jurusan'] ?>"
+                                    data-kajur="<?= $j['kepala_jurusan_id'] ?>" 
+                                    class="btn-edit-jurusan font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-jurusan" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white" id="modal-title">Tambah Jurusan</h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600" data-modal-hide="modal-jurusan">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <form action="<?= base_url('admin/master/jurusan_simpan') ?>" method="POST" id="form-jurusan">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="id" id="id-jurusan">
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Kode Jurusan</label>
+                            <input type="text" name="kode_jurusan" id="kode_jurusan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" placeholder="Contoh: TJKT" required>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Jurusan</label>
+                            <input type="text" name="nama_jurusan" id="nama_jurusan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" placeholder="Contoh: Teknik Komputer dan Jaringan" required>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Kepala Jurusan</label>
+                            <select name="kepala_jurusan_id" id="kepala_jurusan_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                                <option value="">-- Pilih Guru --</option>
+                                <?php foreach($guru as $g): ?>
+                                    <option value="<?= $g['id'] ?>"><?= $g['nama_lengkap'] ?> <?= $g['gelar_belakang'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
 
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    <button type="submit" class="w-full mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700">Simpan Data</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="modal-tambah-jurusan" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-[60] flex justify-center items-center bg-slate-900/60 backdrop-blur-md p-4 overflow-y-auto">
-    <div class="relative w-full max-w-lg bg-white dark:bg-[#1e293b] rounded-[3rem] shadow-2xl border dark:border-slate-700 overflow-hidden">
-        <div class="p-8 bg-emerald-600 text-white flex justify-between items-center">
-            <div>
-                <h3 class="font-extrabold uppercase text-xs tracking-[0.2em]">Tambah Kompetensi Baru</h3>
-                <p class="text-[9px] font-bold opacity-70 uppercase tracking-widest mt-1">Master Data Kurikulum</p>
-            </div>
-            <button data-modal-hide="modal-tambah-jurusan" class="text-white/50 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+<div id="modal-import-jurusan" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800" data-modal-hide="modal-import-jurusan">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
             </button>
+            <div class="px-6 py-6 lg:px-8">
+                <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Import Data Jurusan</h3>
+                <form class="space-y-6" action="<?= base_url('admin/import/jurusan') ?>" method="POST" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Upload file .xlsx</label>
+                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" name="file_excel" type="file" accept=".xlsx" required>
+                    </div>
+                    <button type="submit" class="w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700">Upload & Import</button>
+                </form>
+            </div>
         </div>
-        <form action="<?= base_url('admin/master/jurusan_simpan') ?>" method="POST" class="p-1 space-y-6">
-            <?= csrf_field() ?>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest leading-none ml-1">Kode Jurusan</label>
-                <input type="text" name="kode_jurusan" placeholder="MISAL: TJKT" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-sm font-bold uppercase text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none" required>
-            </div>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest leading-none ml-1">Nama Lengkap Jurusan</label>
-                <input type="text" name="nama_jurusan" placeholder="TEKNIK JARINGAN KOMPUTER..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none" required>
-            </div>
-            <button type="submit" class="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-[11px] uppercase shadow-xl shadow-emerald-500/20 active:scale-95 transition-all tracking-[0.3em]">
-                Simpan Entitas Jurusan
-            </button>
-        </form>
     </div>
 </div>
+
+<script>
+    // Live Search
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('jurusan-search');
+        const table = document.getElementById('tabel-jurusan');
+        const rows = table.getElementsByTagName('tr');
+
+        searchInput.addEventListener('input', function() {
+            const filter = searchInput.value.toLowerCase();
+            for (let i = 1; i < rows.length; i++) { // Skip header
+                const row = rows[i];
+                const cells = row.getElementsByTagName('td');
+                let found = false;
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+                row.style.display = found ? "" : "none";
+            }
+        });
+    });
+
+    // Script Edit & Reset
+    document.querySelectorAll('.btn-edit-jurusan').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('modal-title').innerText = 'Edit Jurusan';
+            document.getElementById('id-jurusan').value = this.dataset.id;
+            document.getElementById('kode_jurusan').value = this.dataset.kode;
+            document.getElementById('nama_jurusan').value = this.dataset.nama;
+            document.getElementById('kepala_jurusan_id').value = this.dataset.kajur;
+        });
+    });
+
+    document.querySelector('[data-modal-toggle="modal-jurusan"]').addEventListener('click', function() {
+        document.getElementById('modal-title').innerText = 'Tambah Jurusan';
+        document.getElementById('form-jurusan').reset();
+        document.getElementById('id-jurusan').value = '';
+    });
+</script>
 
 <?= $this->endSection() ?>

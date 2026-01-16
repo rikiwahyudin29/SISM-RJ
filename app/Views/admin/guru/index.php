@@ -2,163 +2,193 @@
 
 <?= $this->section('content') ?>
 
-<div class="p-2 sm:ml-12">
-    
-    <div class="flex justify-between items-center mb-4 px-2">
-        <div>
-            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Daftar Guru</h1>
-            <p class="text-xs text-gray-500">Kelola data guru dan akun login.</p>
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+    <div class="w-full mb-1">
+        <div class="mb-4">
+            <nav class="flex mb-5" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
+                    <li class="inline-flex items-center">
+                        <a href="<?= base_url('admin/dashboard') ?>" class="inline-flex items-center text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-white">
+                            <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                            <span class="ml-1 text-gray-400 dark:text-gray-500 md:ml-2">Personel</span>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                            <span class="ml-1 text-gray-400 dark:text-gray-500 md:ml-2">Data Guru</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Data Guru</h1>
         </div>
-        <a href="<?= base_url('admin/guru/tambah') ?>" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 inline-flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            Tambah Guru
-        </a>
-    </div>
+        <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
+            <div class="flex items-center mb-4 sm:mb-0">
+                <form class="sm:pr-3" action="" method="GET">
+                    <label for="products-search" class="sr-only">Search</label>
+                    <div class="relative w-48 mt-1 sm:w-64 xl:w-96">
+                        <input type="text" name="search" id="products-search" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Cari NIP atau Nama Guru...">
+                    </div>
+                </form>
+            </div>
 
-    <div class="relative overflow-x-auto shadow-md sm:rounded-lg bg-white dark:bg-gray-800 p-1">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                    <th scope="col" class="px-6 py-3">No</th>
-                    <th scope="col" class="px-6 py-3">Foto</th>
-                    <th scope="col" class="px-6 py-3">NIP / NUPTK</th>
-                    <th scope="col" class="px-6 py-3">Nama Lengkap</th>
-                    <th scope="col" class="px-6 py-3">Username</th>
-                    <th scope="col" class="px-6 py-3 text-center" width="20%">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($guru)) : ?>
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                            Belum ada data guru. Silakan tambah data baru.
-                        </td>
-                    </tr>
-                <?php else : ?>
-                    <?php $no = 1; foreach ($guru as $g) : ?>
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 text-center"><?= $no++ ?></td>
-                        <td class="px-6 py-4">
-                            <img class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700" src="<?= base_url('uploads/guru/' . ($g['foto'] ?? 'default.png')) ?>" alt="Foto">
-                        </td>
-                        <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                            <?= esc($g['nip']) ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="font-semibold"><?= esc($g['nama_lengkap']) ?></div>
-                            <div class="text-xs text-gray-500"><?= esc($g['gelar_depan'] . ' ' . $g['gelar_belakang']) ?></div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300 border border-gray-500">
-                                <?= esc($g['username'] ?? '-') ?>
-                            </span>
-                        </td>
-                        
-                        <td class="px-6 py-4 text-center">
-                            <div class="flex justify-center items-center space-x-2">
-                                <a href="<?= base_url('admin/guru/edit/' . $g['id']) ?>" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 text-center inline-flex items-center dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700" title="Edit Data">
-                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path></svg>
-                                    Edit
-                                </a>
+            <div class="flex items-center justify-end flex-1 ml-auto space-x-2 sm:space-x-3">
+                 <a href="<?= base_url('admin/master/download_template_guru') ?>" class="inline-flex items-center justify-center w-1/2 px-3 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 sm:w-auto dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Template
+                </a>
+                <button type="button" data-modal-target="modal-import-guru" data-modal-toggle="modal-import-guru" class="inline-flex items-center justify-center w-1/2 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 sm:w-auto dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    Import
+                </button>
 
-                                <button type="button" onclick="bukaModalHapus('<?= base_url('admin/guru/hapus/' . $g['id']) ?>')" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-2 text-center inline-flex items-center dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800" title="Hapus Data">
-                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                                    Hapus
-                                </button>
-                            </div>
-                        </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                <button type="button" data-modal-target="modal-guru-form" data-modal-toggle="modal-guru-form" class="inline-flex items-center justify-center w-1/2 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                    Tambah Guru
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
 <?php if (session()->getFlashdata('success')) : ?>
-<div id="successModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900 bg-opacity-50">
-    <div class="relative w-full max-w-md max-h-full">
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" data-modal-hide="successModal">
-                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-            <div class="p-6 text-center">
-                <div class="mx-auto mb-4 text-green-500 bg-green-100 rounded-full p-3 w-16 h-16 flex items-center justify-center dark:bg-green-900 dark:text-green-300">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">Berhasil Disimpan!</h3>
-                <div class="mb-5 text-left bg-gray-100 dark:bg-gray-600 p-4 rounded-lg text-gray-700 dark:text-gray-200 text-sm">
-                    <?= str_replace('Berhasil! <br>', '', session()->getFlashdata('success')) ?>
-                </div>
-                <button data-modal-hide="successModal" type="button" class="text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
-                    Siap, Sudah Dicatat!
-                </button>
-            </div>
-        </div>
+    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+        <span class="font-medium">Sukses!</span> <?= session()->getFlashdata('success') ?>
     </div>
-</div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')) : ?>
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+        <span class="font-medium">Gagal!</span> <?= session()->getFlashdata('error') ?>
+    </div>
 <?php endif; ?>
 
-<div id="deleteModal" tabindex="-1" class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900 bg-opacity-50">
-    <div class="relative w-full max-w-md max-h-full">
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" data-modal-hide="deleteModal">
-                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                <span class="sr-only">Close modal</span>
-            </button>
-            <div class="p-6 text-center">
-                <svg aria-hidden="true" class="mx-auto mb-4 text-gray-400 w-14 h-14 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Yakin mau menghapus guru ini?<br><span class="text-xs">Akun login juga akan terhapus.</span></h3>
-                <a id="btnConfirmDelete" href="#" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
-                    Ya, Hapus
-                </a>
-                <button data-modal-hide="deleteModal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">
-                    Batal
-                </button>
+<div class="flex flex-col">
+    <div class="overflow-x-auto">
+        <div class="inline-block min-w-full align-middle">
+            <div class="overflow-hidden shadow">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                Nama & NIP
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                Pendidikan & Sertifikasi
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                Kontak
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                Status
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                Aksi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                        <?php if (empty($guru)) : ?>
+                            <tr>
+                                <td colspan="5" class="p-4 text-center text-gray-500 dark:text-gray-400 py-8">
+                                    Data guru belum tersedia.
+                                </td>
+                            </tr>
+                        <?php else : ?>
+                            <?php foreach ($guru as $g) : ?>
+                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <td class="flex items-center p-4 mr-12 space-x-4 whitespace-nowrap">
+                                    <img class="w-10 h-10 rounded-full object-cover" src="<?= base_url('uploads/guru/' . ($g['foto'] ?? 'default.png')) ?>" alt="Avatar">
+                                    <div class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                                        <div class="text-base font-semibold text-gray-900 dark:text-white"><?= $g['gelar_depan'] . ' ' . $g['nama_lengkap'] . ' ' . $g['gelar_belakang'] ?></div>
+                                        <div class="text-xs font-normal text-gray-500 dark:text-gray-400">NIP: <?= $g['nip'] ?></div>
+                                    </div>
+                                </td>
+                                <td class="p-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-white font-medium"><?= $g['pendidikan_terakhir'] ?? '-' ?></div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400"><?= $g['sertifikasi'] ?? '' ?></div>
+                                </td>
+                                <td class="p-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    <?= $g['no_hp'] ?? '-' ?><br>
+                                    <span class="text-xs text-gray-500"><?= $g['email'] ?? '' ?></span>
+                                </td>
+                                <td class="p-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <?php 
+                                        $color = ($g['status_guru'] == 'PNS' || $g['status_guru'] == 'PPPK') ? 'green' : 'blue';
+                                        ?>
+                                        <div class="h-2.5 w-2.5 rounded-full bg-<?= $color ?>-400 mr-2"></div>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white"><?= $g['status_guru'] ?></span>
+                                    </div>
+                                </td>
+                                <td class="p-4 whitespace-nowrap space-x-2">
+                                    <button id="dropdown-btn-<?= $g['id'] ?>" data-dropdown-toggle="dropdown-<?= $g['id'] ?>" class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-500 bg-white rounded-lg hover:bg-gray-100 focus:outline-none dark:text-gray-400 focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600" type="button">
+                                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 4 15">
+                                            <path d="M3.5 1.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6.041a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.959a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/>
+                                        </svg>
+                                    </button>
+                                    <div id="dropdown-<?= $g['id'] ?>" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+                                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdown-btn-<?= $g['id'] ?>">
+                                            <li>
+                                                <button type="button" data-modal-target="modal-guru-form" data-modal-toggle="modal-guru-form" 
+                                                    data-id="<?= $g['id'] ?>"
+                                                    data-nip="<?= $g['nip'] ?>"
+                                                    data-nama="<?= $g['nama_lengkap'] ?>"
+                                                    data-gelar_depan="<?= $g['gelar_depan'] ?>"
+                                                    data-gelar_belakang="<?= $g['gelar_belakang'] ?>"
+                                                    data-tempat_lahir="<?= $g['tempat_lahir'] ?>"
+                                                    data-tanggal_lahir="<?= $g['tanggal_lahir'] ?>"
+                                                    data-jenis_kelamin="<?= $g['jenis_kelamin'] ?>"
+                                                    data-alamat="<?= $g['alamat'] ?>"
+                                                    data-no_hp="<?= $g['no_hp'] ?>"
+                                                    data-email="<?= $g['email'] ?>"
+                                                    data-pendidikan="<?= $g['pendidikan_terakhir'] ?>"
+                                                    data-sertifikasi="<?= $g['sertifikasi'] ?>"
+                                                    data-status="<?= $g['status_guru'] ?>"
+                                                    data-telegram="<?= $g['telegram_chat_id'] ?>"
+                                                    class="btn-edit-guru block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                                                    Edit Data
+                                                </button>
+                                            </li>
+                                        </ul>
+                                        <div class="py-2">
+                                            <a href="<?= base_url('admin/guru/hapus/' . $g['id']) ?>" onclick="return confirm('Yakin hapus data ini? Akun login juga akan terhapus.')" class="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-red-500 dark:hover:text-red-400">
+                                                Hapus
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    // Script Modal Sukses
-    document.addEventListener("DOMContentLoaded", function(event) {
-        const successModalEl = document.getElementById('successModal');
-        if (successModalEl) {
-            const modal = new Modal(successModalEl);
-            modal.show();
-            const closeBtns = successModalEl.querySelectorAll('[data-modal-hide="successModal"]');
-            closeBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    modal.hide();
-                });
-            });
-        }
-    });
+<div class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between dark:bg-gray-800 dark:border-gray-700">
+    <div class="flex items-center mb-4 sm:mb-0">
+        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">Menampilkan <span class="font-semibold text-gray-900 dark:text-white"><?= count($guru) ?></span> data</span>
+    </div>
+    <div class="flex items-center space-x-3">
+        <button class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+            Previous
+        </button>
+        <button class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+            Next
+        </button>
+    </div>
+</div>
 
-    // Script Modal Hapus
-    let deleteModal;
-    document.addEventListener("DOMContentLoaded", function(event) {
-        const deleteModalEl = document.getElementById('deleteModal');
-        if(deleteModalEl) {
-            deleteModal = new Modal(deleteModalEl, { backdrop: 'static' });
-        }
-    });
-
-    function bukaModalHapus(urlHapus) {
-        document.getElementById('btnConfirmDelete').setAttribute('href', urlHapus);
-        if(deleteModal) {
-            deleteModal.show();
-        }
-    }
-    
-    const closeDeleteBtns = document.querySelectorAll('[data-modal-hide="deleteModal"]');
-    closeDeleteBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if(deleteModal) deleteModal.hide();
-        });
-    });
-</script>
+<?= view('admin/guru/modal_import') ?>
+<?= view('admin/guru/modal_form') ?>
 
 <?= $this->endSection() ?>

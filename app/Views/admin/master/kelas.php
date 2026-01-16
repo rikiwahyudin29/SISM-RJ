@@ -1,227 +1,281 @@
 <?= $this->extend('layout/template') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-7" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-    
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white italic tracking-tighter uppercase leading-none">Manajemen Kelas</h2>
-            <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-2 leading-none">Atur entitas rombongan belajar dan wali kelas aktif.</p>
+
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+    <div class="w-full mb-1">
+        <div class="mb-4">
+            <nav class="flex mb-5" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 text-sm font-medium md:space-x-2">
+                    <li class="inline-flex items-center">
+                        <a href="<?= base_url('admin/dashboard') ?>" class="inline-flex items-center text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-white">
+                            <svg class="w-5 h-5 mr-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                            Home
+                        </a>
+                    </li>
+                    <li><div class="flex items-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><span class="ml-1 text-gray-400 dark:text-gray-500 md:ml-2">Master Data</span></div></li>
+                    <li><div class="flex items-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg><span class="ml-1 text-gray-400 dark:text-gray-500 md:ml-2">Data Kelas</span></div></li>
+                </ol>
+            </nav>
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Manajemen Kelas</h1>
         </div>
         
-        <button data-modal-target="modal-tambah-kelas" data-modal-toggle="modal-tambah-kelas" 
-            class="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-widest shadow-xl shadow-blue-500/30 active:scale-95 transition-all flex items-center gap-3">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
-            Tambah Kelas
-        </button>
-        <button data-modal-target="modal-import-kelas" data-modal-toggle="modal-import-kelas" 
-    class="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-[11px] uppercase tracking-widest shadow-xl shadow-emerald-500/30 active:scale-95 transition-all flex items-center gap-3">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-    Import Excel
-</button>
-
-<div id="modal-import-kelas" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-[80] flex justify-center items-center bg-slate-900/60 backdrop-blur-md p-4 overflow-y-auto">
-    <div class="relative w-full max-w-lg bg-white dark:bg-[#1e293b] rounded-[3rem] shadow-2xl border dark:border-slate-700 overflow-hidden">
-        <div class="p-10 bg-emerald-600 text-white flex justify-between items-center relative overflow-hidden">
-            <div class="relative z-10">
-                <h3 class="text-xl font-extrabold uppercase tracking-tighter italic leading-none">Import Massal Kelas</h3>
-                <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-2 leading-none">Gunakan Format .XLSX atau .CSV</p>
-            </div>
-            <button data-modal-hide="modal-import-kelas" class="text-white/60 hover:text-white transition-colors bg-white/10 p-2 rounded-full leading-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-        
-        <form action="<?= base_url('admin/import/kelas') ?>" method="POST" enctype="multipart/form-data" class="p-10 space-y-7">
-            <?= csrf_field() ?>
-            <div class="space-y-4">
-                <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Pilih File Master Kelas</label>
-                <div class="relative flex items-center justify-center w-full">
-                    <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-3xl cursor-pointer bg-slate-50 dark:hover:bg-slate-800 dark:bg-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:hover:border-slate-500 transition-all">
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg class="w-8 h-8 mb-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                            <p class="text-xs font-bold text-slate-500 uppercase italic">Klik untuk upload file excel</p>
-                        </div>
-                        <input type="file" name="file_excel" class="hidden" required accept=".xlsx, .xls, .csv" />
-                    </label>
+        <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
+            <div class="flex items-center mb-4 sm:mb-0">
+                <div class="relative w-48 mt-1 sm:w-64 xl:w-96">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <input type="text" id="kelas-search" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Cari Nama Kelas...">
                 </div>
             </div>
-            <button type="submit" class="w-full py-6 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-[2rem] text-[11px] uppercase shadow-2xl shadow-emerald-500/30 tracking-[0.3em] transition-all active:scale-95 leading-none">
-                Eksekusi Import Data
-            </button>
-        </form>
-    </div>
-</div>
-    </div>
+            
+            <div class="flex items-center justify-end flex-1 ml-auto space-x-2 sm:space-x-3">
+                <a href="<?= base_url('admin/master/download_template_kelas') ?>" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-gray-700">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Template
+                </a>
+                
+                <button type="button" data-modal-target="modal-import-kelas" data-modal-toggle="modal-import-kelas" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    Import
+                </button>
 
-    <?php if (session()->getFlashdata('error')) : ?>
-    <div class="p-4 mb-4 text-red-800 border-2 border-red-300 rounded-[1.5rem] bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800 animate-pulse">
-        <div class="flex items-center">
-            <svg class="flex-shrink-0 w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-            <span class="text-xs font-black uppercase tracking-widest leading-none">Peringatan: <?= session()->getFlashdata('error') ?></span>
+                <button type="button" data-modal-target="modal-tambah-kelas" data-modal-toggle="modal-tambah-kelas" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <svg class="w-5 h-5 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                    Tambah Kelas
+                </button>
+            </div>
         </div>
     </div>
-    <?php endif; ?>
+</div>
 
-    <div class="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-700/50 rounded-[2rem] shadow-2xl shadow-blue-500/5 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50/50 dark:bg-slate-800/30 text-[10px] font-extrabold uppercase text-slate-500 tracking-[0.2em] border-b dark:border-slate-700/50">
-                    <tr>
-                        <th class="px-10 py-7">Nama Kelas</th>
-                        <th class="px-10 py-7 text-center">Jurusan</th>
-                        <th class="px-10 py-7">Wali Kelas</th>
-                        <th class="px-10 py-7 text-center">Siswa</th> 
-                        <th class="px-10 py-7 text-center">Opsi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y dark:divide-slate-700/30">
-                    <?php foreach($kelas as $k): ?>
-                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-all group">
-                        <td class="px-10 py-7">
-                            <span class="text-sm font-extrabold text-gray-900 dark:text-white italic tracking-tight uppercase leading-none"><?= $k['nama_kelas'] ?></span>
-                        </td>
-                        <td class="px-10 py-7 text-center leading-none">
-                            <span class="bg-indigo-600/10 text-indigo-500 px-4 py-2 rounded-xl font-black text-[10px] border border-indigo-500/20 uppercase tracking-tighter leading-none">
-                                <?= $k['kode_jurusan'] ?? 'UMUM' ?>
-                            </span>
-                        </td>
-                        <td class="px-10 py-7 leading-none">
-                            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">
-                                <?= $k['nama_guru'] ?? '<span class="text-red-500 font-black italic">BELUM SET</span>' ?>
-                            </span>
-                        </td>
-                        <td class="px-10 py-7 text-center leading-none">
-                            <div class="inline-flex items-center justify-center w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-full border border-emerald-500/20">
-                                <span class="text-[11px] font-black leading-none"><?= $k['jumlah_siswa'] ?? 0 ?></span>
-                            </div>
-                        </td>
-                        <td class="px-10 py-7">
-                            <div class="flex items-center justify-center gap-3">
-                                <a href="<?= base_url('admin/master/kelas_detail/' . $k['id']) ?>" 
-                                    class="w-10 h-10 flex items-center justify-center bg-emerald-500/10 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all shadow-lg shadow-emerald-500/10 leading-none" title="Lihat Siswa">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                </a>
+<?php if (session()->getFlashdata('success')) : ?>
+    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"><?= session()->getFlashdata('success') ?></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')) : ?>
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"><?= session()->getFlashdata('error') ?></div>
+<?php endif; ?>
 
-                                <button data-modal-target="edit-kelas-<?= $k['id'] ?>" data-modal-toggle="edit-kelas-<?= $k['id'] ?>" 
-                                    class="w-10 h-10 flex items-center justify-center bg-blue-600/10 text-blue-500 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-lg shadow-blue-500/10 leading-none">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
-                                
-                                <button data-modal-target="del-kelas-<?= $k['id'] ?>" data-modal-toggle="del-kelas-<?= $k['id'] ?>" 
-                                    class="w-10 h-10 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10 leading-none">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+<div class="flex flex-col">
+    <div class="overflow-x-auto">
+        <div class="inline-block min-w-full align-middle">
+            <div class="overflow-hidden shadow">
+                <table id="tabel-kelas" class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Nama Kelas</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Jurusan</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Wali Kelas</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Siswa</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                        <?php if(empty($kelas)): ?>
+                            <tr>
+                                <td colspan="5" class="p-4 text-center text-gray-500 dark:text-gray-400">Belum ada data kelas.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach($kelas as $k): ?>
+                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <td class="p-4 text-sm font-bold text-gray-900 dark:text-white"><?= $k['nama_kelas'] ?></td>
+                                <td class="p-4 whitespace-nowrap">
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-400">
+                                        <?= $k['kode_jurusan'] ?? 'UMUM' ?>
+                                    </span>
+                                </td>
+                                <td class="p-4 text-sm text-gray-900 dark:text-white">
+                                    <?= $k['nama_guru'] ?? '<span class="text-red-500 italic font-medium">Belum Set</span>' ?>
+                                </td>
+                                <td class="p-4 whitespace-nowrap">
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400">
+                                        <?= $k['jumlah_siswa'] ?? 0 ?> Siswa
+                                    </span>
+                                </td>
+                                <td class="p-4 whitespace-nowrap space-x-2">
+                                    <a href="<?= base_url('admin/master/kelas_detail/' . $k['id']) ?>" class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-500 bg-white rounded-lg hover:bg-gray-100 focus:outline-none dark:text-gray-400 focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    </a>
+                                    
+                                    <button type="button" 
+                                        data-modal-target="modal-edit-kelas" 
+                                        data-modal-toggle="modal-edit-kelas"
+                                        data-id="<?= $k['id'] ?>"
+                                        data-nama="<?= $k['nama_kelas'] ?>"
+                                        data-jurusan="<?= $k['id_jurusan'] ?>"
+                                        data-wali="<?= $k['guru_id'] ?>"
+                                        class="btn-edit-kelas inline-flex items-center p-2 text-sm font-medium text-center text-blue-600 bg-white rounded-lg hover:bg-gray-100 focus:outline-none dark:text-blue-500 focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
 
-                    <div id="edit-kelas-<?= $k['id'] ?>" tabindex="-1" class="hidden fixed inset-0 z-[70] flex justify-center items-center bg-slate-900/60 backdrop-blur-md p-4">
-                        <div class="relative w-full max-w-xl bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-2xl border dark:border-slate-700 overflow-hidden">
-                            <div class="p-10 bg-amber-500 text-white flex justify-between items-center relative overflow-hidden leading-none">
-                                <div class="relative z-10 leading-none">
-                                    <h3 class="text-xl font-extrabold uppercase tracking-tighter italic leading-none">Update Data Kelas</h3>
-                                    <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-1 italic leading-none">Nama: <?= $k['nama_kelas'] ?></p>
-                                </div>
-                                <button data-modal-hide="edit-kelas-<?= $k['id'] ?>" class="text-white/60 hover:text-white transition-colors bg-white/10 p-2 rounded-full leading-none">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                            <form action="<?= base_url('admin/master/kelas_update/' . $k['id']) ?>" method="POST" class="p-10 space-y-7">
-                                <?= csrf_field() ?>
-                                <div class="space-y-3 text-left">
-                                    <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Nama Kelas</label>
-                                    <input type="text" name="nama_kelas" value="<?= $k['nama_kelas'] ?>" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 text-sm font-bold uppercase text-gray-900 dark:text-white focus:ring-4 focus:ring-amber-500/10 outline-none transition-all leading-none" required>
-                                </div>
-                                <div class="grid grid-cols-2 gap-5">
-                                    <div class="space-y-3 text-left">
-                                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Jurusan</label>
-                                        <select name="id_jurusan" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 text-sm font-bold uppercase text-gray-900 dark:text-white focus:ring-4 focus:ring-amber-500/10 outline-none appearance-none leading-none" required>
-                                            <option value="">-- PILIH --</option>
-                                            <?php foreach($jurusan as $j): ?>
-                                                <option value="<?= $j['id'] ?>" <?= ($j['id'] == $k['id_jurusan']) ? 'selected' : '' ?>><?= $j['kode_jurusan'] ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    <div class="space-y-3 text-left">
-                                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Wali Kelas</label>
-                                        <select name="guru_id" class="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 text-sm font-bold uppercase text-gray-900 dark:text-white focus:ring-4 focus:ring-amber-500/10 outline-none appearance-none leading-none" required>
-                                            <option value="">-- PILIH --</option>
-                                            <?php foreach($guru as $g): ?>
-                                                <option value="<?= $g['id'] ?>" <?= ($g['id'] == $k['guru_id']) ? 'selected' : '' ?>><?= $g['nama_lengkap'] ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                </div>
-                                <button type="submit" class="w-full py-6 bg-amber-500 hover:bg-amber-600 text-white font-extrabold rounded-[2rem] text-[11px] uppercase shadow-2xl shadow-amber-500/30 tracking-[0.3em] transition-all active:scale-95 leading-none">
-                                    Simpan Perubahan
-                                </button>
-                            </form>
+                                    <a href="<?= base_url('admin/master/kelas_hapus/' . $k['id']) ?>" onclick="return confirm('Hapus kelas ini?')" class="inline-flex items-center p-2 text-sm font-medium text-center text-red-600 bg-white rounded-lg hover:bg-gray-100 focus:outline-none dark:text-red-500 focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-tambah-kelas" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Tambah Kelas Baru</h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600" data-modal-hide="modal-tambah-kelas">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <form action="<?= base_url('admin/master/kelas_simpan') ?>" method="POST">
+                    <?= csrf_field() ?>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Kelas</label>
+                            <input type="text" name="nama_kelas" placeholder="X TJKT 1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jurusan</label>
+                            <select name="id_jurusan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
+                                <option value="">-- Pilih Jurusan --</option>
+                                <?php foreach($jurusan as $j): ?>
+                                    <option value="<?= $j['id'] ?>"><?= $j['kode_jurusan'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Wali Kelas</label>
+                            <select name="guru_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
+                                <option value="">-- Pilih Guru --</option>
+                                <?php foreach($guru as $g): ?>
+                                    <option value="<?= $g['id'] ?>"><?= $g['nama_lengkap'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
+                    <button type="submit" class="w-full mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700">Simpan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-                    <div id="del-kelas-<?= $k['id'] ?>" tabindex="-1" class="hidden fixed inset-0 z-[70] flex justify-center items-center bg-slate-900/60 backdrop-blur-md p-4">
-                        <div class="relative w-full max-w-md bg-white dark:bg-[#1e293b] rounded-[3rem] shadow-2xl border dark:border-slate-700 overflow-hidden p-10 text-center">
-                            <div class="w-24 h-24 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-7 text-red-500 leading-none">
-                                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </div>
-                            <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none">Hapus Kelas?</h3>
-                            <p class="text-xs text-slate-500 font-bold mb-10 uppercase tracking-widest leading-none px-2">Data <span class="text-red-500 font-black"><?= $k['nama_kelas'] ?></span> akan hilang permanen!</p>
-                            <div class="flex gap-4">
-                                <button data-modal-hide="del-kelas-<?= $k['id'] ?>" class="flex-1 py-4 text-xs font-extrabold text-slate-400 uppercase tracking-widest leading-none">Batal</button>
-                                <a href="<?= base_url('admin/master/kelas_hapus/' . $k['id']) ?>" class="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-2xl text-[10px] uppercase shadow-xl shadow-red-500/20 tracking-widest text-center transition-all leading-none">Ya, Hapus!</a>
-                            </div>
+<div id="modal-import-kelas" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800" data-modal-hide="modal-import-kelas">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </button>
+            <div class="px-6 py-6 lg:px-8">
+                <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Import Data Kelas</h3>
+                <form class="space-y-6" action="<?= base_url('admin/import/kelas') ?>" method="POST" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Upload file .xlsx</label>
+                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" name="file_excel" type="file" accept=".xlsx" required>
+                    </div>
+                    <button type="submit" class="w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700">Upload & Import</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-edit-kelas" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Edit Data Kelas</h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600" data-modal-hide="modal-edit-kelas">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <form id="form-edit-kelas" method="POST">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="id" id="edit_id_kelas">
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Kelas</label>
+                            <input type="text" name="nama_kelas" id="edit_nama_kelas" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jurusan</label>
+                            <select name="id_jurusan" id="edit_id_jurusan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
+                                <option value="">-- Pilih Jurusan --</option>
+                                <?php foreach($jurusan as $j): ?>
+                                    <option value="<?= $j['id'] ?>"><?= $j['kode_jurusan'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Wali Kelas</label>
+                            <select name="guru_id" id="edit_guru_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white" required>
+                                <option value="">-- Pilih Guru --</option>
+                                <?php foreach($guru as $g): ?>
+                                    <option value="<?= $g['id'] ?>"><?= $g['nama_lengkap'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    <button type="submit" class="w-full mt-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Simpan Perubahan</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="modal-tambah-kelas" tabindex="-1" class="hidden fixed inset-0 z-[60] flex justify-center items-center bg-slate-900/60 backdrop-blur-md p-4 overflow-y-auto">
-    <div class="relative w-full max-w-xl bg-white dark:bg-[#1e293b] rounded-[3rem] shadow-2xl border dark:border-slate-700 overflow-hidden leading-none">
-        <div class="p-10 bg-blue-600 text-white flex justify-between items-center relative overflow-hidden leading-none">
-            <div class="relative z-10 leading-none">
-                <h3 class="text-xl font-extrabold uppercase tracking-tighter italic leading-none">Registrasi Kelas</h3>
-                <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest mt-2 leading-none">Daftarkan Rombongan Belajar Baru.</p>
-            </div>
-            <button data-modal-hide="modal-tambah-kelas" class="text-white/60 hover:text-white transition-colors bg-white/10 p-2 rounded-full leading-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-        <form action="<?= base_url('admin/master/kelas_simpan') ?>" method="POST" class="p-10 space-y-7">
-            <?= csrf_field() ?>
-            <div class="space-y-3">
-                <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Nama Kelas</label>
-                <input type="text" name="nama_kelas" placeholder="X TJKT 1" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 text-sm font-bold uppercase text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all leading-none" required>
-            </div>
-            <div class="grid grid-cols-2 gap-5">
-                <div class="space-y-3 leading-none">
-                    <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Pilih Jurusan</label>
-                    <select name="id_jurusan" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 text-sm font-bold uppercase text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none leading-none" required>
-                        <option value="">-- PILIH --</option>
-                        <?php foreach($jurusan as $j): ?>
-                            <option value="<?= $j['id'] ?>"><?= $j['kode_jurusan'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="space-y-3 leading-none">
-                    <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Pilih Wali Kelas</label>
-                    <select name="guru_id" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 text-sm font-bold uppercase text-gray-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none leading-none" required>
-                        <option value="">-- PILIH --</option>
-                        <?php foreach($guru as $g): ?>
-                            <option value="<?= $g['id'] ?>"><?= $g['nama_lengkap'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-            <button type="submit" class="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-[2rem] text-[11px] uppercase shadow-2xl shadow-blue-500/30 tracking-[0.3em] transition-all active:scale-95 leading-none">
-                Simpan Entitas Kelas
-            </button>
-        </form>
-    </div>
-</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Live Search
+        const searchInput = document.getElementById('kelas-search');
+        const table = document.getElementById('tabel-kelas');
+        const rows = table.getElementsByTagName('tr');
+
+        if(searchInput) {
+            searchInput.addEventListener('input', function() {
+                const filter = searchInput.value.toLowerCase();
+                for (let i = 1; i < rows.length; i++) { 
+                    const row = rows[i];
+                    const cells = row.getElementsByTagName('td');
+                    let found = false;
+                    if (cells[0] && cells[0].textContent.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                    }
+                    row.style.display = found ? "" : "none";
+                }
+            });
+        }
+
+        // 2. Logic Tombol Edit (Populate Modal)
+        const editButtons = document.querySelectorAll('.btn-edit-kelas');
+        const formEdit = document.getElementById('form-edit-kelas');
+        const baseUrl = '<?= base_url('admin/master/kelas_update/') ?>';
+
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const nama = this.dataset.nama;
+                const jurusan = this.dataset.jurusan;
+                const wali = this.dataset.wali;
+
+                document.getElementById('edit_id_kelas').value = id;
+                document.getElementById('edit_nama_kelas').value = nama;
+                document.getElementById('edit_id_jurusan').value = jurusan;
+                document.getElementById('edit_guru_id').value = wali;
+
+                // Update Action URL
+                formEdit.action = baseUrl + id;
+            });
+        });
+    });
+</script>
 
 <?= $this->endSection() ?>
