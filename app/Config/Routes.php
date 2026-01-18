@@ -156,6 +156,21 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     
     // Menu Nilai (Persiapan nanti)
     $routes->get('nilai', 'Guru\Nilai::index');
+    // --- FITUR BANK SOAL ---
+    $routes->get('bank_soal', 'Guru\BankSoal::index');
+    $routes->post('bank_soal/simpan', 'Guru\BankSoal::simpan');
+    $routes->get('bank_soal/hapus/(:num)', 'Guru\BankSoal::hapus/$1');
+
+    // Route untuk Kelola Butir Soal (Persiapan Langkah Selanjutnya)
+    $routes->get('bank_soal/kelola/(:num)', 'Guru\BankSoal::kelola/$1');
+    // CRUD SOAL
+    $routes->get('bank_soal/kelola/(:num)', 'Guru\BankSoal::kelola/$1');
+    $routes->post('bank_soal/simpanSoal', 'Guru\BankSoal::simpanSoal');
+    $routes->get('bank_soal/hapusSoal/(:num)/(:num)', 'Guru\BankSoal::hapusSoal/$1/$2');
+    $routes->post('bank_soal/simpanSoalAjax', 'Guru\BankSoal::simpanSoalAjax');
+$routes->post('bank_soal/importSoal', 'Guru\BankSoal::importSoal');
+$routes->get('bank_soal/getDetailSoal/(:num)', 'Guru\BankSoal::getDetailSoal/$1');
+$routes->get('bank_soal/hapusSoal/(:num)/(:num)', 'Guru\BankSoal::hapusSoal/$1/$2');
 });
 
 $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
