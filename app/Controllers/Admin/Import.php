@@ -101,88 +101,134 @@ class Import extends BaseController {
     }
 }
 public function siswa()
-{
-    $file = $this->request->getFile('file_excel');
+    {
+        $file = $this->request->getFile('file_excel');
 
-    if ($file && $file->isValid() && !$file->hasMoved()) {
-        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-        $spreadsheet = $reader->load($file->getTempName());
-        $dataExcel = $spreadsheet->getActiveSheet()->toArray();
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            try {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+                $spreadsheet = $reader->load($file->getTempName());
+                $dataExcel = $spreadsheet->getActiveSheet()->toArray();
 
-        $userModel = new \App\Models\UserModel(); // Pastikan use Model di atas
-        $siswaModel = new \App\Models\SiswaModel();
-        $db = \Config\Database::connect();
+                $userModel  = new \App\Models\UserModel();
+                $siswaModel = new \App\Models\SiswaModel();
+                $db         = \Config\Database::connect();
 
-        $db->transStart(); // Mulai Transaksi Database
+                $countSuccess = 0;
 
-        foreach ($dataExcel as $key => $row) {
-            if ($key == 0) continue; // Skip Header
+                foreach ($dataExcel as $key => $row) {
+                    if ($key == 0) continue; // Skip Header
 
-            // Mapping Kolom Excel
-            $nisn        = $row[0]; // A
-            $nis         = $row[1]; // B
-            $nama        = $row[2]; // C
-            $kelas       = $row[3]; // D
-            $jurusan     = $row[4]; // E
-            $jk          = $row[5]; // F
-            $tempat      = $row[6]; // G
-            $tgl         = $row[7]; // H
-            $hp          = $row[8]; // I
-            $ayah        = $row[9]; // J
-            $ibu         = $row[10];// K
-            $hp_ortu     = $row[11];// L
-            $telegram_id = $row[12] ?? null; // M - TELEGRAM ID (Ambil dari kolom ke-13)
+                    // 1. Mapping Variabel (Pastikan urutan sesuai Template Excel)
+                    $nisn        = $row[0]; 
+                    $nis         = $row[1]; 
+                    $nama        = $row[2]; 
+                    $kelas       = $row[3]; 
+                    $jurusan     = $row[4]; 
+                    $jk          = $row[5]; 
+                    $tempat      = $row[6]; 
+                    $tgl         = $row[7]; 
+                    $hp          = $row[8]; 
+                    $ayah        = $row[9]; 
+                    $ibu         = $row[10];
+                    $hp_ortu     = $row[11];
+                    $telegram_id = $row[12] ?? null;
 
-            // 1. Validasi: Cek NISN Duplikat di Siswa
-            if ($siswaModel->where('nisn', $nisn)->first()) continue;
+                    // Validasi Dasar: Kalau NISN/Nama kosong, skip
+                    if(empty($nisn) || empty($nama)) continue;
 
-            // 2. Buat Akun Login (tbl_users)
-            $userData = [
-                'username'         => $nisn,
-                'password'         => password_hash((string)$nisn, PASSWORD_DEFAULT),
-                'nama_lengkap'     => $nama,
-                'email'            => $nisn . '@student.sch.id',
-                'nomor_wa'         => $hp, 
-                'telegram_chat_id' => $telegram_id, // <--- MASUK KE DATABASE USER
-                'role'             => 'siswa',
-                'active'           => 1,
-                'created_at'       => date('Y-m-d H:i:s'),
-                'updated_at'       => date('Y-m-d H:i:s')
-            ];
-            $userModel->insert($userData);
-            $newUserId = $userModel->getInsertID();
+                    // Mulai Transaksi Per Baris
+                    $db->transStart();
 
-            // 3. Buat Data Siswa (tbl_siswa)
-            $siswaData = [
-                'user_id'       => $newUserId, // Relasi ke User
-                'nisn'          => $nisn,
-                'nis'           => $nis,
-                'nama_lengkap'  => $nama,
-                'kelas_id'      => $kelas,
-                'jurusan_id'    => $jurusan,
-                'jenis_kelamin' => $jk,
-                'tempat_lahir'  => $tempat,
-                'tanggal_lahir' => $tgl,
-                'no_hp_siswa'   => $hp,
-                'nama_ayah'     => $ayah,
-                'nama_ibu'      => $ibu,
-                'no_hp_ortu'    => $hp_ortu,
-                'status_siswa'  => 'Aktif',
-                'foto'          => 'default.png',
-                'created_at'    => date('Y-m-d H:i:s'),
-                'updated_at'    => date('Y-m-d H:i:s')
-            ];
-            $siswaModel->insert($siswaData);
+                    // 2. Cek apakah DATA SISWA sudah ada? (Kalau sudah ada, skip biar gak dobel)
+                    if ($siswaModel->where('nisn', $nisn)->first()) {
+                        $db->transRollback(); 
+                        continue; 
+                    }
+
+                    // 3. CEK USER (TERMASUK YANG SOFT DELETED / ZOMBIE)
+                    // Kita pakai Query Builder langsung biar bypass filter soft delete Model
+                    $existingUser = $db->table('tbl_users')->where('username', $nisn)->get()->getRowArray();
+                    
+                    $userId = null;
+
+                    if ($existingUser) {
+                        // --- SKENARIO 1: USER SUDAH ADA (Update & Restore) ---
+                        $userId = $existingUser['id'];
+                        
+                        $db->table('tbl_users')->where('id', $userId)->update([
+                            'nama_lengkap'     => $nama,
+                            'email'            => $nisn . '@student.sch.id',
+                            'telegram_chat_id' => $telegram_id,
+                            'is_active'        => 1,
+                            'deleted_at'       => null // <--- INI KUNCINYA! Hidupkan user mati
+                        ]);
+
+                    } else {
+                        // --- SKENARIO 2: USER BELUM ADA (Insert Baru) ---
+                        $userData = [
+                            'username'         => $nisn,
+                            'password'         => password_hash((string)$nisn, PASSWORD_DEFAULT),
+                            'nama_lengkap'     => $nama,
+                            'email'            => $nisn . '@student.sch.id',
+                            'nomor_wa'         => $hp, 
+                            'telegram_chat_id' => $telegram_id,
+                            'created_at'       => date('Y-m-d H:i:s'),
+                            'updated_at'       => date('Y-m-d H:i:s')
+                        ];
+                        $userModel->insert($userData);
+                        $userId = $userModel->getInsertID();
+                    }
+
+                    // 4. Pastikan Punya Role Siswa (ID 11)
+                    // Cek dulu biar gak error duplicate entry
+                    $cekRole = $db->table('user_roles')
+                                  ->where('user_id', $userId)
+                                  ->where('role_id', 11)
+                                  ->countAllResults();
+                                  
+                    if ($cekRole == 0) {
+                        $db->table('user_roles')->insert([
+                            'user_id' => $userId,
+                            'role_id' => 11
+                        ]);
+                    }
+
+                    // 5. Akhirnya Simpan Data Siswa
+                    $siswaData = [
+                        'user_id'       => $userId,
+                        'nisn'          => $nisn,
+                        'nis'           => $nis,
+                        'nama_lengkap'  => $nama,
+                        'kelas_id'      => $kelas,
+                        'jurusan_id'    => $jurusan,
+                        'jenis_kelamin' => $jk,
+                        'tempat_lahir'  => $tempat,
+                        'tanggal_lahir' => $tgl,
+                        'no_hp_siswa'   => $hp,
+                        'nama_ayah'     => $ayah,
+                        'nama_ibu'      => $ibu,
+                        'no_hp_ortu'    => $hp_ortu,
+                        'status_siswa'  => 'Aktif',
+                        'foto'          => 'default.png',
+                        'created_at'    => date('Y-m-d H:i:s'),
+                        'updated_at'    => date('Y-m-d H:i:s')
+                    ];
+                    $siswaModel->insert($siswaData);
+                    
+                    $db->transComplete(); // Selesai satu baris
+                    
+                    if ($db->transStatus()) {
+                        $countSuccess++;
+                    }
+                }
+
+                return redirect()->back()->with('success', "Berhasil mengimport $countSuccess data siswa!");
+
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'Error System: ' . $e->getMessage());
+            }
         }
-
-        $db->transComplete();
-
-        if ($db->transStatus() === FALSE) {
-            return redirect()->back()->with('error', 'Gagal import siswa. Terjadi kesalahan sistem.');
-        } else {
-            return redirect()->back()->with('success', 'Data Siswa & Akun Login (termasuk Telegram ID) berhasil diimport!');
-        }
+        return redirect()->back()->with('error', 'File tidak valid atau kosong.');
     }
-    return redirect()->back()->with('error', 'File tidak valid.');
-}
 }

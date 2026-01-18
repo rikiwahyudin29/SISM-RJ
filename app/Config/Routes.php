@@ -19,6 +19,10 @@ $routes->group('auth', function($routes) {
     $routes->get('logout', 'Auth::logout');
     $routes->get('google', 'Auth::google_login');
     $routes->get('google_callback', 'Auth::google_callback');
+    // Route untuk OTP
+    $routes->get('verify_otp', 'Auth::verify_otp');          // Menampilkan Halaman Input OTP
+    $routes->post('verify_otp', 'Auth::verify_otp');
+    $routes->post('check_otp', 'Auth::check_otp'); // Memproses Submit OTP
 });
 
 $routes->get('login', 'Auth::login');
@@ -44,6 +48,7 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
         $routes->get('ta_aktif/(:num)', 'Admin\Master::ta_aktif/$1');
         $routes->get('ta_hapus/(:num)', 'Admin\Master::ta_hapus/$1');
 
+       
         // Jurusan
         $routes->get('jurusan', 'Admin\Master::jurusan');
         $routes->post('jurusan_simpan', 'Admin\Master::jurusan_simpan');
@@ -102,7 +107,19 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
         $routes->get('/', 'Admin\Siswa::index');
         $routes->post('simpan', 'Admin\Siswa::simpan');
         $routes->get('delete/(:num)', 'Admin\Siswa::delete_siswa/$1');
+        $routes->get('hapus_semua', 'Admin\Siswa::hapus_semua');
     });
+
+    $routes->group('rombel', function($routes) {
+    $routes->get('/', 'Admin\Rombel::index');
+    $routes->get('atur/(:num)', 'Admin\Rombel::atur/$1');
+    $routes->post('proses_pindah', 'Admin\Rombel::proses_pindah');
+    $routes->get('alumni', 'Admin\Rombel::alumni');
+});
+ $routes->get('jam', 'Admin\Jam::index');
+    $routes->post('jam/simpan', 'Admin\Jam::simpan');
+    $routes->get('jam/hapus/(:num)', 'Admin\Jam::hapus/$1');
+
 
     // --- MANAJEMEN ORTU ---
     $routes->group('ortu', function($routes) {
@@ -117,7 +134,14 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
         $routes->post('simpan', 'Admin::ekskul_simpan');
         $routes->get('hapus/(:num)', 'Admin::ekskul_hapus/$1');
     });
-
+$routes->group('jadwal', function($routes) {
+    $routes->get('/', 'Admin\Jadwal::index');
+    $routes->get('cetak', 'Admin\Jadwal::cetak'); 
+    $routes->get('rekap', 'Admin\Jadwal::rekap');
+    $routes->get('rekap/cetak', 'Admin\Jadwal::cetakRekap');// <--- TAMBAH INI
+    $routes->post('simpan', 'Admin\Jadwal::simpan');
+    $routes->get('hapus/(:num)', 'Admin\Jadwal::hapus/$1');
+});
 });
 
 
@@ -125,11 +149,18 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
 // 3. ROLE ROUTES
 // =========================================================================
 $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
-    $routes->get('dashboard', 'Guru::index');
+   $routes->get('dashboard', 'Guru\Dashboard::index');
+    
+    // MENU JADWAL
+    $routes->get('jadwal', 'Guru\Jadwal::index');
+    
+    // Menu Nilai (Persiapan nanti)
+    $routes->get('nilai', 'Guru\Nilai::index');
 });
 
 $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
-    $routes->get('dashboard', 'Siswa::index');
+    // Ubah $this menjadi $routes
+    $routes->get('dashboard', 'Siswa\Dashboard::index'); 
 });
 
 $routes->group('piket', ['filter' => 'role:piket'], function($routes) {

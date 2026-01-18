@@ -2,9 +2,21 @@
 namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\GuruModel;
-
+use App\Models\KelasModel; // Pastikan ini ada
+use App\Models\SiswaModel;
+use App\Models\UserModel;
+// Pastikan ini ada (karena dipakai juga)
 class Master extends BaseController {
-    
+    protected $kelasModel;
+    protected $siswaModel;
+protected $userModel; // <--- DEFINISIKAN PROPERTY
+    public function __construct()
+    {
+        // 2. INISIALISASI MODEL DI SINI
+        $this->kelasModel = new KelasModel();
+        $this->siswaModel = new SiswaModel();
+        $this->userModel  = new UserModel();
+    }
     // TAHUN AJARAN
     public function tahun_ajaran() {
         $db = \Config\Database::connect();
@@ -207,30 +219,24 @@ public function kelas_update($id)
     
     return redirect()->back()->with('success', 'Data entitas kelas berhasil diperbarui!');
 }
-public function kelas_detail($id_kelas)
-{
-    $db = \Config\Database::connect();
-    
-    // Ambil info kelas untuk judul halaman
-    $kelas = $db->table('tbl_kelas')->where('id', $id_kelas)->get()->getRowArray();
-    
-    if (!$kelas) {
-        return redirect()->back()->with('error', 'Data kelas tidak ditemukan!');
+public function kelas_detail($id)
+    {
+        $kelas = $this->kelasModel->find($id);
+        
+        if (!$kelas) {
+            return redirect()->to('admin/master/kelas')->with('error', 'Kelas tidak ditemukan.');
+        }
+
+        $data = [
+            'title'      => 'Detail Siswa',
+            'nama_kelas' => $kelas['nama_kelas'],
+            'id_kelas'   => $id, // <--- INI WAJIB ADA BIAR MODAL GAK ERROR
+            'siswa'      => $this->siswaModel->where('kelas_id', $id)->findAll(),
+            'kelas'      => $this->kelasModel->findAll() 
+        ];
+
+        return view('admin/master/siswa_list', $data);
     }
-
-    $data = [
-        'title'      => 'Daftar Siswa Kelas ' . $kelas['nama_kelas'],
-        'nama_kelas' => $kelas['nama_kelas'],
-        // Ambil siswa yang memiliki kelas_id sesuai dengan ID kelas ini
-        'siswa'      => $db->table('tbl_siswa')
-                             ->where('kelas_id', $id_kelas)
-                             ->get()->getResultArray()
-    ];
-
-    // Karena modul Siswa baru dikerjakan hari Selasa, 
-    // pastikan Bos sudah punya view 'admin/master/siswa_list' atau sesuaikan namanya.
-    return view('admin/master/siswa_list', $data); 
-}
 public function kelas_hapus($id)
 {
     $modelKelas = new \App\Models\KelasModel();

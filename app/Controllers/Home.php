@@ -2,12 +2,12 @@
 
 namespace App\Controllers;
 
-use App\Models\PengaturanModel; // Buat Model ini nanti
-use App\Models\SiswaModel;      // Asumsi ada
-use App\Models\GuruModel;       // Asumsi ada
-use App\Models\SliderModel;     // Buat Model ini nanti
-use App\Models\KegiatanModel;   // Asumsi ada
-use App\Models\GalleryModel;    // Buat Model ini nanti
+use App\Models\PengaturanModel;
+use App\Models\SiswaModel;
+use App\Models\GuruModel;
+use App\Models\SliderModel;
+use App\Models\KegiatanModel;
+use App\Models\GalleryModel;
 
 class Home extends BaseController
 {
@@ -15,8 +15,7 @@ class Home extends BaseController
     {
         $db = \Config\Database::connect();
 
-        // 1. Ambil Pengaturan Web (Konversi ke Array Asosiatif biar mudah dipanggil)
-        // Hasilnya jadi: $setting['nama_sekolah'], $setting['alamat'], dst.
+        // 1. Ambil Pengaturan Web
         $builder = $db->table('tbl_pengaturan');
         $query   = $builder->get()->getResultArray();
         $setting = [];
@@ -24,20 +23,21 @@ class Home extends BaseController
             $setting[$row['kunci']] = $row['nilai'];
         }
 
-        // 2. Hitung Statistik Real-time
-        // Asumsi kamu punya tabel 'tbl_siswa' dengan status 'aktif'
-        $jml_siswa = $db->table('tbl_siswa')->where('status', 'aktif')->countAllResults();
-        $jml_guru  = $db->table('tbl_guru')->countAllResults();
+        // 2. Hitung Statistik Real-time (BAGIAN INI YANG SAYA PERBAIKI)
+        // Saya hapus ->where('status', 'aktif') agar tidak error
+        $jml_siswa  = $db->table('tbl_siswa')->countAllResults(); 
+        $jml_guru   = $db->table('tbl_guru')->countAllResults();
+        // Pastikan tabel tbl_ekskul ada, kalau belum ada matikan baris di bawah ini
         $jml_ekskul = $db->table('tbl_ekskul')->countAllResults(); 
 
         // 3. Ambil Data List (Slider, Berita, Gallery)
         $sliders  = $db->table('tbl_slider')->orderBy('urutan', 'ASC')->get()->getResultArray();
-        $kegiatan = $db->table('tbl_kegiatan')->orderBy('tanggal', 'DESC')->limit(3)->get()->getResultArray(); // Ambil 3 berita terbaru
+        $kegiatan = $db->table('tbl_kegiatan')->orderBy('tanggal', 'DESC')->limit(3)->get()->getResultArray(); 
         $gallery  = $db->table('tbl_gallery')->orderBy('id', 'DESC')->limit(8)->get()->getResultArray();
 
         $data = [
-            'web'       => $setting,     // Data pengaturan
-            'stats'     => [             // Data Statistik
+            'web'       => $setting,
+            'stats'     => [
                 'siswa'  => $jml_siswa,
                 'guru'   => $jml_guru,
                 'ekskul' => $jml_ekskul
