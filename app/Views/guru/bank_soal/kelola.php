@@ -6,6 +6,7 @@
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     window.MathJax = {
         tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
@@ -20,15 +21,16 @@
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 <style>
-    /* Dark Mode Support */
+    /* Dark Mode Fixes */
     .dark .note-editor .note-editing-area .note-editable { color: #fff !important; background-color: #374151 !important; }
     .dark .note-btn { color: #e5e7eb !important; background-color: #4b5563 !important; border-color: #374151 !important; }
     .dark .note-toolbar { background-color: #1f2937 !important; border-bottom-color: #374151 !important; }
-    .note-modal-footer { height: 60px; padding: 10px; text-align: right; } /* Fix modal footer height */
     
-    /* Tombol Rumus Custom */
-    .math-btn { cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; background: #f8f9fa; margin: 2px; border-radius: 4px; display: inline-block; }
+    /* Tombol Rumus Helper */
+    .math-btn { cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; background: #f8f9fa; margin: 2px; border-radius: 4px; display: inline-block; font-size: 12px; }
     .math-btn:hover { background: #e2e6ea; }
+    .dark .math-btn { background: #374151; border-color: #4b5563; color: white; }
+    .dark .math-btn:hover { background: #4b5563; }
 </style>
 
 <div class="p-4 bg-white border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700 sticky top-16 z-30 shadow-sm">
@@ -42,7 +44,7 @@
         </div>
         <div class="flex gap-2">
             <button type="button" onclick="bukaModalImport()" class="text-white bg-green-600 hover:bg-green-700 font-medium rounded-lg text-sm px-4 py-2 flex items-center shadow-sm">
-                <i class="fas fa-file-excel mr-2"></i> Import Excel
+                <i class="fas fa-file-import mr-2"></i> Import Soal
             </button>
             <a href="<?= base_url('guru/bank_soal') ?>" class="text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 font-medium rounded-lg text-sm px-4 py-2">Kembali</a>
         </div>
@@ -57,31 +59,32 @@
             <button onclick="resetForm()" class="text-xs text-blue-600 hover:underline font-bold dark:text-blue-400">+ Soal Baru</button>
         </div>
         
-        <div id="listSoalContainer" class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 pb-20">
+       <div id="listSoalContainer" class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 pb-20">
             <?php foreach($soal as $index => $s): ?>
-            <div class="p-3 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 flex flex-col gap-2 hover:border-blue-500 transition-colors cursor-pointer group" onclick="editSoal(<?= $s['id'] ?>)">
+            
+            <div class="block max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 relative group">
                 
-                <div class="flex justify-between items-start">
-                    <div class="flex items-center">
-                        <span class="bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded border border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
+                <div class="cursor-pointer" onclick="editSoal(<?= $s['id'] ?>)">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
                             No. <?= $index + 1 ?>
                         </span>
-                        <span class="text-[10px] font-mono text-gray-500 ml-2 uppercase dark:text-gray-400">
-                            [<?= $s['tipe_soal'] ?>]
+                        <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300 border border-gray-500">
+                            <?= $s['tipe_soal'] ?>
                         </span>
+                    </div>
+
+                    <div class="mb-3 font-normal text-gray-700 dark:text-gray-400 text-sm line-clamp-3">
+                        <?= strip_tags($s['pertanyaan']) ?>
                     </div>
                 </div>
 
-                <div class="text-sm text-gray-800 dark:text-gray-300 line-clamp-2 leading-relaxed">
-                    <?= strip_tags($s['pertanyaan']) ?>
-                </div>
-
-                <div class="flex justify-end pt-2 border-t border-dashed border-gray-200 dark:border-gray-700 mt-1">
-                    <button type="button" onclick="hapusSoal(event, <?= $s['id'] ?>)" class="text-xs bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-600 hover:text-white transition-colors flex items-center font-bold">
-                        <i class="fas fa-trash-alt mr-1"></i> Hapus
+                <div class="flex justify-end mt-4 border-t border-gray-200 dark:border-gray-600 pt-3 relative z-50">
+                    <button type="button" onclick="event.stopPropagation(); hapusSoal(event, <?= $s['id'] ?>)" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-xs px-4 py-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 flex items-center gap-2 transition-all shadow-md">
+                        <i class="fas fa-trash-alt"></i> Hapus
                     </button>
                 </div>
-
+                
             </div>
             <?php endforeach; ?>
         </div>
@@ -115,7 +118,7 @@
                             <span class="math-btn" onclick="insertMath('\\times')">Kali $\times$</span>
                             <span class="math-btn" onclick="insertMath('\\div')">Bagi $\div$</span>
                         </div>
-                        <p class="text-[10px] mt-2 text-gray-500">Tips: Rumus akan tampil sebagai kode LaTeX (contoh: <code>\( \frac{a}{b} \)</code>) saat diedit, tapi akan berubah jadi rumus cantik setelah disimpan.</p>
+                        <p class="text-[10px] mt-2 text-gray-500">Tips: Rumus akan tampil sebagai kode LaTeX saat diedit, akan dirender cantik setelah disimpan.</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-6 mb-6">
@@ -209,6 +212,72 @@
     </div>
 </div>
 
+<div id="modal-import" class="hidden fixed inset-0 z-50 bg-gray-900/50 backdrop-blur-sm flex justify-center items-center">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md dark:bg-gray-800">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold dark:text-white">Import Soal Massal</h3>
+            <button onclick="document.getElementById('modal-import').classList.add('hidden')" class="text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+                <li class="mr-2">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500" id="excel-tab" onclick="switchTab('excel')">Excel</button>
+                </li>
+                <li class="mr-2">
+                    <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="word-tab" onclick="switchTab('word')">Word (.docx)</button>
+                </li>
+            </ul>
+        </div>
+
+        <div id="tab-excel" class="block">
+            <form action="<?= base_url('guru/bank_soal/importSoal') ?>" method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id_bank_soal" value="<?= $bank['id'] ?>">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Excel (.xlsx)</label>
+                    <input type="file" name="file_excel" accept=".xlsx, .xls" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                </div>
+                <div class="mb-4 text-xs text-blue-600 dark:text-blue-400">
+                    <a href="<?= base_url('template/template_soal.xlsx') ?>"><i class="fas fa-download"></i> Download Template Excel</a>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm">Import Excel</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="tab-word" class="hidden">
+            <form action="<?= base_url('guru/bank_soal/importSoalWord') ?>" method="POST" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id_bank_soal" value="<?= $bank['id'] ?>">
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Word (.docx)</label>
+                    <input type="file" name="file_word" accept=".docx" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                </div>
+                
+                <div class="mb-4 text-xs text-blue-600 dark:text-blue-400">
+                    <a href="<?= base_url('guru/bank_soal/downloadTemplateWord') ?>" class="hover:underline font-bold">
+                        <i class="fas fa-file-word mr-1"></i> Download Template Word (Q-Format)
+                    </a>
+                </div>
+
+                <div class="mb-4 p-3 bg-yellow-50 text-yellow-800 rounded border border-yellow-200 text-xs">
+                    <i class="fas fa-info-circle"></i> Gunakan format <b>Q-Format</b> (Q>:, A>:, K>:).<br>
+                    Pastikan Gambar di-setting <b>In Line with Text</b>.
+                </div>
+                
+                <div class="flex justify-end gap-2">
+                    <button type="submit" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded text-sm">Import Word</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     // --- TOMBOL CUSTOM SUMMERNOTE UNTUK MATH ---
     var MathButton = function (context) {
@@ -217,7 +286,6 @@
             contents: '<i class="fas fa-square-root-alt"></i> Σ Rumus',
             tooltip: 'Sisipkan Rumus Matematika',
             click: function () {
-                // Toggle Helper Rumus
                 $('#mathHelper').toggleClass('hidden');
             }
         });
@@ -234,12 +302,10 @@
                 ['font', ['strikethrough', 'superscript', 'subscript']],
                 ['para', ['ul', 'ol', 'paragraph']],
                 ['insert', ['link', 'picture', 'table']],
-                ['mybutton', ['math']], // Tombol Custom Kita
+                ['mybutton', ['math']], 
                 ['view', ['fullscreen', 'codeview']]
             ],
-            buttons: {
-                math: MathButton
-            },
+            buttons: { math: MathButton },
             callbacks: {
                 onChange: function(contents, $editable) {
                     autoSaveDraft();
@@ -247,25 +313,42 @@
             }
         });
         
-        // Render MathJax awal untuk list soal
-        if (window.MathJax) {
-            MathJax.typesetPromise();
+        if (window.MathJax) { MathJax.typesetPromise(); }
+        
+        // Cek Draft LocalStorage
+        const draft = localStorage.getItem('draft_soal_<?= $bank['id'] ?>');
+        if(draft) {
+            const d = JSON.parse(draft);
+            if(confirm('Ada draft soal belum disimpan. Pulihkan?')) {
+                $('#summernote').summernote('code', d.pertanyaan);
+                $('#tipe_soal').val(d.tipe).trigger('change');
+            }
         }
     });
 
-    // FUNGSI INSERT RUMUS KE SUMMERNOTE
     function insertMath(latex) {
-        // Format MathJax: \( rumus \)
         var rumusFormatted = '\\( ' + latex + ' \\) '; 
         $('#summernote').summernote('editor.insertText', rumusFormatted);
-        $('#mathHelper').addClass('hidden'); // Sembunyikan helper setelah klik
+        $('#mathHelper').addClass('hidden');
     }
     
-    // --- SISA FUNCTION SAMA SEPERTI SEBELUMNYA ---
-    // (Copy Function simpanSoal, autoSaveDraft, dll dari jawaban sebelumnya)
+    // --- AUTO SAVE ---
     let timeoutId;
-    function autoSaveDraft() { /* ... */ }
+    function autoSaveDraft() {
+        const status = document.getElementById('autoSaveStatus');
+        status.innerHTML = '<span class="text-yellow-500">Menyimpan...</span>';
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            const data = {
+                pertanyaan: $('#summernote').summernote('code'),
+                tipe: $('#tipe_soal').val()
+            };
+            localStorage.setItem('draft_soal_<?= $bank['id'] ?>', JSON.stringify(data));
+            status.innerHTML = '<span class="text-green-500">Tersimpan</span>';
+        }, 2000);
+    }
     
+    // --- SIMPAN SOAL AJAX ---
     function simpanSoal() {
         const formData = new FormData(document.getElementById('formSoal'));
         formData.append('pertanyaan', $('#summernote').summernote('code'));
@@ -292,7 +375,8 @@
     function resetForm() {
         document.getElementById('formSoal').reset();
         $('#summernote').summernote('code', '');
-        document.getElementById('id_soal').value = '';
+        $('#id_soal').val('');
+        $('#formTitle').html('<i class="fas fa-plus text-blue-600"></i> Input Soal Baru');
         gantiTipe();
     }
     
@@ -303,153 +387,119 @@
     }
     
     function tambahJodoh() {
-        // ... (Sama seperti sebelumnya)
         const container = document.getElementById('containerJodoh');
         const div = document.createElement('div');
         div.className = 'flex gap-3 mb-3 row-jodoh';
         div.innerHTML = `<input type="text" name="jodoh_kiri[]" class="w-1/2 bg-white border border-gray-300 text-sm rounded p-2.5" placeholder="Premis"><input type="text" name="jodoh_kanan[]" class="w-1/2 bg-white border border-gray-300 text-sm rounded p-2.5" placeholder="Jawaban">`;
         container.appendChild(div);
     }
-    function editSoal(idSoal) {
-        // 1. Tampilkan Loading di Form
-        $('#formTitle').text('Sedang memuat data...');
-        $('#summernote').summernote('disable'); // Kunci dulu biar gak diacak-acak
 
-        // 2. Ambil Data via AJAX
+    // --- EDIT SOAL (LOAD AJAX) ---
+    function editSoal(idSoal) {
+        $('#formTitle').text('Memuat data...');
+        $('#summernote').summernote('disable');
+
         $.ajax({
             url: '<?= base_url('guru/bank_soal/getDetailSoal') ?>/' + idSoal,
-            type: 'GET',
-            dataType: 'JSON',
+            type: 'GET', dataType: 'JSON',
             success: function(data) {
                 const s = data.soal;
                 const o = data.opsi;
 
-                // 3. Isi Data Header Soal
                 $('#id_soal').val(s.id);
-                $('#tipe_soal').val(s.tipe_soal).trigger('change'); // Trigger biar form opsi berubah
+                $('#tipe_soal').val(s.tipe_soal).trigger('change');
                 $('#bobot').val(s.bobot);
-                
-                // Isi Summernote
                 $('#summernote').summernote('code', s.pertanyaan);
-                
-                // Ubah Judul Form
                 $('#formTitle').html('<i class="fas fa-edit text-yellow-600"></i> Edit Soal No. ' + s.id);
                 
-                // 4. Isi Opsi Jawaban Sesuai Tipe
-                
-                // --- JIKA PILIHAN GANDA (PG) ---
+                // MAP OPSI
                 if(s.tipe_soal === 'PG') {
-                    // Reset dulu inputan
-                    $('input[name="pg_opsi[]"]').val('');
-                    $('input[name="pg_kunci"]').prop('checked', false);
-
-                    // Loop data opsi dari database
+                    $('input[name="pg_opsi[]"]').val(''); $('input[name="pg_kunci"]').prop('checked', false);
                     o.forEach((item, index) => {
-                        // Isi kolom teks (Index 0=A, 1=B, dst)
                         $('input[name="pg_opsi[]"]').eq(index).val(item.teks_opsi);
-                        
-                        // Ceklis jika ini kunci jawaban
-                        if(item.is_benar == 1) {
-                            $('input[name="pg_kunci"][value="'+index+'"]').prop('checked', true);
-                        }
+                        if(item.is_benar == 1) $('input[name="pg_kunci"][value="'+index+'"]').prop('checked', true);
                     });
-                }
-
-                // --- JIKA PG KOMPLEKS ---
-                else if(s.tipe_soal === 'PG_KOMPLEKS') {
-                    $('input[name="pgk_opsi[]"]').val('');
-                    $('input[name="pgk_kunci[]"]').prop('checked', false);
-
+                } else if(s.tipe_soal === 'PG_KOMPLEKS') {
+                    $('input[name="pgk_opsi[]"]').val(''); $('input[name="pgk_kunci[]"]').prop('checked', false);
                     o.forEach((item, index) => {
                         $('input[name="pgk_opsi[]"]').eq(index).val(item.teks_opsi);
-                        if(item.is_benar == 1) {
-                            $('input[name="pgk_kunci[]"]').eq(index).prop('checked', true);
-                        }
+                        if(item.is_benar == 1) $('input[name="pgk_kunci[]"]').eq(index).prop('checked', true);
                     });
-                }
-
-                // --- JIKA BENAR SALAH ---
-                else if(s.tipe_soal === 'BENAR_SALAH') {
-                    // Cari opsi yang is_benar = 1
+                } else if(s.tipe_soal === 'BENAR_SALAH') {
                     const kunci = o.find(item => item.is_benar == 1);
-                    if(kunci) {
-                        $('input[name="bs_kunci"][value="'+kunci.teks_opsi+'"]').prop('checked', true);
-                    }
-                }
-
-                // --- JIKA ISIAN SINGKAT ---
-                else if(s.tipe_soal === 'ISIAN_SINGKAT') {
-                    if(o.length > 0) {
-                        $('input[name="isian_kunci"]').val(o[0].teks_opsi);
-                    }
-                }
-
-                // --- JIKA MENJODOHKAN ---
-                else if(s.tipe_soal === 'MENJODOHKAN') {
-                    // Kosongkan container dulu
+                    if(kunci) $('input[name="bs_kunci"][value="'+kunci.teks_opsi+'"]').prop('checked', true);
+                } else if(s.tipe_soal === 'ISIAN_SINGKAT') {
+                    if(o.length > 0) $('input[name="isian_kunci"]').val(o[0].teks_opsi);
+                } else if(s.tipe_soal === 'MENJODOHKAN') {
                     $('#containerJodoh').html('');
-                    
-                    // Buat inputan sesuai jumlah data
                     o.forEach(item => {
-                        const html = `
-                            <div class="flex gap-3 mb-3 row-jodoh">
-                                <input type="text" name="jodoh_kiri[]" value="${item.kode_opsi}" class="w-1/2 bg-white border border-gray-300 text-sm rounded-lg p-2.5" placeholder="Premis">
-                                <i class="fas fa-arrow-right text-gray-400 self-center"></i>
-                                <input type="text" name="jodoh_kanan[]" value="${item.teks_opsi}" class="w-1/2 bg-white border border-gray-300 text-sm rounded-lg p-2.5" placeholder="Jawaban">
-                            </div>`;
+                        const html = `<div class="flex gap-3 mb-3 row-jodoh"><input type="text" name="jodoh_kiri[]" value="${item.kode_opsi}" class="w-1/2 bg-white border border-gray-300 text-sm rounded p-2.5"><i class="fas fa-arrow-right text-gray-400 self-center"></i><input type="text" name="jodoh_kanan[]" value="${item.teks_opsi}" class="w-1/2 bg-white border border-gray-300 text-sm rounded p-2.5"></div>`;
                         $('#containerJodoh').append(html);
                     });
                 }
-
-                // 5. Scroll ke Form & Enable Editor
                 $('#summernote').summernote('enable');
-                // Auto scroll ke form input di sebelah kanan (mobile friendly)
-                /* Untuk Desktop tidak perlu scroll karena sticky */
             },
-            error: function() {
-                Swal.fire('Error', 'Gagal mengambil data soal.', 'error');
-                $('#summernote').summernote('enable');
-            }
+            error: function() { Swal.fire('Error', 'Gagal load data.', 'error'); $('#summernote').summernote('enable'); }
         });
     }
 
-    // --- PASTIKAN FUNGSI RESET JUGA MEMBERSIHKAN ID_SOAL ---
-    function resetForm() {
-        document.getElementById('formSoal').reset();
-        $('#summernote').summernote('code', ''); // Bersihkan editor
-        $('#id_soal').val(''); // PENTING: ID KOSONG ARTINYA INSERT BARU
-        $('#formTitle').html('<i class="fas fa-plus text-blue-600"></i> Input Soal Baru');
-        
-        // Kembalikan Tipe ke Default
-        $('#tipe_soal').val('PG').trigger('change');
-        
-        // Reset Menjodohkan ke 1 baris default
-        $('#containerJodoh').html(`
-            <div class="flex gap-3 mb-3 row-jodoh">
-                <input type="text" name="jodoh_kiri[]" class="w-1/2 bg-white border border-gray-300 text-sm rounded-lg p-2.5" placeholder="Premis">
-                <i class="fas fa-arrow-right text-gray-400 self-center"></i>
-                <input type="text" name="jodoh_kanan[]" class="w-1/2 bg-white border border-gray-300 text-sm rounded-lg p-2.5" placeholder="Jawaban">
-            </div>
-        `);
-    }
+    // --- HAPUS SOAL ---
     function hapusSoal(e, idSoal) {
         // Stop event bubbling (PENTING AGAR TIDAK MEMBUKA EDIT SAAT DIKLIK)
         if (e) e.stopPropagation(); 
         
         Swal.fire({
             title: 'Hapus Soal ini?',
-            text: "Data tidak bisa dikembalikan!",
+            text: "Data yang dihapus tidak bisa dikembalikan!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
             confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
+            cancelButtonText: 'Batal',
+            reverseButtons: true, // Tombol Batal di kiri, Hapus di kanan
+            
+            // --- CUSTOM STYLE TOMBOL (Tailwind/Flowbite) ---
+            buttonsStyling: false, 
+            customClass: {
+                // Tombol Hapus (Merah)
+                confirmButton: 'text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 ml-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800',
+                
+                // Tombol Batal (Putih/Abu)
+                cancelButton: 'text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700',
+                
+                // Jarak antar elemen popup
+                popup: 'dark:bg-gray-700 dark:text-white rounded-lg p-4',
+                title: 'text-xl font-bold mb-2',
+                htmlContainer: 'text-gray-500 dark:text-gray-300'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
+                // Efek Loading saat proses hapus
+                Swal.fire({
+                    title: 'Memproses...',
+                    html: 'Sedang menghapus data',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                // Redirect ke proses hapus
                 window.location.href = '<?= base_url('guru/bank_soal/hapusSoal') ?>/' + idSoal + '/<?= $bank['id'] ?>';
             }
         });
+    }
+    
+    // --- MODAL TABS ---
+    function bukaModalImport() { document.getElementById('modal-import').classList.remove('hidden'); }
+    function switchTab(tab) {
+        if(tab === 'excel') {
+            $('#tab-excel').removeClass('hidden'); $('#tab-word').addClass('hidden');
+            $('#excel-tab').addClass('text-blue-600 border-blue-600'); $('#word-tab').removeClass('text-blue-600 border-blue-600');
+        } else {
+            $('#tab-excel').addClass('hidden'); $('#tab-word').removeClass('hidden');
+            $('#word-tab').addClass('text-blue-600 border-blue-600'); $('#excel-tab').removeClass('text-blue-600 border-blue-600');
+        }
     }
 </script>
 

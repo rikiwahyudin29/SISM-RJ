@@ -155,6 +155,39 @@ $roleActive = session()->get('role_active');
                         <span class="ml-3 flex-1">Bank Soal & Ujian</span>
                     </a>
                 </li>
+                <li>
+    <a href="<?= base_url('guru/ujian') ?>" class="...">
+        <i class="fas fa-calendar-alt"></i> <span class="ml-3">Jadwal Ujian</span>
+    </a>
+</li>
+                <?php endif; ?>
+
+                <?php if ($roleActive == 'siswa') : ?>
+                <li class="pt-3 pb-1 px-3">
+                    <span class="text-[10px] font-extrabold text-gray-400 dark:text-slate-600 uppercase tracking-widest">Area Siswa</span>
+                </li>
+
+                <li>
+                    <a href="<?= base_url('siswa/ujian') ?>" 
+                       class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
+                              <?= (strpos(uri_string(), 'siswa/ujian') !== false) 
+                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
+                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                        <i class="fas fa-pen-alt w-4 h-4 text-center transition-colors"></i>
+                        <span class="ml-3 flex-1">Ujian Sekolah</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="<?= base_url('siswa/nilai') ?>" 
+                       class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
+                              <?= (strpos(uri_string(), 'siswa/nilai') !== false) 
+                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
+                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                        <i class="fas fa-chart-line w-4 h-4 text-center transition-colors"></i>
+                        <span class="ml-3 flex-1">Riwayat Nilai</span>
+                    </a>
+                </li>
                 <?php endif; ?>
 
             </ul>

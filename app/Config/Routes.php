@@ -171,11 +171,40 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
 $routes->post('bank_soal/importSoal', 'Guru\BankSoal::importSoal');
 $routes->get('bank_soal/getDetailSoal/(:num)', 'Guru\BankSoal::getDetailSoal/$1');
 $routes->get('bank_soal/hapusSoal/(:num)/(:num)', 'Guru\BankSoal::hapusSoal/$1/$2');
+$routes->get('bank_soal/downloadTemplateWord', 'Guru\BankSoal::downloadTemplateWord');
+$routes->post('bank_soal/importSoalWord', 'Guru\BankSoal::importSoalWord');
+// MENU JADWAL UJIAN (Pemisahan dari Bank Soal)
+    $routes->get('ujian', 'Guru\Ujian::index');            // List Jadwal
+    $routes->get('ujian/tambah', 'Guru\Ujian::tambah');    // Form Tambah Jadwal
+    $routes->post('ujian/simpan', 'Guru\Ujian::simpan');   // Proses Simpan
+    $routes->get('ujian/hapus/(:num)', 'Guru\Ujian::hapus/$1');
+    $routes->post('ujian/toggle_status', 'Guru\Ujian::toggleStatus'); // On/Off Ujian
+    // ... di dalam group 'guru' ...
+$routes->get('ujian/monitoring/(:num)', 'Guru\Ujian::monitoring/$1'); // <--- TAMBAHKAN INI
+$routes->post('ujian/reset_peserta', 'Guru\Ujian::resetPeserta');       // <--- TAMBAHKAN INI JUGA (Buat Reset)
 });
 
 $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
     // Ubah $this menjadi $routes
     $routes->get('dashboard', 'Siswa\Dashboard::index'); 
+    // List Ujian
+    $routes->get('ujian', 'Siswa\Ujian::index');
+    
+    // Halaman Konfirmasi (Cek Token/Lokasi)
+    $routes->get('ujian/konfirmasi/(:num)', 'Siswa\Ujian::konfirmasi/$1');
+    
+    // Proses Mulai (Generate Soal & Sesi)
+    $routes->post('ujian/mulai', 'Siswa\Ujian::mulai');
+    
+    // Halaman Mengerjakan (Utama)
+    $routes->get('ujian/kerjakan/(:num)', 'Siswa\Ujian::kerjakan/$1');
+    
+    // Ajax Actions
+    $routes->post('ujian/simpan_jawaban', 'Siswa\Ujian::simpanJawaban');
+    $routes->post('ujian/selesai', 'Siswa\Ujian::selesaiUjian');
+    
+    // Security Actions
+    $routes->post('ujian/blokirSiswa', 'Siswa\Ujian::blokirSiswa');
 });
 
 $routes->group('piket', ['filter' => 'role:piket'], function($routes) {
