@@ -391,6 +391,37 @@ $minWaktuMenit = $jadwal->min_waktu ?? 0;
             }
         });
     }
+    // --- KEAMANAN (DINAMIS UPDATE) ---
+    function triggerViolation(reason) {
+        if(isBlocked) return; // Kalau sudah selesai/blokir, abaikan
+
+        violations++;
+        let sisa = maxViolations - violations;
+        
+        // Update tampilan sisa nyawa di overlay
+        $('#sisaNyawa').text(sisa);
+        
+        // Tampilkan Overlay Peringatan
+        $('#violationOverlay').removeClass('hidden').addClass('flex');
+
+        // JIKA SUDAH MELEBIHI BATAS -> AUTO SUBMIT (SELESAI)
+        if (violations >= maxViolations) {
+            isBlocked = true; // Kunci biar gak bisa klik apa-apa lagi
+            
+            // Tampilkan pesan dulu sebentar
+            Swal.fire({
+                title: 'PELANGGARAN MAKSIMAL!',
+                text: 'Anda telah melanggar batas toleransi. Ujian otomatis dikumpulkan.',
+                icon: 'error',
+                timer: 3000,
+                showConfirmButton: false,
+                allowOutsideClick: false
+            }).then(() => {
+                // PANGGIL FUNGSI SELESAI (AUTO SUBMIT)
+                selesai(true); 
+            });
+        }
+    }
 </script>
 
 <?= $this->endSection() ?>

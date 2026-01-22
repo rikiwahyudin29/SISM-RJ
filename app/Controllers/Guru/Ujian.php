@@ -33,68 +33,88 @@ class Ujian extends BaseController
 
     public function tambah()
     {
-        $guruId = session()->get('id_user');
-        // Ambil ID Guru Asli
-        $guru = $this->db->table('tbl_guru')->where('user_id', $guruId)->get()->getRow();
+        $userId = session()->get('id_user'); // Ini ID Login (misal: 10)
+        
+        // LANGKAH 1: Ambil ID Guru Asli berdasarkan ID User Login
+        $guru = $this->db->table('tbl_guru')->where('user_id', $userId)->get()->getRow();
+        
+        // Validasi: Kalau data guru belum lengkap/tidak ada
+        if (!$guru) {
+            return redirect()->back()->with('error', 'Data profil guru tidak ditemukan. Hubungi Admin.');
+        }
 
-        // Ambil Bank Soal milik Guru ini
-        $bankSoal = $this->db->table('tbl_bank_soal')
-            ->select('tbl_bank_soal.*, tbl_mapel.nama_mapel')
-            ->join('tbl_mapel', 'tbl_mapel.id = tbl_bank_soal.id_mapel')
-            ->where('id_guru', $guru->id)
-            ->where('jumlah_soal >', 0) // Hanya tampilkan bank soal yang ada isinya
-            ->get()->getResultArray();
+        $data = [
+            'title' => 'Buat Jadwal Ujian',
+            
+            // LANGKAH 2: Ambil Bank Soal pakai ID GURU ($guru->id), BUKAN $userId
+            'bank_soal' => $this->db->table('tbl_bank_soal')
+                            ->select('tbl_bank_soal.*, tbl_mapel.nama_mapel')
+                            ->join('tbl_mapel', 'tbl_mapel.id = tbl_bank_soal.id_mapel', 'left') // Pakai LEFT JOIN biar kalau mapel dihapus, soal tetap muncul
+                            ->where('tbl_bank_soal.id_guru', $guru->id) // <--- INI KUNCINYA
+                            ->orderBy('tbl_bank_soal.id', 'DESC')
+                            ->get()->getResultArray(),
+                            
+            'kelas' => $this->db->table('tbl_kelas')->orderBy('nama_kelas', 'ASC')->get()->getResultArray(),
+            
+            'tahun_ajaran' => $this->db->table('tbl_tahun_ajaran')
+                                ->where('status', 'Aktif')
+                                ->orWhere('status', '1')
+                                ->orderBy('id', 'DESC')
+                                ->get()->getResultArray(),
+                                
+            'jenis_ujian'  => $this->db->table('tbl_jenis_ujian')->get()->getResultArray()
+        ];
 
-        // Ambil Semua Kelas
-        $kelas = $this->db->table('tbl_kelas')->get()->getResultArray();
-
-        return view('guru/ujian/tambah', [
-            'title' => 'Buat Jadwal Ujian Baru', 
-            'bank_soal' => $bankSoal, 
-            'kelas' => $kelas
-        ]);
+        return view('guru/ujian/tambah', $data);
     }
-
     public function simpan()
     {
         $guruId = session()->get('id_user');
         $guru = $this->db->table('tbl_guru')->where('user_id', $guruId)->get()->getRow();
 
-        // Data Header Jadwal
-        $data = [
-            'kode_ujian'   => 'UJN-' . time(),
-            'id_bank_soal' => $this->request->getPost('id_bank_soal'),
-            'id_guru'      => $guru->id,
-            'waktu_mulai'  => $this->request->getPost('waktu_mulai'),
-            'waktu_selesai'=> $this->request->getPost('waktu_selesai'),
-            'durasi'       => $this->request->getPost('durasi'),
-            'token'        => strtoupper($this->request->getPost('token')),
+       $data = [
+            'nama_ujian'    => $this->request->getPost('nama_ujian'),
+            'id_bank_soal'  => $this->request->getPost('id_bank_soal'),
             
-            // --- SETTING BARU DISINI ---
-            'limit_pelanggaran' => $this->request->getPost('limit_pelanggaran') ?? 3,
-            'min_waktu'         => $this->request->getPost('min_waktu') ?? 0,
-            // ---------------------------
-
-            'acak_soal'    => $this->request->getPost('acak_soal') ? 1 : 0,
-            'acak_opsi'    => $this->request->getPost('acak_opsi') ? 1 : 0,
-            'wajib_lokasi' => $this->request->getPost('wajib_lokasi') ? 1 : 0,
-            'status'       => 1
+            // INPUTAN BARU
+            'id_tahun_ajaran' => $this->request->getPost('id_tahun_ajaran'),
+            'id_jenis_ujian'  => $this->request->getPost('id_jenis_ujian'),
+            'bobot_pg'        => $this->request->getPost('bobot_pg'),
+            'bobot_esai'      => $this->request->getPost('bobot_esai'),
+            
+            // INPUTAN LAMA (Tetap Ada)
+            'waktu_mulai'       => $this->request->getPost('waktu_mulai'),
+            'waktu_selesai'     => $this->request->getPost('waktu_selesai'),
+            'durasi'            => $this->request->getPost('durasi'),
+            'min_waktu_selesai' => $this->request->getPost('min_waktu') ?? 0,
+            
+            // SETTINGS
+            'setting_strict'        => $this->request->getPost('setting_strict') ? 1 : 0,
+            'setting_afk_timeout'   => $this->request->getPost('setting_afk_timeout') ?? 0,
+            'setting_max_violation' => $this->request->getPost('setting_max_violation') ?? 3,
+            'setting_token'         => $this->request->getPost('setting_token') ? 1 : 0,
+            'token'                 => strtoupper($this->request->getPost('token')),
+            'setting_show_score'    => $this->request->getPost('setting_show_score') ? 1 : 0,
+            'setting_multi_login'   => $this->request->getPost('setting_multi_login') ? 1 : 0,
+            'acak_soal'             => $this->request->getPost('acak_soal') ? 1 : 0,
+            'acak_opsi'             => $this->request->getPost('acak_opsi') ? 1 : 0,
+            'status_ujian'          => 'AKTIF'
         ];
 
         $this->db->table('tbl_jadwal_ujian')->insert($data);
         $idJadwal = $this->db->insertID();
 
-        // Simpan Target Kelas (Sama seperti sebelumnya...)
-        $targetKelas = $this->request->getPost('kelas');
-        if ($targetKelas) {
+        // Simpan Kelas
+        $kelas = $this->request->getPost('kelas');
+        if ($kelas) {
             $batch = [];
-            foreach ($targetKelas as $k) {
+            foreach ($kelas as $k) {
                 $batch[] = ['id_jadwal_ujian' => $idJadwal, 'id_kelas' => $k];
             }
             $this->db->table('tbl_jadwal_kelas')->insertBatch($batch);
         }
 
-        return redirect()->to('guru/ujian')->with('success', 'Jadwal Ujian diterbitkan!');
+        return redirect()->to('guru/ujian')->with('success', 'Jadwal Berhasil Diterbitkan!');
     }
     
     public function hapus($id)

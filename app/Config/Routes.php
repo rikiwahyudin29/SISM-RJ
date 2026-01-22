@@ -141,7 +141,14 @@ $routes->group('jadwal', function($routes) {
     $routes->get('rekap/cetak', 'Admin\Jadwal::cetakRekap');// <--- TAMBAH INI
     $routes->post('simpan', 'Admin\Jadwal::simpan');
     $routes->get('hapus/(:num)', 'Admin\Jadwal::hapus/$1');
+
 });
+$routes->get('jadwalujian', 'Admin\JadwalUjian::index');
+    $routes->get('jadwalujian/hapus/(:num)', 'Admin\JadwalUjian::hapus/$1');
+    $routes->get('jadwalujian/tambah', 'Admin\JadwalUjian::tambah');
+$routes->post('jadwalujian/simpan', 'Admin\JadwalUjian::simpan');
+$routes->get('jadwalujian/edit/(:num)', 'Admin\JadwalUjian::edit/$1');
+$routes->post('jadwalujian/update/(:num)', 'Admin\JadwalUjian::update/$1');
 });
 
 

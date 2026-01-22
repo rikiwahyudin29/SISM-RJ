@@ -1,19 +1,19 @@
 <?= $this->extend('layout/template') ?>
 <?= $this->section('content') ?>
 
-<div class="container mx-auto px-4 py-8">
+<div class="p-4 sm:ml-2">
     
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 mt-14">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Buat Jadwal Ujian</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Atur parameter ujian, waktu, dan keamanan.</p>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Buat Jadwal (Admin)</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Anda membuat jadwal atas nama Guru Pemilik Bank Soal.</p>
         </div>
-        <a href="<?= base_url('guru/ujian') ?>" class="px-4 py-2 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all text-sm font-medium shadow-sm">
+        <a href="<?= base_url('admin/jadwalujian') ?>" class="px-4 py-2 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all text-sm font-medium shadow-sm">
             <i class="fas fa-arrow-left mr-2"></i> Kembali
         </a>
     </div>
 
-    <form action="<?= base_url('guru/ujian/simpan') ?>" method="post" class="space-y-6">
+    <form action="<?= base_url('admin/jadwalujian/simpan') ?>" method="post" class="space-y-6 pb-10">
         
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
@@ -25,44 +25,37 @@
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="col-span-2">
                     <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Nama Jadwal / Ujian</label>
-                    <input type="text" name="nama_ujian" class="w-full p-3 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white transition-colors" placeholder="Contoh: Penilaian Harian Matematika Bab 1" required>
+                    <input type="text" name="nama_ujian" class="w-full p-3 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white transition-colors" placeholder="Contoh: PAS Matematika X RPL" required>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Tahun Pelajaran</label>
                     <select name="id_tahun_ajaran" class="w-full p-3 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 text-gray-900 dark:text-white" required>
                         <option value="">-- Pilih Tahun --</option>
-                        
-                        <?php if(empty($tahun_ajaran)): ?>
-                            <option value="" disabled>Data Tahun Kosong (Cek Master Data)</option>
-                        <?php endif; ?>
-
                         <?php foreach($tahun_ajaran as $t): ?>
-                            <option value="<?= $t['id'] ?>"><?= $t['tahun_ajaran'] ?> (<?= $t['semester'] ?>)</option>
+                            <option value="<?= $t['id'] ?>"><?= $t['tahun_ajaran'] ?? $t['tahun'] ?> (<?= $t['semester'] ?>)</option>
                         <?php endforeach; ?>
-                        
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Jenis Ujian</label>
-                    <div class="flex gap-2">
-                        <select name="id_jenis_ujian" class="w-full p-3 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 text-gray-900 dark:text-white" required>
-                            <option value="">-- Pilih Jenis --</option>
-                            <?php foreach($jenis_ujian as $j): ?>
-                                <option value="<?= $j['id'] ?>"><?= $j['nama_jenis'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <a href="<?= base_url('admin/jenis_ujian') ?>" class="p-3 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 text-gray-600 dark:text-gray-300" title="Tambah Jenis Baru"><i class="fas fa-plus"></i></a>
-                    </div>
+                    <select name="id_jenis_ujian" class="w-full p-3 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 text-gray-900 dark:text-white" required>
+                        <option value="">-- Pilih Jenis --</option>
+                        <?php foreach($jenis_ujian as $j): ?>
+                            <option value="<?= $j['id'] ?>"><?= $j['nama_jenis'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <div class="col-span-2">
-                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Pilih Bank Soal</label>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Pilih Bank Soal (Dari Guru)</label>
                     <select name="id_bank_soal" class="w-full p-3 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-blue-500 text-gray-900 dark:text-white" required>
                         <option value="">-- Pilih Bank Soal --</option>
                         <?php foreach($bank_soal as $b): ?>
-                            <option value="<?= $b['id'] ?>"><?= $b['judul_ujian'] ?> - <?= $b['nama_mapel'] ?> (<?= $b['jumlah_soal'] ?> Soal)</option>
+                            <option value="<?= $b['id'] ?>">
+                                [<?= $b['nama_guru'] ?>] - <?= $b['judul_ujian'] ?> (<?= $b['nama_mapel'] ?>)
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -197,11 +190,10 @@
                     </label>
                 </div>
             </div>
-
         </div>
 
         <div class="flex justify-end gap-4 pt-6">
-            <button type="submit" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-transform active:scale-95">
+            <button type="submit" class="w-full md:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-transform active:scale-95">
                 <i class="fas fa-save mr-2"></i> TERBITKAN JADWAL
             </button>
         </div>
