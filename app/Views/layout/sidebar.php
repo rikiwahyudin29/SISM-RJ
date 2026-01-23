@@ -66,7 +66,7 @@ $roleActive = session()->get('role_active');
                 </li>
 
                 <li class="pt-3 pb-1 px-3">
-                    <span class="text-[10px] font-extrabold text-gray-400 dark:text-slate-600 uppercase tracking-widest">Akademik</span>
+                    <span class="text-[10px] font-extrabold text-gray-400 dark:text-slate-600 uppercase tracking-widest">Akademik & Ujian</span>
                 </li>
 
                 <li>
@@ -79,7 +79,8 @@ $roleActive = session()->get('role_active');
                         <span class="ml-3">Jadwal Pelajaran</span>
                     </a>
                 </li>
-<li>
+                
+                <li>
                     <a href="<?= base_url('admin/jadwalujian') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
                               <?= (strpos(uri_string(), 'admin/jadwalujian') !== false) 
@@ -89,6 +90,29 @@ $roleActive = session()->get('role_active');
                         <span class="ml-3">Jadwal Ujian</span>
                     </a>
                 </li>
+
+                <li>
+                    <a href="<?= base_url('admin/aturruangan') ?>" 
+                       class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
+                              <?= (strpos(uri_string(), 'admin/aturruangan') !== false) 
+                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
+                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <span class="ml-3">Atur Ruangan</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="<?= base_url('admin/monitoringruang') ?>" 
+                       class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
+                              <?= (strpos(uri_string(), 'admin/monitoringruang') !== false) 
+                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
+                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <span class="ml-3">Monitoring Ruangan</span>
+                    </a>
+                </li>
+
                 <li class="pt-3 pb-1 px-3">
                     <span class="text-[10px] font-extrabold text-gray-400 dark:text-slate-600 uppercase tracking-widest">Administrasi</span>
                 </li>

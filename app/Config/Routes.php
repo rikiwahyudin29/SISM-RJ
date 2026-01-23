@@ -149,6 +149,15 @@ $routes->get('jadwalujian', 'Admin\JadwalUjian::index');
 $routes->post('jadwalujian/simpan', 'Admin\JadwalUjian::simpan');
 $routes->get('jadwalujian/edit/(:num)', 'Admin\JadwalUjian::edit/$1');
 $routes->post('jadwalujian/update/(:num)', 'Admin\JadwalUjian::update/$1');
+// Manajemen Atur Ruangan (Plotting)
+$routes->get('aturruangan', 'Admin\AturRuangan::index');
+$routes->get('aturruangan/kelola/(:num)', 'Admin\AturRuangan::kelola/$1');
+$routes->post('aturruangan/tambah', 'Admin\AturRuangan::tambah');
+$routes->get('aturruangan/hapus/(:num)/(:num)/(:num)', 'Admin\AturRuangan::hapus/$1/$2/$3');
+
+// Monitoring Ruangan (yang tadi dibuat)
+$routes->get('monitoringruang', 'Admin\MonitoringRuang::index');
+$routes->get('monitoringruang/lihat/(:num)', 'Admin\MonitoringRuang::lihat/$1');
 });
 
 
@@ -189,29 +198,27 @@ $routes->post('bank_soal/importSoalWord', 'Guru\BankSoal::importSoalWord');
     // ... di dalam group 'guru' ...
 $routes->get('ujian/monitoring/(:num)', 'Guru\Ujian::monitoring/$1'); // <--- TAMBAHKAN INI
 $routes->post('ujian/reset_peserta', 'Guru\Ujian::resetPeserta');       // <--- TAMBAHKAN INI JUGA (Buat Reset)
+// MONITORING UJIAN (MENGAWAS)
+    $routes->get('monitoring', 'Guru\Monitoring::index');
+    $routes->get('monitoring/lihat/(:num)', 'Guru\Monitoring::lihat/$1');
+    $routes->post('monitoring/aksi_masal', 'Guru\Monitoring::aksi_masal');
+    $routes->get('monitoring/lihat/(:num)', 'Guru\Monitoring::index/$1');
 });
 
 $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
     // Ubah $this menjadi $routes
     $routes->get('dashboard', 'Siswa\Dashboard::index'); 
-    // List Ujian
     $routes->get('ujian', 'Siswa\Ujian::index');
-    
-    // Halaman Konfirmasi (Cek Token/Lokasi)
     $routes->get('ujian/konfirmasi/(:num)', 'Siswa\Ujian::konfirmasi/$1');
-    
-    // Proses Mulai (Generate Soal & Sesi)
     $routes->post('ujian/mulai', 'Siswa\Ujian::mulai');
-    
-    // Halaman Mengerjakan (Utama)
     $routes->get('ujian/kerjakan/(:num)', 'Siswa\Ujian::kerjakan/$1');
     
-    // Ajax Actions
     $routes->post('ujian/simpan_jawaban', 'Siswa\Ujian::simpanJawaban');
-    $routes->post('ujian/selesai', 'Siswa\Ujian::selesaiUjian');
+   $routes->post('ujian/selesaiUjian', 'Siswa\Ujian::selesaiUjian');
     
-    // Security Actions
-    $routes->post('ujian/blokirSiswa', 'Siswa\Ujian::blokirSiswa');
+    // --- TAMBAHKAN INI (Jalur Anti-Cheat) ---
+    $routes->post('ujian/catatPelanggaran', 'Siswa\Ujian::catatPelanggaran'); 
+    $routes->post('ujian/blokirSiswa', 'Siswa\Ujian::blokirSiswa'); // Opsional jika pakai logic blokir terpisah
 });
 
 $routes->group('piket', ['filter' => 'role:piket'], function($routes) {

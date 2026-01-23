@@ -1,427 +1,412 @@
 <?= $this->extend('layout/template_ujian') ?>
 <?= $this->section('content') ?>
 
-<?php
-// HELPER DETEKSI TIPE SOAL (SESUAI DATABASE BOS)
-function deteksiTipe($tipeDb) {
-    $t = strtoupper($tipeDb);
-    // Tambahkan ISIAN_SINGKAT biar kedeteksi
-    if (strpos($t, 'ISIAN') !== false || strpos($t, 'SINGKAT') !== false) return 'ISIAN';
-    if (strpos($t, 'JODOH') !== false || strpos($t, 'MENJODOHKAN') !== false) return 'JODOH';
-    if (strpos($t, 'KOMPLEKS') !== false) return 'PG_KOMPLEKS';
-    if (strpos($t, 'ESSAY') !== false || strpos($t, 'URAIAN') !== false) return 'ESSAY';
-    return 'PG';
-}
-
-// AMBIL SETTINGAN JADWAL (DEFAULT VALUE JIKA NULL)
-$limitPelanggaran = $jadwal->limit_pelanggaran ?? 3; 
-$minWaktuMenit = $jadwal->min_waktu ?? 0;
-?>
-
-<div id="violationOverlay" class="fixed inset-0 z-[99999] bg-red-900/95 flex flex-col items-center justify-center text-white text-center hidden p-6">
-    <i class="fas fa-exclamation-triangle text-6xl mb-4 animate-bounce text-yellow-400"></i>
-    <h2 class="text-3xl font-bold mb-2">PELANGGARAN TERDETEKSI!</h2>
-    <p class="text-lg mb-2">Aktivitas mencurigakan terdeteksi (Keluar App/Split Screen/Notifikasi).</p>
+<style>
+    /* Cegah seleksi teks (Anti Copy-Paste) */
+    body { user-select: none; -webkit-user-select: none; -moz-user-select: none; }
     
-    <div class="text-2xl font-bold mb-6">
-        Sisa Kesempatan: <span id="sisaNyawa" class="text-yellow-300 text-4xl"><?= $limitPelanggaran ?></span>
+    /* Efek Blur saat pelanggaran */
+    .blur-content { filter: blur(8px); pointer-events: none; }
+    
+    /* Overlay Peringatan Pelanggaran */
+    #warning-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95); z-index: 9999;
+        display: none; flex-direction: column; justify-content: center; align-items: center;
+        color: white; text-align: center;
+    }
+
+    /* Navigasi Nomor Soal (Opsional jika mau ditambahkan sidebar nanti) */
+    .soal-active { display: block; }
+    .soal-hidden { display: none; }
+</style>
+
+<div id="warning-overlay">
+    <div class="text-6xl text-red-500 mb-6"><i class="fas fa-exclamation-triangle animate-pulse"></i></div>
+    <h2 class="text-3xl font-bold mb-2 text-white">PELANGGARAN TERDETEKSI!</h2>
+    <p class="text-gray-300 mb-8 max-w-lg text-lg">
+        Anda terdeteksi meninggalkan halaman ujian (Split Screen / Pindah Tab / Minimize).
+    </p>
+    
+    <div class="bg-red-900/40 border-2 border-red-500 p-6 rounded-2xl mb-8 transform scale-110">
+        <p class="text-sm uppercase tracking-widest text-red-300 mb-2 font-bold">Ujian Terkunci Dalam</p>
+        <div class="text-7xl font-mono font-bold text-white tracking-tighter" id="countdown-timer">00</div>
+        <p class="text-xs text-gray-400 mt-2">Detik</p>
     </div>
 
-    <button onclick="resumeUjian()" class="px-8 py-3 bg-white text-red-900 font-bold rounded-xl shadow-lg hover:bg-gray-200 transition-transform active:scale-95">
-        KEMBALI MENGERJAKAN
+    <button onclick="kembaliKeUjian()" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95 text-lg">
+        SAYA MENGERTI, KEMBALI MENGERJAKAN
     </button>
 </div>
 
-<div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 select-none overflow-hidden" id="examApp">
-
-    <div class="flex-none h-16 bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 flex justify-between items-center px-4 z-40">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-blue-600/20 shadow-lg">
-                <span id="no_soal">1</span>
-            </div>
-            <div>
-                <div class="text-[10px] text-gray-400 font-bold uppercase">Sisa Waktu</div>
-                <div id="timerDisplay" class="font-mono text-xl font-bold text-red-600 leading-none">--:--</div>
+<div class="p-4 sm:ml-64 h-screen flex flex-col bg-gray-50 dark:bg-slate-900" id="exam-container">
+    
+    <div class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow border border-gray-200 dark:border-slate-700 gap-4">
+        <div class="w-full md:w-auto">
+            <h1 class="text-lg font-bold text-gray-800 dark:text-white leading-tight"><?= $jadwal->judul_ujian ?></h1>
+            <div class="flex flex-wrap items-center gap-3 mt-1">
+                <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded">
+                    <?= $jadwal->nama_mapel ?>
+                </span>
+                <?php if($jadwal->setting_strict == 1): ?>
+                    <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded border border-red-200">
+                        <i class="fas fa-shield-alt mr-1"></i> MODE KETAT
+                    </span>
+                    <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded border border-yellow-200">
+                        Sisa Pelanggaran: <b id="sisa-nyawa"><?= $jadwal->setting_max_violation - $sesi->jml_pelanggaran ?></b>
+                    </span>
+                <?php endif; ?>
             </div>
         </div>
         
-        <div id="minWaktuIndikator" class="hidden text-xs font-bold text-orange-500 bg-orange-100 px-2 py-1 rounded">
-            <i class="fas fa-lock"></i> Submit terkunci <span id="sisaMinWaktu"></span> menit
-        </div>
-
-        <button onclick="forceFullscreen()" class="p-2 text-gray-500 hover:text-blue-600 transition-colors">
-            <i class="fas fa-compress-arrows-alt text-xl"></i>
-        </button>
-    </div>
-
-    <div class="flex-1 overflow-y-auto p-4 pb-32 scroll-smooth" id="soalScroll">
-        <div class="max-w-3xl mx-auto">
-            
-            <?php foreach($soal as $index => $s): 
-                $tipeReal = deteksiTipe($s['tipe_soal']); 
-                
-                // Decode jawaban isian jika array (untuk PG Kompleks & Jodoh)
-                $jawabanSiswaArr = []; // Default Array kosong
-                $jawabanSiswaStr = $s['jawaban_isian'] ?? '';
-
-                if(($tipeReal == 'PG_KOMPLEKS' || $tipeReal == 'JODOH') && !empty($jawabanSiswaStr)) {
-                    $decoded = json_decode($jawabanSiswaStr, true);
-                    if(is_array($decoded)) $jawabanSiswaArr = $decoded;
-                }
-            ?>
-
-            <div class="soal-wrapper hidden" id="soal_<?= $index ?>" data-index="<?= $index ?>">
-                
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 mb-4">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider">
-                            <?= str_replace('_', ' ', $tipeReal) ?>
-                        </span>
-                        <span class="text-xs text-gray-400">Bobot: <?= $s['bobot'] ?? 1 ?></span>
-                    </div>
-                    <div class="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-100 text-lg leading-relaxed">
-                        <?= $s['pertanyaan'] ?>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    
-                    <?php if($tipeReal == 'ISIAN'): ?>
-                        <div class="mb-2 text-sm text-blue-600 font-bold"><i class="fas fa-pen mr-1"></i> Jawaban Singkat</div>
-                        <input type="text" 
-                            class="w-full p-4 text-lg border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-0 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all uppercase" 
-                            placeholder="Ketik jawaban singkat..." 
-                            value="<?= $s['jawaban_isian'] ?>"
-                            autocomplete="off"
-                            onblur="simpanIsian(<?= $s['id'] ?>, this.value)">
-
-                    <?php elseif($tipeReal == 'PG_KOMPLEKS'): ?>
-                        <div class="mb-3 text-sm bg-blue-50 text-blue-800 p-2 rounded border border-blue-100"><i class="fas fa-check-double mr-1"></i> Pilih lebih dari satu jawaban.</div>
-                        <div class="space-y-3">
-                            <?php foreach($s['opsi'] as $o): ?>
-                                <label class="flex items-center p-4 rounded-xl border-2 border-transparent bg-gray-50 hover:bg-gray-100 cursor-pointer transition-all has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-                                    <input type="checkbox" name="chk_<?= $index ?>[]" value="<?= $o['id'] ?>" 
-                                        class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                        onchange="simpanKompleks(<?= $s['id'] ?>, <?= $index ?>)"
-                                        <?= in_array($o['id'], $jawabanSiswaArr) ? 'checked' : '' ?>>
-                                    <span class="ml-3 text-gray-800 font-medium"><?= $o['teks_opsi'] ?></span>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-
-                    <?php elseif($tipeReal == 'JODOH'): ?>
-                        <div class="mb-3 text-sm bg-purple-50 text-purple-800 p-2 rounded border border-purple-100">
-                            <i class="fas fa-random mr-1"></i> Pasangkan pernyataan kiri dengan kanan.
-                        </div>
-                        <div class="space-y-4">
-                            <?php foreach($s['opsi'] as $o): ?>
-                            <div class="flex flex-col gap-2 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                
-                                <div class="font-bold text-gray-800 text-sm mb-1">
-                                    <?= !empty($o['kode_opsi']) ? $o['kode_opsi'] : 'Pernyataan '.($index+1) ?>
-                                </div>
-                                
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-arrow-right text-gray-400"></i>
-                                    
-                                    <select name="jodoh_<?= $index ?>[<?= htmlspecialchars($o['kode_opsi']) ?>]" 
-                                            class="w-full p-2.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                            onchange="simpanJodoh(<?= $s['id'] ?>, <?= $index ?>)">
-                                        
-                                        <option value="">-- Pilih Pasangan --</option>
-                                        
-                                        <?php foreach($s['opsi'] as $subOpsi): ?>
-                                            <option value="<?= $subOpsi['teks_opsi'] ?>">
-                                                <?= $subOpsi['teks_opsi'] ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                        
-                                    </select>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-
-                    <?php elseif($tipeReal == 'ESSAY'): ?>
-                         <div class="mb-2 text-sm text-blue-600 font-bold"><i class="fas fa-align-left mr-1"></i> Jawaban Uraian</div>
-                        <textarea class="w-full p-4 text-base border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-0 bg-gray-50 min-h-[150px]" 
-                            placeholder="Jelaskan jawaban Anda..." 
-                            onblur="simpanIsian(<?= $s['id'] ?>, this.value)"><?= $s['jawaban_isian'] ?></textarea>
-
-                    <?php else: ?>
-                        <div class="space-y-3">
-                            <?php foreach($s['opsi'] as $o): ?>
-                                <label class="flex items-center p-4 rounded-xl border-2 border-transparent bg-gray-50 hover:bg-gray-100 cursor-pointer transition-all has-[:checked]:border-blue-600 has-[:checked]:bg-blue-600 has-[:checked]:text-white group">
-                                    <input type="radio" name="rad_<?= $index ?>" value="<?= $o['id'] ?>" 
-                                        class="peer sr-only"
-                                        onchange="simpanPG(<?= $s['id'] ?>, this.value)"
-                                        <?= ($s['id_opsi'] == $o['id']) ? 'checked' : '' ?>>
-                                    
-                                    <div class="w-6 h-6 rounded-full border-2 border-gray-400 peer-checked:border-white peer-checked:bg-white flex items-center justify-center mr-3">
-                                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 opacity-0 peer-checked:opacity-100"></div>
-                                    </div>
-                                    
-                                    <span class="font-medium text-gray-700 group-has-[:checked]:text-white"><?= $o['teks_opsi'] ?></span>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-
-                </div>
+        <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+            <div class="text-right mr-2 hidden md:block">
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Sisa Waktu</p>
             </div>
-            <?php endforeach; ?>
-            <div class="h-24"></div>
+            <div id="main-timer" class="bg-gray-800 dark:bg-slate-950 text-white px-5 py-2.5 rounded-lg font-mono font-bold text-2xl shadow-lg border border-gray-600 tracking-widest min-w-[140px] text-center">
+                --:--:--
+            </div>
+            
+            <button onclick="konfirmasiSelesai()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg font-bold text-sm shadow transition-colors flex items-center">
+                <i class="fas fa-flag-checkered mr-2"></i> SELESAI
+            </button>
         </div>
     </div>
 
-    <div class="flex-none bg-white dark:bg-gray-800 border-t dark:border-gray-700 p-4 z-50 shadow-[0_-5px_10px_rgba(0,0,0,0.05)]">
-        <div class="max-w-3xl mx-auto flex gap-4">
-            <button onclick="nav(-1)" id="btnPrev" class="px-6 py-3 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 disabled:opacity-50">
-                <i class="fas fa-arrow-left"></i>
+    <div class="flex-1 overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow p-6 border dark:border-slate-700 relative custom-scrollbar">
+        <form id="form-ujian">
+            <?php foreach($soal as $index => $s): ?>
+                <div class="soal-item <?= $index == 0 ? 'soal-active' : 'soal-hidden' ?>" id="soal-index-<?= $index ?>" data-nomor="<?= $index + 1 ?>">
+                    
+                    <div class="flex gap-4 mb-6">
+                        <span class="bg-blue-600 text-white w-10 h-10 flex items-center justify-center rounded-lg font-bold flex-shrink-0 text-lg shadow-md">
+                            <?= $index + 1 ?>
+                        </span>
+                        <div class="text-lg text-gray-800 dark:text-gray-200 leading-relaxed w-full">
+                            <?= $s['pertanyaan'] ?>
+                            
+                            <?php if(!empty($s['file_gambar'])): ?>
+                                <div class="mt-4">
+                                    <img src="<?= base_url('uploads/bank_soal/' . $s['file_gambar']) ?>" class="max-w-full md:max-w-md rounded-lg border shadow-sm hover:scale-105 transition-transform cursor-zoom-in" onclick="window.open(this.src)">
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if(!empty($s['file_audio'])): ?>
+                                <div class="mt-4 bg-gray-100 dark:bg-slate-700 p-3 rounded-full w-fit">
+                                    <audio controls class="h-8 w-64">
+                                        <source src="<?= base_url('uploads/bank_soal/' . $s['file_audio']) ?>" type="audio/mpeg">
+                                    </audio>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pl-0 md:pl-14">
+                        <?php foreach($s['opsi'] as $opsi): ?>
+                            <label class="group flex items-center p-4 border-2 rounded-xl cursor-pointer hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-slate-700 dark:hover:border-slate-500 transition-all relative overflow-hidden">
+                                <input type="radio" name="jawaban_<?= $s['id'] ?>" value="<?= $opsi['id'] ?>" 
+                                       class="peer sr-only"
+                                       onchange="simpanJawaban(<?= $s['id'] ?>, '<?= $opsi['id'] ?>')"
+                                       <?= ($s['id_opsi'] == $opsi['id']) ? 'checked' : '' ?>>
+                                
+                                <div class="w-6 h-6 border-2 border-gray-300 rounded-full peer-checked:bg-blue-600 peer-checked:border-blue-600 flex items-center justify-center mr-4 transition-all">
+                                    <div class="w-2.5 h-2.5 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                                </div>
+                                
+                                <span class="text-gray-700 dark:text-gray-300 font-medium group-hover:text-gray-900 dark:group-hover:text-white">
+                                    <?= $opsi['teks_opsi'] ?>
+                                </span>
+
+                                <div class="absolute inset-0 border-2 border-blue-600 rounded-xl opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></div>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </form>
+    </div>
+
+    <div class="mt-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow border dark:border-slate-700">
+        <div class="flex justify-between items-center">
+            <button onclick="prevSoal()" id="btn-prev" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center" disabled>
+                <i class="fas fa-arrow-left mr-2"></i> Sebelumnya
             </button>
             
-            <button onclick="nav(1)" id="btnNext" class="flex-1 py-3 rounded-xl bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
-                Selanjutnya <i class="fas fa-arrow-right"></i>
-            </button>
-            
-            <button onclick="selesai()" id="btnDone" class="flex-1 py-3 rounded-xl bg-green-600 text-white font-bold shadow-lg shadow-green-600/30 hover:bg-green-700 transition-all hidden items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                SELESAI UJIAN <i class="fas fa-check-double"></i>
+            <div class="flex gap-2">
+                <label class="flex items-center gap-2 cursor-pointer bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-3 rounded-lg font-bold transition select-none">
+                    <input type="checkbox" id="chk-ragu" onchange="toggleRagu()" class="w-5 h-5 text-yellow-500 rounded focus:ring-yellow-500">
+                    <span>Ragu-ragu</span>
+                </label>
+            </div>
+
+            <button onclick="nextSoal()" id="btn-next" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition flex items-center">
+                Selanjutnya <i class="fas fa-arrow-right ml-2"></i>
             </button>
         </div>
     </div>
 
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    // --- VARIABLES ---
-    let curr = 0;
-    const total = <?= count($soal) ?>;
-    const idSesi = <?= $sesi->id ?>;
-    const startTime = new Date("<?= $sesi->waktu_mulai ?>").getTime();
-    const endTime = new Date("<?= $sesi->waktu_selesai_seharusnya ?>").getTime();
+    // --- 1. KONFIGURASI DARI PHP ---
+    const CONFIG = {
+        isStrict: <?= $jadwal->setting_strict ?>, // 1 atau 0
+        afkTimeout: <?= $jadwal->setting_afk_timeout ?? 10 ?>, // Detik toleransi
+        idUjianSiswa: <?= $sesi->id ?>,
+        endTime: new Date("<?= $sesi->waktu_selesai_seharusnya ?>").getTime(),
+        totalSoal: <?= count($soal) ?>
+    };
+
+    let currentIndex = 0;
     
-    // SETTINGAN
-    const minWaktuMenit = <?= $minWaktuMenit ?>; 
-    let maxViolations = <?= $limitPelanggaran ?>;
-    let violations = 0;
-    let isBlocked = false;
+    // Variabel Mode Ketat
+    let warningTimer = null;
+    let countdownVal = CONFIG.afkTimeout;
+    let isWarningActive = false;
 
-    // --- STARTUP ---
-    $(document).ready(() => {
-        show(0);
-        setInterval(tick, 1000);
-        setInterval(checkMinTime, 1000); 
-        forceFullscreen();
-    });
-
-    // --- NAVIGASI ---
-    function show(idx) {
-        $('.soal-wrapper').hide();
-        $('#soal_' + idx).fadeIn(200);
-        curr = idx;
-        $('#no_soal').text(curr + 1);
-
-        $('#btnPrev').prop('disabled', curr === 0);
-        
-        if (curr === total - 1) {
-            $('#btnNext').hide();
-            $('#btnDone').removeClass('hidden').addClass('flex');
-            checkMinTime();
-        } else {
-            $('#btnNext').show();
-            $('#btnDone').removeClass('flex').addClass('hidden');
-        }
-    }
-
-    function nav(dir) {
-        if (dir === 1 && curr < total - 1) show(curr + 1);
-        if (dir === -1 && curr > 0) show(curr - 1);
-    }
-
-    // --- CEK MINIMAL WAKTU ---
-    function checkMinTime() {
+    // --- 2. LOGIKA TIMER UTAMA ---
+    const timerInterval = setInterval(() => {
         const now = new Date().getTime();
-        const elapsed = (now - startTime) / 1000 / 60; // Menit
+        const distance = CONFIG.endTime - now;
 
-        if (elapsed < minWaktuMenit) {
-            $('#btnDone').prop('disabled', true);
-            $('#btnDone').html(`<i class="fas fa-lock"></i> Tunggu ${Math.ceil(minWaktuMenit - elapsed)} menit`);
-            $('#minWaktuIndikator').removeClass('hidden');
-            $('#sisaMinWaktu').text(Math.ceil(minWaktuMenit - elapsed));
-        } else {
-            $('#btnDone').prop('disabled', false);
-            $('#btnDone').html(`SELESAI UJIAN <i class="fas fa-check-double"></i>`);
-            $('#minWaktuIndikator').addClass('hidden');
+        if (distance < 0) {
+            clearInterval(timerInterval);
+            document.getElementById("main-timer").innerHTML = "00:00:00";
+            selesaiUjian(true); // Auto Submit
+            return;
         }
-    }
 
-    // --- SIMPAN JAWABAN (API) ---
-    const api = '<?= base_url('siswa/ujian/simpan_jawaban') ?>';
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-    function simpanPG(idSoal, val) {
-        $.post(api, { id_jawaban_siswa: idSesi, id_soal: idSoal, id_opsi: val });
-    }
-    function simpanIsian(idSoal, val) {
-        $.post(api, { id_jawaban_siswa: idSesi, id_soal: idSoal, jawaban_isian: val });
-    }
-    function simpanKompleks(idSoal, idx) {
-        let vals = [];
-        $(`input[name="chk_${idx}[]"]:checked`).each(function() { vals.push($(this).val()); });
-        $.post(api, { id_jawaban_siswa: idSesi, id_soal: idSoal, id_opsi: vals });
-    }
-    
-    // LOGIC MENJODOHKAN (SIMPAN JSON: Key=KodeOpsi, Val=Jawaban)
-    function simpanJodoh(idSoal, idx) {
-        let pasangan = {};
-        // Cari semua select dalam soal ini (select name="jodoh_INDEX[KODE]")
-        $(`select[name^="jodoh_${idx}"]`).each(function() {
-            // Ambil nama key dari attribute name (misal: Jawa Barat)
-            let rawName = $(this).attr('name'); 
-            // Regex untuk ambil teks dalam kurung siku
-            let key = rawName.match(/\[(.*?)\]/)[1];
-            let val = $(this).val();
-            
-            if(val !== "") {
-                pasangan[key] = val;
-            }
+        document.getElementById("main-timer").innerHTML = 
+            (hours < 10 ? "0" + hours : hours) + ":" +
+            (minutes < 10 ? "0" + minutes : minutes) + ":" +
+            (seconds < 10 ? "0" + seconds : seconds);
+    }, 1000);
+
+
+    // --- 3. NAVIGASI SOAL ---
+    function showSoal(index) {
+        // Validasi Index
+        if (index < 0 || index >= CONFIG.totalSoal) return;
+
+        // Hide Semua
+        document.querySelectorAll('.soal-item').forEach(el => {
+            el.classList.remove('soal-active');
+            el.classList.add('soal-hidden');
         });
 
-        // Kirim sebagai JSON ke controller (disimpan di jawaban_isian)
-        // Note: Controller harusnya sudah handle id_opsi sebagai array/json di update sebelumnya
-        $.post(api, { id_jawaban_siswa: idSesi, id_soal: idSoal, id_opsi: pasangan }); 
-    }
+        // Show Target
+        const target = document.getElementById(`soal-index-${index}`);
+        target.classList.remove('soal-hidden');
+        target.classList.add('soal-active');
 
-    // --- KEAMANAN ---
-    function triggerViolation(reason) {
-        if(isBlocked) return;
-
-        violations++;
-        let sisa = maxViolations - violations;
-        $('#sisaNyawa').text(sisa);
+        // Update State
+        currentIndex = index;
         
-        $('#violationOverlay').removeClass('hidden').addClass('flex');
-
-        if (violations >= maxViolations) {
-            isBlocked = true;
-            $.post('<?= base_url('siswa/ujian/blokirSiswa') ?>', {
-                id_ujian_siswa: idSesi,
-                alasan: "Blokir Otomatis: " + reason
-            }, function() {
-                window.location.href = '<?= base_url('siswa/ujian') ?>'; 
-            });
+        // Update Button State
+        document.getElementById('btn-prev').disabled = (index === 0);
+        
+        const btnNext = document.getElementById('btn-next');
+        if (index === CONFIG.totalSoal - 1) {
+            btnNext.innerHTML = 'Selesai <i class="fas fa-check ml-2"></i>';
+            btnNext.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            btnNext.classList.add('bg-green-600', 'hover:bg-green-700');
+            btnNext.setAttribute('onclick', 'konfirmasiSelesai()');
+        } else {
+            btnNext.innerHTML = 'Selanjutnya <i class="fas fa-arrow-right ml-2"></i>';
+            btnNext.classList.remove('bg-green-600', 'hover:bg-green-700');
+            btnNext.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            btnNext.setAttribute('onclick', 'nextSoal()');
         }
+
+        // Cek Status Ragu (Disini bisa ambil dari database kalau mau persist)
+        // document.getElementById('chk-ragu').checked = ... 
     }
 
-    function resumeUjian() {
-        if(isBlocked) return;
-        forceFullscreen();
-        $('#violationOverlay').addClass('hidden').removeClass('flex');
+    function nextSoal() { showSoal(currentIndex + 1); }
+    function prevSoal() { showSoal(currentIndex - 1); }
+
+    
+    // --- 4. SIMPAN JAWABAN (AJAX) ---
+    function simpanJawaban(idJawabanTabel, idOpsi) {
+        // Kirim ke Server
+        const formData = new FormData();
+        formData.append('id_jawaban_siswa', idJawabanTabel);
+        formData.append('id_opsi', idOpsi);
+
+        fetch('<?= base_url('siswa/ujian/simpanJawaban') ?>', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).catch(err => console.error(err));
     }
 
-    function forceFullscreen() {
-        const el = document.documentElement;
-        if (el.requestFullscreen) el.requestFullscreen();
-        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    function toggleRagu() {
+        // Implementasi logika ragu-ragu (bisa kirim ke server juga)
+        const isRagu = document.getElementById('chk-ragu').checked ? 1 : 0;
+        // fetch...
     }
 
-    document.addEventListener("visibilitychange", function() {
-        if (document.hidden) triggerViolation("Keluar Tab");
-    });
-    window.addEventListener("blur", function() {
-        triggerViolation("Membuka Aplikasi Lain");
-    });
-    window.addEventListener("resize", function() {
-        const isInput = document.activeElement.tagName === 'INPUT';
-        if (!isInput && window.innerHeight < screen.height * 0.75) {
-            triggerViolation("Split Screen");
-        }
-    });
 
-    // --- TIMER ---
-    function tick() {
-        const now = new Date().getTime();
-        const diff = endTime - now;
-        if (diff < 0) { selesai(true); return; }
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        $('#timerDisplay').text(`${m<10?'0':''}${m}:${s<10?'0':''}${s}`);
-    }
+    // --- 5. LOGIKA MODE KETAT (ANTI-CHEAT) ---
+    if (CONFIG.isStrict) {
+        // A. Deteksi Pindah Tab
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) triggerWarning();
+        });
 
-    function selesai(auto = false) {
-        Swal.fire({
-            title: auto ? 'WAKTU HABIS!' : 'Selesai Ujian?',
-            text: auto ? 'Jawaban otomatis dikumpulkan.' : 'Apakah Anda yakin ingin mengakhiri ujian ini?',
-            icon: 'question',
-            showCancelButton: !auto,
-            confirmButtonText: 'Ya, Kumpulkan',
-            confirmButtonColor: '#16a34a',
-            cancelButtonText: 'Batal',
-            allowOutsideClick: false,
-            showLoaderOnConfirm: true, // Tampilkan loading spinner
-            preConfirm: () => {
-                // Gunakan Promise agar loading tidak hilang sampai selesai
-                return $.post('<?= base_url('siswa/ujian/selesai') ?>', { id_ujian_siswa: idSesi })
-                    .then(response => {
-                        if (response.status === 'success') {
-                            return response;
-                        } else {
-                            throw new Error(response.message || 'Gagal menyimpan data.');
-                        }
-                    })
-                    .catch(error => {
-                        // Tampilkan Error Jika Ada (Supaya tidak diam saja)
-                        Swal.showValidationMessage(
-                            `Gagal Mengumpulkan: ${error.responseText || error.message}`
-                        )
-                    })
+        // B. Deteksi Blur (Klik luar / Split Screen)
+        window.addEventListener("blur", () => {
+            triggerWarning();
+        });
+
+        // C. Cegah Tombol Terlarang
+        document.addEventListener('contextmenu', e => e.preventDefault()); // Klik Kanan
+        document.addEventListener('keydown', e => {
+            // F12, Ctrl+Shift+I, Alt+Tab, PrintScreen
+            if(e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || e.altKey) {
+                e.preventDefault();
             }
-        }).then((result) => {
-            if (result.isConfirmed && result.value && result.value.status === 'success') {
+        });
+    }
+
+    function triggerWarning() {
+        if (isWarningActive) return; // Jangan tumpuk
+        isWarningActive = true;
+        countdownVal = CONFIG.afkTimeout;
+
+        // Tampilkan Overlay
+        const overlay = document.getElementById('warning-overlay');
+        overlay.style.display = 'flex';
+        document.getElementById('exam-container').classList.add('blur-content');
+        document.getElementById('countdown-timer').innerText = countdownVal;
+
+        // Hitung Mundur
+        warningTimer = setInterval(() => {
+            countdownVal--;
+            document.getElementById('countdown-timer').innerText = countdownVal < 10 ? "0" + countdownVal : countdownVal;
+
+            if (countdownVal <= 0) {
+                clearInterval(warningTimer);
+                laporServer('timeout'); // Waktu Habis -> LOCK
+            }
+        }, 1000);
+    }
+
+    function kembaliKeUjian() {
+        if (countdownVal > 0) {
+            clearInterval(warningTimer);
+            laporServer('violation'); // Lapor Pelanggaran Biasa
+            
+            // Reset Tampilan
+            document.getElementById('warning-overlay').style.display = 'none';
+            document.getElementById('exam-container').classList.remove('blur-content');
+            isWarningActive = false;
+            
+            // Paksa Fullscreen
+            document.documentElement.requestFullscreen().catch(()=>{});
+        }
+    }
+
+    function laporServer(jenis) {
+        const formData = new FormData();
+        formData.append('id_ujian_siswa', CONFIG.idUjianSiswa);
+        formData.append('jenis', jenis);
+
+        fetch('<?= base_url('siswa/ujian/catatPelanggaran') ?>', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'locked') {
                 Swal.fire({
-                    title: 'Berhasil!',
-                    text: 'Ujian telah dikumpulkan.',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = result.value.redirect;
-                });
+                    icon: 'error',
+                    title: 'UJIAN TERKUNCI',
+                    text: data.msg,
+                    allowOutsideClick: false,
+                    confirmButtonText: 'Hubungi Pengawas'
+                }).then(() => location.reload()); // Reload ke halaman Locked
+            } 
+            else if (data.status === 'kicked') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'DISKUALIFIKASI',
+                    text: data.msg,
+                    allowOutsideClick: false,
+                    confirmButtonText: 'Keluar'
+                }).then(() => window.location.href = '<?= base_url('siswa/ujian') ?>');
+            }
+            else if (data.status === 'warning') {
+                // Update sisa nyawa di UI
+                const el = document.getElementById('sisa-nyawa');
+                if(el) el.innerText = data.sisa_nyawa;
             }
         });
     }
-    // --- KEAMANAN (DINAMIS UPDATE) ---
-    function triggerViolation(reason) {
-        if(isBlocked) return; // Kalau sudah selesai/blokir, abaikan
 
-        violations++;
-        let sisa = maxViolations - violations;
-        
-        // Update tampilan sisa nyawa di overlay
-        $('#sisaNyawa').text(sisa);
-        
-        // Tampilkan Overlay Peringatan
-        $('#violationOverlay').removeClass('hidden').addClass('flex');
 
-        // JIKA SUDAH MELEBIHI BATAS -> AUTO SUBMIT (SELESAI)
-        if (violations >= maxViolations) {
-            isBlocked = true; // Kunci biar gak bisa klik apa-apa lagi
-            
-            // Tampilkan pesan dulu sebentar
+    // --- 6. SELESAI UJIAN ---
+    function konfirmasiSelesai() {
+        Swal.fire({
+            title: 'Akhiri Ujian?',
+            text: "Pastikan semua jawaban sudah terisi. Anda tidak bisa kembali setelah ini.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Selesai!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                selesaiUjian(false);
+            }
+        });
+    }
+
+    function selesaiUjian(auto = false) {
+        if(auto) {
             Swal.fire({
-                title: 'PELANGGARAN MAKSIMAL!',
-                text: 'Anda telah melanggar batas toleransi. Ujian otomatis dikumpulkan.',
-                icon: 'error',
+                title: 'Waktu Habis!',
+                text: 'Jawaban Anda akan disimpan otomatis.',
+                icon: 'warning',
                 timer: 3000,
-                showConfirmButton: false,
-                allowOutsideClick: false
-            }).then(() => {
-                // PANGGIL FUNGSI SELESAI (AUTO SUBMIT)
-                selesai(true); 
+                showConfirmButton: false
+            });
+        } else {
+            Swal.fire({
+                title: 'Menyimpan...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
             });
         }
+
+        const formData = new FormData();
+        formData.append('id_ujian_siswa', CONFIG.idUjianSiswa);
+
+        fetch('<?= base_url('siswa/ujian/selesaiUjian') ?>', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = data.redirect;
+            } else {
+                Swal.fire('Gagal', data.message, 'error');
+            }
+        })
+        .catch(err => Swal.fire('Error', 'Terjadi kesalahan koneksi', 'error'));
     }
+
 </script>
 
 <?= $this->endSection() ?>
