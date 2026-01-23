@@ -213,12 +213,13 @@ $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
     $routes->post('ujian/mulai', 'Siswa\Ujian::mulai');
     $routes->get('ujian/kerjakan/(:num)', 'Siswa\Ujian::kerjakan/$1');
     
-    $routes->post('ujian/simpan_jawaban', 'Siswa\Ujian::simpanJawaban');
+    $routes->post('ujian/simpanjawaban', 'Siswa\Ujian::simpanJawaban');
    $routes->post('ujian/selesaiUjian', 'Siswa\Ujian::selesaiUjian');
     
     // --- TAMBAHKAN INI (Jalur Anti-Cheat) ---
     $routes->post('ujian/catatPelanggaran', 'Siswa\Ujian::catatPelanggaran'); 
     $routes->post('ujian/blokirSiswa', 'Siswa\Ujian::blokirSiswa'); // Opsional jika pakai logic blokir terpisah
+    $routes->post('ujian/simpanJawaban', 'Siswa\Ujian::simpanJawaban');
 });
 
 $routes->group('piket', ['filter' => 'role:piket'], function($routes) {

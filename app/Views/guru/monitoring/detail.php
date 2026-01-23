@@ -1,199 +1,164 @@
 <?= $this->extend('layout/template') ?>
 <?= $this->section('content') ?>
 
-<div class="p-1 sm:ml-1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<div class="p-1 sm:ml-1 bg-slate-50 dark:bg-slate-900 min-h-screen transition-colors duration-300">
     
-    <div class="flex justify-between items-center mb-6 mt-14">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 mt-10 gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white"><?= $ruang['nama_ruangan'] ?></h1>
-            <p class="text-sm text-gray-500">Monitoring Realtime • <?= date('d M Y') ?></p>
+            <h1 class="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight"><?= $ruang['nama_ruangan'] ?></h1>
+            <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Monitoring Realtime • <?= date('d M Y') ?></p>
         </div>
-        <a href="<?= base_url('guru/monitoring') ?>" class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Kembali
-        </a>
-    </div>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-slate-800 dark:border-slate-700">
-            <div class="p-3 mr-4 text-blue-500 bg-blue-100 rounded-lg dark:text-blue-100 dark:bg-blue-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <div>
-                <p class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Belum</p>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white"><?= $stats['belum'] ?></h3>
-            </div>
-        </div>
-        <div class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-slate-800 dark:border-slate-700">
-            <div class="p-3 mr-4 text-purple-500 bg-purple-100 rounded-lg dark:text-purple-100 dark:bg-purple-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-            </div>
-            <div>
-                <p class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Sedang</p>
-                <h3 class="text-xl font-bold text-purple-600 dark:text-purple-400"><?= $stats['sedang'] ?></h3>
-            </div>
-        </div>
-        <div class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-slate-800 dark:border-slate-700">
-            <div class="p-3 mr-4 text-green-500 bg-green-100 rounded-lg dark:text-green-100 dark:bg-green-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <div>
-                <p class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Selesai</p>
-                <h3 class="text-xl font-bold text-green-600 dark:text-green-400"><?= $stats['selesai'] ?></h3>
-            </div>
-        </div>
-        <div class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-slate-800 dark:border-slate-700">
-            <div class="p-3 mr-4 text-orange-500 bg-orange-100 rounded-lg dark:text-orange-100 dark:bg-orange-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-            </div>
-            <div class="overflow-hidden">
-                <p class="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Mapel</p>
-                <h3 class="text-sm font-bold text-gray-900 dark:text-white truncate">
-                    <?= !empty($siswa) && isset($siswa[0]['judul_ujian']) ? $siswa[0]['judul_ujian'] : '-' ?>
-                </h3>
-            </div>
+        <div class="flex gap-2">
+            <div id="liveClock" class="bg-emerald-500 text-white px-5 py-2.5 rounded-full text-[10px] font-black shadow-lg shadow-emerald-500/20"><?= date('H:i:s') ?></div>
+            <a href="<?= base_url('guru/monitoring') ?>" class="text-white bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 px-5 py-2.5 rounded-xl text-xs font-bold flex items-center shadow-lg transition-all active:scale-95">
+                <i class="fas fa-arrow-left mr-2"></i> KEMBALI
+            </a>
         </div>
     </div>
 
-    <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 bg-white dark:bg-slate-800 p-4 rounded-t-xl border-b border-gray-200 dark:border-slate-700">
-        <div class="flex items-center">
-            <label class="relative inline-flex items-center cursor-pointer">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 flex items-center shadow-sm">
+            <div class="p-4 bg-blue-50 dark:bg-blue-900/30 text-blue-500 rounded-2xl mr-4"><i class="fas fa-user-clock text-xl"></i></div>
+            <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Belum</p><h3 class="text-2xl font-black text-slate-800 dark:text-white"><?= $stats['belum'] ?></h3></div>
+        </div>
+        <div class="p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 flex items-center shadow-sm">
+            <div class="p-4 bg-purple-50 dark:bg-purple-900/30 text-purple-500 rounded-2xl mr-4"><i class="fas fa-pen-nib text-xl"></i></div>
+            <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sedang</p><h3 class="text-2xl font-black text-purple-600 dark:text-purple-400"><?= $stats['sedang'] ?></h3></div>
+        </div>
+        <div class="p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 flex items-center shadow-sm">
+            <div class="p-4 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 rounded-2xl mr-4"><i class="fas fa-check-circle text-xl"></i></div>
+            <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Selesai</p><h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400"><?= $stats['selesai'] ?></h3></div>
+        </div>
+        <div class="p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 flex items-center shadow-sm">
+            <div class="p-4 bg-orange-50 dark:bg-orange-900/30 text-orange-500 rounded-2xl mr-4"><i class="fas fa-book text-xl"></i></div>
+            <div class="overflow-hidden"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ujian</p><h3 class="text-sm font-black text-slate-800 dark:text-white truncate uppercase"><?= $siswa[0]['judul_ujian'] ?? '-' ?></h3></div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-4">
+        <div class="flex flex-col md:flex-row items-center justify-between p-6 gap-4">
+            <label class="flex items-center cursor-pointer">
                 <input type="checkbox" id="toggleRefresh" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Auto Refresh</span>
+                <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-checked:bg-blue-600 rounded-full relative transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"></div>
+                <span class="ml-3 text-xs font-bold text-slate-400 dark:text-slate-300 uppercase">Auto Refresh (15s)</span>
             </label>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <button onclick="openTimeModal()" class="text-white bg-yellow-400 hover:bg-yellow-500 font-medium rounded-full text-sm p-2.5 inline-flex items-center" title="Tambah Waktu">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </button>
-            <button onclick="confirmAction('unlock')" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-full text-sm p-2.5 inline-flex items-center" title="Buka Kunci">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
-            </button>
-            <button onclick="confirmAction('stop')" class="text-white bg-red-600 hover:bg-red-700 font-medium rounded-full text-sm p-2.5 inline-flex items-center" title="Paksa Selesai">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg>
-            </button>
-            <button onclick="confirmAction('reset')" class="text-white bg-green-500 hover:bg-green-600 font-medium rounded-full text-sm p-2.5 inline-flex items-center" title="Reset">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            </button>
+            <div class="flex gap-2">
+                <button onclick="openTimeModal()" class="p-4 bg-amber-400 text-white rounded-2xl shadow-lg hover:scale-110 transition-transform" title="Tambah Waktu"><i class="fas fa-clock"></i></button>
+                <button onclick="confirmAction('unlock')" class="p-4 bg-blue-500 text-white rounded-2xl shadow-lg hover:scale-110 transition-transform" title="Buka Kunci"><i class="fas fa-unlock-alt"></i></button>
+                <button onclick="confirmAction('stop')" class="p-4 bg-rose-600 text-white rounded-2xl shadow-lg hover:scale-110 transition-transform" title="Paksa Selesai"><i class="fas fa-flag-checkered"></i></button>
+                <button onclick="confirmAction('reset')" class="p-4 bg-teal-400 text-white rounded-2xl shadow-lg hover:scale-110 transition-transform" title="Reset Ujian"><i class="fas fa-sync-alt"></i></button>
+            </div>
         </div>
     </div>
 
-    <div class="relative overflow-x-auto bg-white dark:bg-slate-800 shadow-md rounded-b-xl pb-4 min-h-[400px]">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-slate-700 dark:text-gray-400">
-                <tr>
-                    <th class="p-4 w-4"><input id="checkbox-all" type="checkbox" class="w-4 h-4 rounded"></th>
-                    <th class="px-6 py-3">No PC</th>
-                    <th class="px-6 py-3">Identitas</th>
-                    <th class="px-6 py-3">Progres</th>
-                    <th class="px-6 py-3">Status</th>
-                    <th class="px-6 py-3 text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if(empty($siswa)): ?>
-                    <tr><td colspan="6" class="text-center py-12 text-gray-400">
-                        <div class="flex flex-col items-center">
-                            <svg class="w-12 h-12 mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                            Ruangan kosong / Belum ada peserta.
-                        </div>
-                    </td></tr>
-                <?php else: ?>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50/50 dark:bg-slate-700/50 text-[10px] font-black text-slate-400 dark:text-slate-300 uppercase tracking-widest">
+                    <tr>
+                        <th class="p-6 w-4"><input id="checkbox-all" type="checkbox" class="rounded-md border-slate-300 dark:bg-slate-700 dark:border-slate-600"></th>
+                        <th class="px-4 py-4">No PC</th>
+                        <th class="px-4 py-4">Identitas</th>
+                        <th class="px-4 py-4 text-center">Jawaban</th>
+                        <th class="px-4 py-4 text-center">Nilai</th>
+                        <th class="px-4 py-4">Status</th>
+                        <th class="px-4 py-4 text-center">Aksi Cepat</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 dark:divide-slate-700">
                     <?php foreach($siswa as $s): ?>
-                        <tr class="bg-white border-b dark:bg-slate-800 dark:border-slate-700 hover:bg-gray-50">
-                            <td class="w-4 p-4"><input type="checkbox" value="<?= $s['siswa_id'] ?>" class="chk-siswa w-4 h-4 rounded"></td>
-                            <td class="px-6 py-4 font-bold text-gray-900 dark:text-white"><?= $s['no_komputer'] ?></td>
-                            <td class="px-6 py-4">
-                                <div class="font-semibold text-gray-900 dark:text-white"><?= $s['nama_lengkap'] ?></div>
-                                <div class="text-xs text-gray-500"><?= $s['nis'] ?> • <?= $s['nama_kelas'] ?></div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <?php if($s['status']): ?>
-                                    <span class="text-green-600 font-bold inline-flex items-center">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                        <?= $s['jml_benar'] ?>
-                                    </span> 
-                                    <span class="text-gray-300 mx-1">|</span>
-                                    <span class="text-red-600 font-bold inline-flex items-center">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                        <?= $s['jml_salah'] ?>
-                                    </span>
-                                    <div class="text-xs mt-1 text-gray-500">Skor: <?= number_format($s['nilai_sementara'], 0) ?></div>
-                                <?php else: ?> - <?php endif; ?>
-                            </td>
-                            <td class="px-6 py-4">
-                                <?php 
-                                if($s['status'] == 'SELESAI') echo '<span class="badge-hijau">SELESAI</span>';
-                                elseif($s['status']) {
-                                    echo '<span class="badge-biru animate-pulse">MENGERJAKAN</span>';
-                                    if($s['is_locked']) echo ' <span title="Terkunci">🔒</span>';
-                                }
-                                else echo '<span class="badge-abu">BELUM</span>';
-                                ?>
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <button onclick="checkAndAction(<?= $s['siswa_id'] ?>, 'reset')" class="btn-icon bg-green-500 hover:bg-green-600" title="Reset">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                    </button>
-                                    <button onclick="checkAndAction(<?= $s['siswa_id'] ?>, 'stop')" class="btn-icon bg-red-500 hover:bg-red-600" title="Stop">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg>
-                                    </button>
-                                    <button onclick="checkAndAction(<?= $s['siswa_id'] ?>, 'unlock')" class="btn-icon bg-blue-500 hover:bg-blue-600" title="Unlock">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                    <tr class="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors">
+                        <td class="p-6 text-center"><input type="checkbox" value="<?= $s['siswa_id'] ?>" class="chk-siswa rounded-md border-slate-300 dark:bg-slate-700 dark:border-slate-600"></td>
+                        <td class="px-4 py-4 font-mono font-bold text-slate-500 dark:text-slate-400"><?= $s['no_komputer'] ?></td>
+                        <td class="px-4 py-4">
+                            <div class="font-black text-slate-700 dark:text-white uppercase text-xs"><?= $s['nama_lengkap'] ?></div>
+                            <div class="text-[10px] font-bold text-slate-400"><?= $s['nis'] ?> • <?= $s['nama_kelas'] ?></div>
+                        </td>
+                        <td class="px-4 py-4">
+                            <?php if($s['status']): ?>
+                            <div class="flex justify-center gap-1 font-bold text-[9px]">
+                                <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-lg"><?= $s['jml_benar'] ?> <i class="fas fa-check"></i></span>
+                                <span class="bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 px-2 py-1 rounded-lg"><?= $s['jml_salah'] ?> <i class="fas fa-times"></i></span>
+                            </div>
+                            <?php else: ?> <div class="text-center text-slate-300 dark:text-slate-600">-</div> <?php endif; ?>
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            <span class="font-black text-slate-800 dark:text-white"><?= ($s['nilai_sementara'] > 0) ? number_format($s['nilai_sementara'], 0) : '-' ?></span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <?php if($s['status'] == 'SELESAI'): ?>
+                                <span class="bg-emerald-500 text-white text-[9px] px-2 py-1 rounded-md font-black uppercase">Selesai</span>
+                            <?php elseif($s['status']): ?>
+                                <span class="bg-blue-500 text-white text-[9px] px-2 py-1 rounded-md font-black uppercase animate-pulse">Online</span>
+                                <?php if($s['is_locked']): ?> <i class="fas fa-lock text-rose-500 ml-1 text-xs"></i><?php endif; ?>
+                            <?php else: ?>
+                                <span class="bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 text-[9px] px-2 py-1 rounded-md font-black uppercase">Offline</span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="px-4 py-4">
+                            <div class="flex justify-center gap-1">
+                                <button onclick="checkAndAction(<?= $s['siswa_id'] ?>, 'unlock')" class="w-8 h-8 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all shadow-sm" title="Unlock"><i class="fas fa-unlock-alt text-[11px]"></i></button>
+                                <button onclick="checkAndAction(<?= $s['siswa_id'] ?>, 'stop')" class="w-8 h-8 bg-rose-50 dark:bg-rose-900/30 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all shadow-sm" title="Stop"><i class="fas fa-flag-checkered text-[11px]"></i></button>
+                                <button onclick="checkAndAction(<?= $s['siswa_id'] ?>, 'reset')" class="w-8 h-8 bg-teal-50 dark:bg-teal-900/30 text-teal-500 rounded-xl hover:bg-teal-500 hover:text-white transition-all shadow-sm" title="Reset"><i class="fas fa-sync-alt text-[11px]"></i></button>
+                            </div>
+                        </td>
+                    </tr>
                     <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div id="timeModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm">
-    <div class="bg-white dark:bg-slate-700 rounded-xl shadow-2xl p-6 w-96 transform transition-all scale-100">
-        <h3 class="text-lg font-bold mb-4 dark:text-white flex items-center">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            Tambah Waktu
-        </h3>
-        <input type="number" id="menit" class="w-full p-2.5 border border-gray-300 rounded-lg mb-4 text-gray-900 focus:ring-blue-500 focus:border-blue-500" placeholder="Menit (cth: 10)">
-        <div class="flex justify-end gap-2">
-            <button onclick="closeModal('timeModal')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium">Batal</button>
-            <button onclick="submitTime()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Simpan</button>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-sm">
-    <div class="bg-white dark:bg-slate-700 rounded-xl shadow-2xl p-6 w-96 text-center transform transition-all scale-100">
-        <div class="mb-4 text-red-500 mx-auto w-12 h-12 flex items-center justify-center bg-red-100 rounded-full">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+<div id="timeModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-slate-100 dark:border-slate-700">
+        <h3 class="text-xl font-black text-slate-800 dark:text-white mb-6 uppercase tracking-tight text-center">Tambah Waktu</h3>
+        <input type="number" id="menit" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-center font-black text-2xl focus:ring-blue-500 dark:text-white mb-6" placeholder="Menit">
+        <div class="flex gap-3">
+            <button onclick="closeTimeModal()" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold rounded-2xl uppercase">Batal</button>
+            <button onclick="submitTime()" class="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg uppercase">Simpan</button>
         </div>
-        <h3 id="confirmTitle" class="text-lg font-bold mb-4 dark:text-white">Konfirmasi</h3>
-        <div class="flex justify-center gap-2">
-            <button onclick="closeModal('confirmModal')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium">Batal</button>
-            <button onclick="executeAction()" id="btnConfirmYes" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">Ya, Proses</button>
+    </div>
+</div>
+
+<div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-8 w-full max-w-sm text-center border border-slate-100 dark:border-slate-700">
+        <div class="w-20 h-20 bg-rose-50 dark:bg-rose-900/30 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-6"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3 id="confirmTitle" class="text-lg font-black text-slate-800 dark:text-white mb-8 uppercase tracking-tight">Konfirmasi?</h3>
+        <div class="flex gap-3">
+            <button onclick="closeConfirmModal()" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold rounded-2xl uppercase">Tidak</button>
+            <button id="btnConfirmYes" onclick="executeAction()" class="flex-1 py-4 bg-rose-600 text-white font-bold rounded-2xl shadow-lg uppercase">Ya, Proses</button>
         </div>
     </div>
 </div>
 
 <script>
-    // JS TETAP SAMA SEPERTI SEBELUMNYA
+    // JS Logic Identik Seperti Sebelumnya (Update URL Ajax Ke Guru)
     let currentAction = '';
-
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
-    
+    function openModal(id) { const el = document.getElementById(id); el.classList.remove('hidden'); el.classList.add('flex'); }
+    function closeModal(id) { el = document.getElementById(id); el.classList.add('hidden'); el.classList.remove('flex'); }
     function openTimeModal() { openModal('timeModal'); }
     function closeTimeModal() { closeModal('timeModal'); }
     function closeConfirmModal() { closeModal('confirmModal'); }
 
-    document.getElementById('checkbox-all').addEventListener('change', function() {
-        document.querySelectorAll('.chk-siswa').forEach(c => c.checked = this.checked);
-    });
+    function confirmAction(action) {
+        if (getSelectedIds().length === 0) return alert('Pilih siswa dulu!');
+        currentAction = action;
+        document.getElementById('confirmTitle').innerText = "YAKIN " + action.toUpperCase() + " DATA?";
+        openModal('confirmModal');
+    }
+
+    function checkAndAction(id, action) {
+        document.querySelectorAll('.chk-siswa').forEach(c => c.checked = false);
+        const target = document.querySelector(`.chk-siswa[value="${id}"]`);
+        if(target) target.checked = true;
+        confirmAction(action);
+    }
+
+    function executeAction() { kirimData(getSelectedIds(), currentAction, 0); closeConfirmModal(); }
+    function submitTime() { kirimData(getSelectedIds(), 'add_time', document.getElementById('menit').value); closeTimeModal(); }
 
     function getSelectedIds() {
         let ids = [];
@@ -201,35 +166,12 @@
         return ids;
     }
 
-    function checkAndAction(id, action) {
-        document.querySelectorAll('.chk-siswa').forEach(c => c.checked = false);
-        document.querySelector(`.chk-siswa[value="${id}"]`).checked = true;
-        confirmAction(action);
-    }
-
-    function confirmAction(action) {
-        if (getSelectedIds().length === 0) { alert('Pilih siswa dulu!'); return; }
-        currentAction = action;
-        let title = "Yakin melakukan aksi ini?";
-        if(action === 'reset') title = "Reset ujian siswa terpilih?";
-        if(action === 'stop') title = "Paksa selesai siswa terpilih?";
-        if(action === 'unlock') title = "Buka kunci login siswa terpilih?";
-        
-        document.getElementById('confirmTitle').innerText = title;
-        openModal('confirmModal');
-    }
-
-    function executeAction() {
-        kirimData(getSelectedIds(), currentAction, 0);
-        closeConfirmModal();
-    }
-
-    function submitTime() {
-        kirimData(getSelectedIds(), 'add_time', document.getElementById('menit').value);
-        closeTimeModal();
-    }
+    document.getElementById('checkbox-all').addEventListener('change', function() {
+        document.querySelectorAll('.chk-siswa').forEach(c => c.checked = this.checked);
+    });
 
     function kirimData(ids, aksi, menit) {
+        document.body.style.cursor = 'wait';
         const formData = new FormData();
         ids.forEach(id => formData.append('ids[]', id));
         formData.append('aksi', aksi);
@@ -247,16 +189,8 @@
         });
     }
 
-    setInterval(() => {
-        if(document.getElementById('toggleRefresh').checked) location.reload();
-    }, 10000);
+    setInterval(() => { if(document.getElementById('toggleRefresh').checked) location.reload(); }, 15000);
+    setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString('id-ID'); }, 1000);
 </script>
-
-<style>
-    .badge-hijau { @apply bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400; }
-    .badge-biru { @apply bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-400; }
-    .badge-abu { @apply bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded border border-gray-400; }
-    .btn-icon { @apply text-white rounded-lg p-2 w-8 h-8 flex items-center justify-center transition-colors shadow-sm; }
-</style>
 
 <?= $this->endSection() ?>
