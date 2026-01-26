@@ -15,54 +15,45 @@
     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800"><?= $jadwal->nama_ujian ?></h1>
-                <div class="flex items-center gap-3 mt-1 text-sm text-gray-500">
-                    <span class="flex items-center gap-1"><i class="fas fa-clock"></i> <?= $jadwal->durasi ?> Menit</span>
-                    <span class="flex items-center gap-1"><i class="fas fa-calendar"></i> <?= date('d M Y H:i', strtotime($jadwal->waktu_mulai)) ?></span>
+                <h1 class="text-2xl font-bold text-gray-800"><?= esc($jadwal['nama_ujian']) ?></h1>
+                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-200 mt-2 inline-block">
+                    <?= esc($jadwal['nama_mapel']) ?>
+                </span>
+                <div class="flex items-center gap-3 mt-2 text-sm text-gray-500">
+                    <span class="flex items-center gap-1"><i class="fas fa-clock"></i> <?= esc($jadwal['durasi']) ?> Menit</span>
+                    <span class="flex items-center gap-1"><i class="fas fa-calendar"></i> <?= date('d M Y H:i', strtotime($jadwal['waktu_mulai'])) ?></span>
                 </div>
             </div>
             
             <div class="bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg shadow-blue-600/30 text-center">
                 <p class="text-xs uppercase opacity-80 mb-1 font-bold tracking-wider">Token Ujian</p>
                 <h2 class="text-3xl font-mono font-bold tracking-widest" id="tokenDisplay">
-                    <?= !empty($jadwal->token) ? $jadwal->token : '-' ?>
+                    <?= !empty($jadwal['token']) ? esc($jadwal['token']) : '-' ?>
                 </h2>
             </div>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <?php
-                // Hitung Statistik Sederhana dari Data Peserta
-                $total = count($peserta);
-                $selesai = 0; $sedang = 0; $blokir = 0; $belum = 0;
-                foreach($peserta as $p) {
-                    if($p['is_blocked'] == 1) $blokir++;
-                    elseif($p['status'] == 1) $selesai++;
-                    elseif($p['id_ujian_siswa']) $sedang++;
-                    else $belum++;
-                }
-            ?>
             <div class="bg-gray-50 p-3 rounded-lg border text-center">
-                <span class="block text-2xl font-bold text-gray-700"><?= $total ?></span>
+                <span class="block text-2xl font-bold text-gray-700"><?= $stats['total'] ?></span>
                 <span class="text-xs text-gray-500 uppercase font-bold">Total Siswa</span>
             </div>
             <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-center">
-                <span class="block text-2xl font-bold text-blue-600"><?= $sedang ?></span>
+                <span class="block text-2xl font-bold text-blue-600"><?= $stats['sedang'] ?></span>
                 <span class="text-xs text-blue-600 uppercase font-bold">Mengerjakan</span>
             </div>
             <div class="bg-green-50 p-3 rounded-lg border border-green-100 text-center">
-                <span class="block text-2xl font-bold text-green-600"><?= $selesai ?></span>
+                <span class="block text-2xl font-bold text-green-600"><?= $stats['sudah'] ?></span>
                 <span class="text-xs text-green-600 uppercase font-bold">Selesai</span>
             </div>
             <div class="bg-red-50 p-3 rounded-lg border border-red-100 text-center">
-                <span class="block text-2xl font-bold text-red-600"><?= $blokir ?></span>
-                <span class="text-xs text-red-600 uppercase font-bold">Terblokir</span>
+                <span class="block text-2xl font-bold text-red-600"><?= $stats['total'] - ($stats['sudah'] + $stats['sedang']) ?></span>
+                <span class="text-xs text-red-600 uppercase font-bold">Belum Login</span>
             </div>
         </div>
     </div>
 
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4 bg-white p-3 rounded-xl shadow-sm border sticky top-0 z-30">
-        
         <div class="flex items-center gap-2 w-full md:w-auto">
             <input type="text" id="searchSiswa" onkeyup="filterTabel()" placeholder="Cari Nama / Kelas..." class="p-2 border rounded-lg text-sm w-full md:w-64 focus:ring-blue-500">
         </div>
@@ -89,58 +80,45 @@
     <div class="bg-white rounded-xl shadow overflow-hidden border border-gray-200">
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left" id="tabelSiswa">
-                <thead class="bg-gray-50 text-gray-700 uppercase font-bold text-xs border-b">
+                <thead>
                     <tr>
-                        <th class="p-4 w-10 text-center">
-                            <input type="checkbox" id="checkAll" onclick="toggleAll(this)" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
-                        </th>
-                        <th class="p-4">Identitas Siswa</th>
-                        <th class="p-4">Kelas</th>
-                        <th class="p-4 text-center">Status</th>
-                        <th class="p-4 text-center">Waktu</th>
-                        <th class="p-4 text-center">Nilai</th>
-                        <th class="p-4 text-center">IP Address</th>
-                        <th class="p-4 text-center">Aksi</th>
+                        <th class="p-4 w-4">...</th>
+                        <th class="p-4 text-left text-xs font-medium text-gray-300 uppercase">IDENTITAS</th>
+                        <th class="p-4 text-left text-xs font-medium text-gray-300 uppercase">MAPEL</th> <th class="p-4 text-center text-xs font-medium text-gray-300 uppercase">WAKTU</th>
+                        <th class="p-4 text-center text-xs font-medium text-gray-300 uppercase">NILAI</th>
+                        <th class="p-4 text-center text-xs font-medium text-gray-300 uppercase">STATUS</th>
+                        <th class="p-4 text-center text-xs font-medium text-gray-300 uppercase">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     <?php if(empty($peserta)): ?>
-                        <tr><td colspan="8" class="p-8 text-center text-gray-500">Belum ada peserta di ruangan ini.</td></tr>
+                        <tr><td colspan="7" class="p-8 text-center text-gray-500">Belum ada peserta di ruangan ini.</td></tr>
                     <?php else: ?>
                         <?php foreach($peserta as $p): ?>
                         <tr class="hover:bg-blue-50 transition-colors group">
                             <td class="p-4 text-center">
-                                <?php if($p['id_ujian_siswa']): ?>
-                                    <input type="checkbox" name="ids[]" value="<?= $p['id_ujian_siswa'] ?>" class="chk-siswa w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
+                                <?php if($p['id_sesi']): ?>
+                                    <input type="checkbox" name="ids[]" value="<?= $p['id_sesi'] ?>" class="chk-siswa w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
                                 <?php else: ?>
                                     <i class="fas fa-minus text-gray-300"></i>
                                 <?php endif; ?>
                             </td>
 
                             <td class="p-4">
-                                <div class="font-bold text-gray-800 text-base"><?= $p['nama_lengkap'] ?></div>
-                                <div class="text-xs text-gray-500 font-mono"><?= $p['nomor_peserta'] ?></div>
+                                <div class="font-bold text-gray-800 text-base"><?= esc($p['nama_lengkap']) ?></div>
+                                <div class="text-xs text-gray-500 font-mono"><?= esc($p['nis']) ?> • <?= esc($p['nama_kelas']) ?></div>
                             </td>
 
-                            <td class="p-4 text-gray-600 font-medium"><?= $p['nama_kelas'] ?></td>
-
-                            <td class="p-4 text-center">
-                                <?php if(!$p['id_ujian_siswa']): ?>
-                                    <span class="badge-status st-belum">Belum Login</span>
-                                <?php elseif($p['is_blocked'] == 1): ?>
-                                    <span class="badge-status st-blokir"><i class="fas fa-lock mr-1"></i> Terblokir</span>
-                                <?php elseif($p['status'] == 1): ?>
-                                    <span class="badge-status st-selesai"><i class="fas fa-check mr-1"></i> Selesai</span>
-                                <?php else: ?>
-                                    <span class="badge-status st-sedang"><i class="fas fa-pencil-alt mr-1"></i> Mengerjakan</span>
-                                <?php endif; ?>
+                            <td class="p-4">
+                                <span class="bg-blue-900 text-blue-300 text-[10px] font-bold px-2 py-1 rounded border border-blue-700">
+                                    <?= esc($jadwal['nama_mapel']) ?>
+                                </span>
                             </td>
 
                             <td class="p-4 text-center text-xs font-mono text-gray-600">
                                 <?php 
                                     if($p['waktu_mulai']) {
                                         echo date('H:i', strtotime($p['waktu_mulai']));
-                                        // Jika sedang mengerjakan, hitung sisa waktu (opsional via JS)
                                     } else {
                                         echo "-";
                                     }
@@ -155,30 +133,34 @@
                                 <?php endif; ?>
                             </td>
 
-                            <td class="p-4 text-center text-xs text-gray-500 font-mono">
-                                <?= $p['ip_address'] ?? '-' ?>
+                            <td class="p-4 text-center">
+                                <?php if(!$p['id_sesi']): ?>
+                                    <span class="badge-status st-belum">Belum Login</span>
+                                <?php elseif($p['is_blocked'] == 1): ?>
+                                    <span class="badge-status st-blokir"><i class="fas fa-lock mr-1"></i> Terblokir</span>
+                                <?php elseif($p['status'] == 1): ?>
+                                    <span class="badge-status st-selesai"><i class="fas fa-check mr-1"></i> Selesai</span>
+                                <?php else: ?>
+                                    <span class="badge-status st-sedang"><i class="fas fa-pencil-alt mr-1"></i> Mengerjakan</span>
+                                <?php endif; ?>
                             </td>
 
                             <td class="p-4 text-center">
-                                <?php if($p['id_ujian_siswa']): ?>
+                                <?php if($p['id_sesi']): ?>
                                     <div class="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        
-                                        <button onclick="aksiSatu('reset', <?= $p['id_ujian_siswa'] ?>, '<?= $p['nama_lengkap'] ?>')" class="w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-200" title="Reset Ujian">
+                                        <button onclick="aksiSatu('reset', <?= $p['id_sesi'] ?>, '<?= $p['nama_lengkap'] ?>')" class="w-8 h-8 rounded bg-red-100 text-red-600 hover:bg-red-200" title="Reset Ujian">
                                             <i class="fas fa-redo"></i>
                                         </button>
-                                        
                                         <?php if($p['is_blocked'] == 1): ?>
-                                        <button onclick="aksiSatu('unlock', <?= $p['id_ujian_siswa'] ?>, '<?= $p['nama_lengkap'] ?>')" class="w-8 h-8 rounded bg-yellow-100 text-yellow-600 hover:bg-yellow-200" title="Buka Blokir">
+                                        <button onclick="aksiSatu('unlock', <?= $p['id_sesi'] ?>, '<?= $p['nama_lengkap'] ?>')" class="w-8 h-8 rounded bg-yellow-100 text-yellow-600 hover:bg-yellow-200" title="Buka Blokir">
                                             <i class="fas fa-lock-open"></i>
                                         </button>
                                         <?php endif; ?>
-
                                         <?php if($p['status'] == 0 && $p['is_blocked'] == 0): ?>
-                                        <button onclick="aksiSatu('stop', <?= $p['id_ujian_siswa'] ?>, '<?= $p['nama_lengkap'] ?>')" class="w-8 h-8 rounded bg-gray-100 text-gray-600 hover:bg-gray-200" title="Paksa Selesai">
+                                        <button onclick="aksiSatu('stop', <?= $p['id_sesi'] ?>, '<?= $p['nama_lengkap'] ?>')" class="w-8 h-8 rounded bg-gray-100 text-gray-600 hover:bg-gray-200" title="Paksa Selesai">
                                             <i class="fas fa-stop"></i>
                                         </button>
                                         <?php endif; ?>
-
                                     </div>
                                 <?php endif; ?>
                             </td>
@@ -195,13 +177,11 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // --- 1. FITUR CHECKBOX SELECT ALL ---
     function toggleAll(source) {
         const checkboxes = document.querySelectorAll('.chk-siswa');
         checkboxes.forEach(chk => chk.checked = source.checked);
     }
 
-    // --- 2. FITUR FILTER PENCARIAN ---
     function filterTabel() {
         const input = document.getElementById('searchSiswa');
         const filter = input.value.toUpperCase();
@@ -210,11 +190,9 @@
 
         for (let i = 1; i < tr.length; i++) {
             const tdNama = tr[i].getElementsByTagName('td')[1];
-            const tdKelas = tr[i].getElementsByTagName('td')[2];
-            if (tdNama || tdKelas) {
-                const txtValueNama = tdNama.textContent || tdNama.innerText;
-                const txtValueKelas = tdKelas.textContent || tdKelas.innerText;
-                if (txtValueNama.toUpperCase().indexOf(filter) > -1 || txtValueKelas.toUpperCase().indexOf(filter) > -1) {
+            if (tdNama) {
+                const txtValue = tdNama.textContent || tdNama.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
                     tr[i].style.display = "";
                 } else {
                     tr[i].style.display = "none";
@@ -223,115 +201,55 @@
         }
     }
 
-    // --- 3. EKSEKUSI MASSAL ---
     function eksekusiMassal() {
         const aksi = document.getElementById('pilihAksi').value;
-        if(!aksi) {
-            Swal.fire('Pilih Aksi', 'Silakan pilih jenis aksi yang mau dilakukan.', 'warning');
-            return;
-        }
+        if(!aksi) { Swal.fire('Pilih Aksi', 'Silakan pilih jenis aksi.', 'warning'); return; }
 
-        // Ambil ID yang dicentang
         let ids = [];
         document.querySelectorAll('.chk-siswa:checked').forEach(c => ids.push(c.value));
 
-        if(ids.length === 0) {
-            Swal.fire('Belum Ada Siswa', 'Centang minimal satu siswa di tabel.', 'info');
-            return;
-        }
+        if(ids.length === 0) { Swal.fire('Belum Ada Siswa', 'Centang minimal satu siswa.', 'info'); return; }
 
-        // Logic Khusus Tambah Waktu (Minta Input Menit)
         if(aksi === 'add_time') {
             Swal.fire({
-                title: 'Tambah Waktu Ujian',
-                input: 'number',
-                inputLabel: 'Masukkan jumlah menit tambahan',
-                inputPlaceholder: 'Contoh: 10',
-                showCancelButton: true,
-                confirmButtonText: 'Tambahkan',
-                inputValidator: (value) => {
-                    if (!value || value <= 0) return 'Masukkan angka menit yang valid!';
-                }
+                title: 'Tambah Waktu', input: 'number', inputPlaceholder: 'Menit',
+                showCancelButton: true, confirmButtonText: 'Tambahkan'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    kirimAksi(aksi, ids, result.value);
-                }
+                if (result.isConfirmed) kirimAksi(aksi, ids, result.value);
             });
         } else {
-            // Konfirmasi Biasa
-            let textKonfirmasi = '';
-            if(aksi === 'reset') textKonfirmasi = 'Data ujian & jawaban siswa akan DIHAPUS dan harus ulang dari awal.';
-            if(aksi === 'stop') textKonfirmasi = 'Siswa akan dipaksa selesai dengan nilai saat ini.';
-            if(aksi === 'unlock') textKonfirmasi = 'Siswa yang terblokir bisa melanjutkan ujian.';
-
             Swal.fire({
-                title: 'Konfirmasi Eksekusi',
-                text: `Anda akan melakukan aksi ke ${ids.length} siswa. ${textKonfirmasi}`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Lakukan!'
+                title: 'Konfirmasi', text: `Proses ${ids.length} siswa?`, icon: 'warning',
+                showCancelButton: true, confirmButtonText: 'Ya'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    kirimAksi(aksi, ids, 0);
-                }
+                if (result.isConfirmed) kirimAksi(aksi, ids, 0);
             });
         }
     }
 
-    // --- 4. AKSI SATUAN (SHORTCUT) ---
     function aksiSatu(aksi, id, nama) {
-        let msg = '';
-        if(aksi === 'reset') msg = `Reset ujian siswa ${nama}?`;
-        if(aksi === 'stop') msg = `Paksa selesai siswa ${nama}?`;
-        if(aksi === 'unlock') msg = `Buka blokir siswa ${nama}?`;
-
         Swal.fire({
-            title: 'Konfirmasi',
-            text: msg,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Ya'
+            title: 'Konfirmasi', text: `${aksi.toUpperCase()} siswa ${nama}?`, icon: 'question',
+            showCancelButton: true, confirmButtonText: 'Ya'
         }).then((res) => {
-            if(res.isConfirmed) {
-                kirimAksi(aksi, [id], 0);
-            }
+            if(res.isConfirmed) kirimAksi(aksi, [id], 0);
         });
     }
 
-    // --- 5. AJAX PENGIRIM KE CONTROLLER ---
-    // Pastikan URL controller-nya benar. Saya asumsikan di Guru/Ujian/aksi_monitoring
-    // Jika Bos pakai controller monitoring terpisah, ganti urlnya jadi 'guru/monitoring/aksi'
     function kirimAksi(aksi, ids, menit) {
         Swal.fire({title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
-        
-        $.post('<?= base_url('guru/monitoring/aksi') ?>', { // Sesuaikan route-nya Bos
-            aksi: aksi,
-            ids: ids,
-            menit: menit
-        })
+        $.post('<?= base_url('guru/monitoring/aksi') ?>', { aksi: aksi, ids: ids, menit: menit })
         .done(function(res) {
             if(res.status === 'success') {
-                Swal.fire('Berhasil!', 'Aksi berhasil dilakukan.', 'success').then(() => {
-                    location.reload();
-                });
+                Swal.fire('Berhasil!', 'Aksi berhasil.', 'success').then(() => location.reload());
             } else {
-                Swal.fire('Gagal', res.msg || 'Terjadi kesalahan sistem.', 'error');
+                Swal.fire('Gagal', res.msg, 'error');
             }
-        })
-        .fail(function() {
-            Swal.fire('Error', 'Gagal menghubungi server.', 'error');
         });
     }
-
-    // --- 6. AUTO REFRESH (OPSIONAL) ---
-    // Refresh otomatis setiap 30 detik agar data realtime
-    setInterval(() => {
-        // location.reload(); 
-        // Kalau mau smooth refresh tanpa reload, harus pakai AJAX fetch tabel.
-        // Untuk sekarang reload biasa saja cukup.
-    }, 30000);
-
+    
+    // Auto Refresh agar data realtime
+    setInterval(() => { location.reload(); }, 30000);
 </script>
 
 <?= $this->endSection() ?>

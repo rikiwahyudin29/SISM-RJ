@@ -27,15 +27,15 @@ class Monitoring extends BaseController
         return view('guru/monitoring/index', ['title' => 'Monitoring Ruangan', 'ruangan' => $ruangan]);
     }
 
-    // 2. HALAMAN DETAIL (SINKRONISASI FIX)
+    // 2. HALAMAN DETAIL (MONITORING SISWA)
     public function lihat($id_ruangan)
     {
         $ruangInfo = $this->db->table('tbl_ruangan')->where('id', $id_ruangan)->get()->getRowArray();
         if(!$ruangInfo) return redirect()->to('guru/monitoring');
 
-        // PERBAIKAN: Ambil data dari tbl_ujian_siswa (Bukan tbl_nilai)
-        // Kita gunakan 'status_raw' untuk angka asli database (0/1)
-        // Dan alias kolom lain agar sesuai dengan View (nilai_sementara, dll)
+        // LOGIC UTAMA:
+        // Ambil siswa + Join Ujian Hari Ini
+        
         $siswa = $this->db->table('tbl_ruang_peserta')
             ->select('
                 tbl_ruang_peserta.no_komputer, 
@@ -52,35 +52,36 @@ class Monitoring extends BaseController
                 tbl_ujian_siswa.waktu_mulai, 
                 tbl_ujian_siswa.waktu_submit as waktu_selesai,
                 tbl_ujian_siswa.ip_address, 
+                tbl_ujian_siswa.is_blocked,
                 tbl_ujian_siswa.is_locked,
                 
-                tbl_bank_soal.judul_ujian
+                tbl_bank_soal.judul_ujian,
+                tbl_mapel.nama_mapel
             ')
             ->join('tbl_siswa', 'tbl_siswa.id = tbl_ruang_peserta.id_siswa')
             ->join('tbl_kelas', 'tbl_kelas.id = tbl_siswa.kelas_id')
             
-            // JOIN KE TABEL BARU (tbl_ujian_siswa)
-            // Filter hanya ujian hari ini agar tidak mengambil data lama
+            // JOIN DATA UJIAN (HANYA HARI INI)
             ->join('tbl_ujian_siswa', 'tbl_ujian_siswa.id_siswa = tbl_siswa.id AND DATE(tbl_ujian_siswa.waktu_mulai) = CURDATE()', 'left')
             
             ->join('tbl_jadwal_ujian', 'tbl_jadwal_ujian.id = tbl_ujian_siswa.id_jadwal', 'left')
             ->join('tbl_bank_soal', 'tbl_bank_soal.id = tbl_jadwal_ujian.id_bank_soal', 'left')
+            ->join('tbl_mapel', 'tbl_mapel.id = tbl_bank_soal.id_mapel', 'left')
             
             ->where('tbl_ruang_peserta.id_ruangan', $id_ruangan)
             ->orderBy('tbl_ruang_peserta.no_komputer', 'ASC')
+            ->orderBy('tbl_siswa.nama_lengkap', 'ASC')
             ->get()->getResultArray();
 
-        // LOGIC MAPPING STATUS (Agar View Bos tidak perlu diubah)
-        // View mengharapkan string "SELESAI" atau truthy value untuk "Mengerjakan"
+        // MAPPING STATUS UNTUK VIEW
         $stats = ['belum' => 0, 'sedang' => 0, 'selesai' => 0];
         
         foreach($siswa as &$s) {
-            // Mapping Status Angka (0/1) ke String View
             if ($s['status_raw'] === '1') {
                 $s['status'] = 'SELESAI';
                 $stats['selesai']++;
             } elseif ($s['status_raw'] === '0') {
-                $s['status'] = 'MENGERJAKAN'; // String apa saja yg penting tidak kosong & bukan SELESAI
+                $s['status'] = 'MENGERJAKAN';
                 $stats['sedang']++;
             } else {
                 $s['status'] = null; // Belum mulai
@@ -95,45 +96,53 @@ class Monitoring extends BaseController
         ]);
     }
 
-    // 3. AKSI MASAL (SINKRONISASI FIX)
+    // 3. AKSI MASAL (RESET / STOP / DLL)
     public function aksi_masal()
     {
         $jenis_aksi = $this->request->getPost('aksi'); 
-        $siswa_ids  = $this->request->getPost('ids'); 
+        $sesi_ids   = $this->request->getPost('ids'); // INI ADALAH ID SESI (id_ujian_siswa)
         $menit      = $this->request->getPost('menit') ?? 0;
 
-        if(empty($siswa_ids)) return $this->response->setJSON(['status' => 'error', 'msg' => 'Pilih siswa dulu']);
+        if(empty($sesi_ids)) return $this->response->setJSON(['status' => 'error', 'msg' => 'Pilih data ujian dulu']);
 
-        // TARGETKAN TABEL tbl_ujian_siswa
+        $cache = \Config\Services::cache();
+
+        // TARGETKAN TABEL tbl_ujian_siswa BERDASARKAN ID (PRIMARY KEY)
         $db = $this->db->table('tbl_ujian_siswa');
 
         switch ($jenis_aksi) {
             case 'reset':
-                $db->whereIn('id_siswa', $siswa_ids)->delete();
-                // Hapus jawaban juga agar bersih total
-                // Kita perlu cari id_ujian_siswa-nya dulu atau hapus by id_siswa di tabel jawaban jika ada relasi
-                // Opsi aman: Hapus sesi ujian saja, siswa login ulang -> create sesi baru
-                $msg = 'Ujian di-reset.';
+                // Hapus Sesi Spesifik
+                $db->whereIn('id', $sesi_ids)->delete();
+                
+                // Hapus Cache Redis
+                foreach($sesi_ids as $sid) {
+                    $cache->delete("ujian_tmp_" . $sid);
+                }
+                
+                $msg = 'Ujian berhasil di-reset. Siswa bisa login ulang untuk mapel ini.';
                 break;
 
             case 'stop':
-                $db->whereIn('id_siswa', $siswa_ids)
-                   ->where('status', 0)
+                // Paksa Selesai (Update Status = 1)
+                $db->whereIn('id', $sesi_ids)
+                   ->where('status', 0) // Hanya yang sedang mengerjakan
                    ->update([
-                       'status' => 1, 
-                       'waktu_submit' => date('Y-m-d H:i:s')
+                        'status' => 1, 
+                        'waktu_submit' => date('Y-m-d H:i:s'),
+                        'is_locked' => 0
                    ]);
                 $msg = 'Ujian dipaksa selesai.';
                 break;
 
             case 'unlock':
-                $db->whereIn('id_siswa', $siswa_ids)->update(['is_locked' => 0, 'is_blocked' => 0]);
+                $db->whereIn('id', $sesi_ids)->update(['is_locked' => 0, 'is_blocked' => 0]);
                 $msg = 'Kunci dibuka.';
                 break;
 
             case 'add_time':
-                foreach($siswa_ids as $sid) {
-                    $this->db->query("UPDATE tbl_ujian_siswa SET waktu_selesai_seharusnya = DATE_ADD(waktu_selesai_seharusnya, INTERVAL ? MINUTE) WHERE id_siswa = ?", [$menit, $sid]);
+                foreach($sesi_ids as $sid) {
+                    $this->db->query("UPDATE tbl_ujian_siswa SET waktu_selesai_seharusnya = DATE_ADD(waktu_selesai_seharusnya, INTERVAL ? MINUTE) WHERE id = ? AND status = 0", [$menit, $sid]);
                 }
                 $msg = "Waktu ditambah $menit menit.";
                 break;
