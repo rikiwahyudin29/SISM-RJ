@@ -156,8 +156,12 @@ $routes->post('aturruangan/tambah', 'Admin\AturRuangan::tambah');
 $routes->get('aturruangan/hapus/(:num)/(:num)/(:num)', 'Admin\AturRuangan::hapus/$1/$2/$3');
 
 // Monitoring Ruangan (yang tadi dibuat)
-$routes->get('monitoringruang', 'Admin\MonitoringRuang::index');
-$routes->get('monitoringruang/lihat/(:num)', 'Admin\MonitoringRuang::lihat/$1');
+$routes->get('monitoring-ruang', 'Admin\MonitoringRuang::index');
+    $routes->get('monitoring-ruang/lihat/(:num)', 'Admin\MonitoringRuang::lihat/$1');
+    $routes->post('monitoring-ruang/aksi_masal', 'Admin\MonitoringRuang::aksi_masal');
+$routes->get('bank-soal', 'Admin\BankSoal::index');
+    $routes->get('bank-soal/detail/(:num)', 'Admin\BankSoal::detail/$1');
+    $routes->post('bank-soal/update-target', 'Admin\BankSoal::updateTarget');
 });
 
 
@@ -203,6 +207,9 @@ $routes->post('ujian/reset_peserta', 'Guru\Ujian::resetPeserta');       // <--- 
     $routes->get('monitoring/lihat/(:num)', 'Guru\Monitoring::lihat/$1');
     $routes->post('monitoring/aksi_masal', 'Guru\Monitoring::aksi_masal');
     $routes->get('monitoring/lihat/(:num)', 'Guru\Monitoring::index/$1');
+    $routes->get('hasil/index/(:num)', 'Guru\Hasil::index/$1');
+    $routes->get('hasil/pdf/(:num)', 'Guru\Hasil::pdf/$1');
+    $routes->get('hasil/excel/(:num)', 'Guru\Hasil::excel/$1');
 });
 
 $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
@@ -220,9 +227,57 @@ $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
     $routes->post('ujian/catatPelanggaran', 'Siswa\Ujian::catatPelanggaran'); 
     $routes->post('ujian/blokirSiswa', 'Siswa\Ujian::blokirSiswa'); // Opsional jika pakai logic blokir terpisah
     $routes->post('ujian/simpanJawaban', 'Siswa\Ujian::simpanJawaban');
+    // KEUANGAN SISWA
+    $routes->get('keuangan', 'Siswa\Keuangan::index');
+    $routes->post('keuangan/bayar_online', 'Siswa\Keuangan::bayar_online');
 });
 
 $routes->group('piket', ['filter' => 'role:piket'], function($routes) {
     $routes->get('dashboard', 'Piket::index');
     $routes->get('jurnal', 'Piket::jurnal');
 });
+
+// MODUL KEUANGAN SEKOLAH
+$routes->group('admin/keuangan', ['filter' => 'role:admin,bendahara'], function($routes) {
+    
+    // Master Pos Bayar
+    $routes->get('pos', 'Admin\Keuangan\PosBayar::index');
+    $routes->post('pos/simpan', 'Admin\Keuangan\PosBayar::simpan');
+    $routes->post('pos/update', 'Admin\Keuangan\PosBayar::update');
+    $routes->post('pos/hapus', 'Admin\Keuangan\PosBayar::hapus');
+
+    // Setting Jenis Bayar
+    $routes->get('jenis', 'Admin\Keuangan\JenisBayar::index');
+    $routes->post('jenis/simpan', 'Admin\Keuangan\JenisBayar::simpan');
+    $routes->post('jenis/hapus', 'Admin\Keuangan\JenisBayar::hapus');
+    // GENERATE TAGIHAN
+    $routes->post('tagihan/generate', 'Admin\Keuangan\Tagihan::generate');
+    // MANAJEMEN TAGIHAN (Generate & Edit Nominal)
+    $routes->get('tagihan/kelola/(:num)', 'Admin\Keuangan\Tagihan::kelola/$1'); // Halaman Edit
+    $routes->post('tagihan/generate', 'Admin\Keuangan\Tagihan::generate');       // Proses Generate
+    $routes->post('tagihan/update_nominal', 'Admin\Keuangan\Tagihan::update_nominal'); // AJAX Edit
+    // HALAMAN KASIR / PEMBAYARAN
+    $routes->get('pembayaran', 'Admin\Keuangan\Pembayaran::index');           // Cari Siswa
+    $routes->get('pembayaran/siswa/(:num)', 'Admin\Keuangan\Pembayaran::transaksi/$1'); // Halaman Bayar
+    $routes->post('pembayaran/proses', 'Admin\Keuangan\Pembayaran::proses_bayar');      // Aksi Bayar
+    $routes->post('pembayaran/batal', 'Admin\Keuangan\Pembayaran::batal'); // Route Batal
+    // CETAK STRUK (Diakses dari halaman kasir/riwayat)
+    $routes->get('pembayaran/cetak/(:num)', 'Admin\Keuangan\Pembayaran::cetak/$1');
+
+    // LAPORAN KEUANGAN
+    $routes->get('laporan', 'Admin\Keuangan\Laporan::index');
+    $routes->get('laporan/cetak', 'Admin\Keuangan\Laporan::cetak_harian'); // Cetak Laporan PDF/Print
+    $routes->get('laporan/cetak_transaksi', 'Admin\Keuangan\Laporan::cetak_transaksi'); // Cetak Pemasukan
+    $routes->get('laporan/cetak_tunggakan', 'Admin\Keuangan\Laporan::cetak_tunggakan'); // Cetak Tunggakan
+    // PENGELUARAN OPERASIONAL
+    $routes->get('pengeluaran', 'Admin\Keuangan\Pengeluaran::index');
+    $routes->post('pengeluaran/simpan', 'Admin\Keuangan\Pengeluaran::simpan');
+    $routes->post('pengeluaran/hapus', 'Admin\Keuangan\Pengeluaran::hapus');
+    
+    // Master Data Pengeluaran (Ajax Save)
+    $routes->post('pengeluaran/master/simpan_divisi', 'Admin\Keuangan\Pengeluaran::simpan_divisi');
+    $routes->post('pengeluaran/master/simpan_jenis', 'Admin\Keuangan\Pengeluaran::simpan_jenis');
+});
+
+// ROUTE CALLBACK TRIPAY (Akses Publik untuk Server Tripay)
+$routes->post('callback/tripay', 'TripayCallback::index');

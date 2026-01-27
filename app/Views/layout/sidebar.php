@@ -54,14 +54,29 @@ $roleActive = session()->get('role_active');
                     </button>
                     <ul id="dropdown-master" class="hidden py-1 space-y-0.5">
                         <li><a href="<?= base_url('admin/master/tahun_ajaran') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Tahun Ajaran</a></li>
-                        
                         <li><a href="<?= base_url('admin/jenis_ujian') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Jenis Ujian</a></li>
-                        
                         <li><a href="<?= base_url('admin/master/jurusan') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Data Jurusan</a></li>
                         <li><a href="<?= base_url('admin/master/ruangan') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Data Ruangan</a></li>
                         <li><a href="<?= base_url('admin/master/kelas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Data Kelas</a></li>
                         <li><a href="<?= base_url('admin/master/mapel') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Mata Pelajaran</a></li>
                         <li><a href="<?= base_url('admin/jam') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Jam Belajar (Bel)</a></li>
+                    </ul>
+                </li>
+
+                <li>
+                    <button type="button" class="flex items-center w-full px-3 py-2 text-gray-600 rounded-lg transition-all group hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white font-bold text-sm" aria-controls="dropdown-keuangan-adm" data-collapse-toggle="dropdown-keuangan-adm">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="ml-3 flex-1 text-left whitespace-nowrap">Keuangan Sekolah</span>
+                        <svg class="w-3 h-3 text-gray-400 transition-transform group-aria-expanded:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <ul id="dropdown-keuangan-adm" class="hidden py-1 space-y-0.5">
+                        <li><a href="<?= base_url('admin/keuangan/pos') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Pos Bayar</a></li>
+                        <li><a href="<?= base_url('admin/keuangan/jenis') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Jenis & Generate</a></li>
+                        <li><a href="<?= base_url('admin/keuangan/pembayaran') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Pembayaran (Kasir)</a></li>
+                        <li><a href="<?= base_url('admin/keuangan/laporan') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Laporan Keuangan</a></li>
+                        <li>
+    <a href="<?= base_url('admin/keuangan/pengeluaran') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Pengeluaran Operasional</a>
+</li>
                     </ul>
                 </li>
 
@@ -72,10 +87,8 @@ $roleActive = session()->get('role_active');
                 <li>
                     <a href="<?= base_url('admin/jadwal') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (uri_string() == 'admin/jadwal' || strpos(uri_string(), 'admin/jadwal/') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                              <?= (uri_string() == 'admin/jadwal') ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         <span class="ml-3">Jadwal Pelajaran</span>
                     </a>
                 </li>
@@ -83,32 +96,35 @@ $roleActive = session()->get('role_active');
                 <li>
                     <a href="<?= base_url('admin/jadwalujian') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'admin/jadwalujian') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                              <?= (strpos(uri_string(), 'admin/jadwalujian') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span class="ml-3">Jadwal Ujian</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="<?= base_url('admin/bank-soal') ?>" 
+                       class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
+                              <?= (strpos(uri_string(), 'admin/bank-soal') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span class="ml-3">Monitoring Soal</span>
                     </a>
                 </li>
 
                 <li>
                     <a href="<?= base_url('admin/aturruangan') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'admin/aturruangan') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                              <?= (strpos(uri_string(), 'admin/aturruangan') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         <span class="ml-3">Atur Ruangan</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="<?= base_url('admin/monitoringruang') ?>" 
+                    <a href="<?= base_url('admin/monitoring-ruang') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'admin/monitoringruang') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                              <?= (strpos(uri_string(), 'admin/monitoring-ruang') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                         <span class="ml-3">Monitoring Ruangan</span>
                     </a>
                 </li>
@@ -155,6 +171,37 @@ $roleActive = session()->get('role_active');
                 </li>
                 <?php endif; ?>
 
+                <?php if (in_array('keuangan', $roles) || in_array('bendahara', $roles)) : ?>
+                <li class="pt-3 pb-1 px-3">
+                    <span class="text-[10px] font-extrabold text-gray-400 dark:text-slate-600 uppercase tracking-widest">Keuangan</span>
+                </li>
+                <li>
+                    <a href="<?= base_url('admin/keuangan/pos') ?>" class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm <?= (strpos(uri_string(), 'keuangan/pos') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="ml-3">Pos Bayar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= base_url('admin/keuangan/jenis') ?>" class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm <?= (strpos(uri_string(), 'keuangan/jenis') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                        <span class="ml-3">Jenis & Generate</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= base_url('admin/keuangan/pembayaran') ?>" class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm <?= (strpos(uri_string(), 'keuangan/pembayaran') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <span class="ml-3">Kasir Pembayaran</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= base_url('admin/keuangan/laporan') ?>" class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm <?= (strpos(uri_string(), 'keuangan/laporan') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span class="ml-3">Laporan Keuangan</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+
+
                 <?php if (in_array('guru', $roles)) : ?>
                 <li class="pt-3 pb-1 px-3">
                     <span class="text-[10px] font-extrabold text-gray-400 dark:text-slate-600 uppercase tracking-widest">Area Guru</span>
@@ -163,9 +210,7 @@ $roleActive = session()->get('role_active');
                 <li>
                     <a href="<?= base_url('guru/jadwal') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'guru/jadwal') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                              <?= (strpos(uri_string(), 'guru/jadwal') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
                         <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         <span class="ml-3">Jadwal Mengajar</span>
                     </a>
@@ -174,9 +219,7 @@ $roleActive = session()->get('role_active');
                 <li>
                     <a href="<?= base_url('guru/bank_soal') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'guru/bank_soal') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                              <?= (strpos(uri_string(), 'guru/bank_soal') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
                         <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                         <span class="ml-3 flex-1">Bank Soal</span>
                     </a>
@@ -185,9 +228,7 @@ $roleActive = session()->get('role_active');
                 <li>
                     <a href="<?= base_url('guru/ujian') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'guru/ujian') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                              <?= (strpos(uri_string(), 'guru/ujian') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
                         <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span class="ml-3 flex-1">Jadwal Ujian</span>
                     </a>
@@ -196,9 +237,7 @@ $roleActive = session()->get('role_active');
                 <li>
                     <a href="<?= base_url('guru/monitoring') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'guru/monitoring') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                              <?= (strpos(uri_string(), 'guru/monitoring') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
                         <i class="fas fa-desktop w-4 h-4 flex-shrink-0 text-center transition-colors"></i>
                         <span class="ml-3 flex-1">Mengawas</span>
                     </a>
@@ -207,9 +246,7 @@ $roleActive = session()->get('role_active');
                 <li>
                     <a href="<?= base_url('guru/nilai') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'guru/nilai') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                              <?= (strpos(uri_string(), 'guru/nilai') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
                         <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <span class="ml-3 flex-1">Input Nilai</span>
                     </a>
@@ -220,13 +257,19 @@ $roleActive = session()->get('role_active');
                 <li class="pt-3 pb-1 px-3">
                     <span class="text-[10px] font-extrabold text-gray-400 dark:text-slate-600 uppercase tracking-widest">Area Siswa</span>
                 </li>
+                <li>
+                    <a href="<?= base_url('siswa/keuangan') ?>" 
+                       class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
+                              <?= (strpos(uri_string(), 'siswa/keuangan') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
+                        <svg class="w-4 h-4 text-center transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                        <span class="ml-3 flex-1">Keuangan Saya</span>
+                    </a>
+                </li>
 
                 <li>
                     <a href="<?= base_url('siswa/ujian') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'siswa/ujian') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                              <?= (strpos(uri_string(), 'siswa/ujian') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
                         <i class="fas fa-pen-alt w-4 h-4 text-center transition-colors"></i>
                         <span class="ml-3 flex-1">Ujian Sekolah</span>
                     </a>
@@ -235,9 +278,7 @@ $roleActive = session()->get('role_active');
                 <li>
                     <a href="<?= base_url('siswa/nilai') ?>" 
                        class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm
-                              <?= (strpos(uri_string(), 'siswa/nilai') !== false) 
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                                  : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white' ?>">
+                              <?= (strpos(uri_string(), 'siswa/nilai') !== false) ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800' ?>">
                         <i class="fas fa-chart-line w-4 h-4 text-center transition-colors"></i>
                         <span class="ml-3 flex-1">Riwayat Nilai</span>
                     </a>

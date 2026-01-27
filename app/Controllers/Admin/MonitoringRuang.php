@@ -1,53 +1,47 @@
 <?php
 
-namespace App\Controllers\Guru;
+namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 
-class Monitoring extends BaseController
+class MonitoringRuang extends BaseController
 {
     protected $db;
-    protected $id_user_login;
 
     public function __construct()
     {
         $this->db = \Config\Database::connect();
-        $this->id_user_login = session()->get('id_user');
     }
 
-    // 1. HALAMAN DEPAN: DAFTAR RUANGAN (CARD VIEW)
+    // 1. HALAMAN DEPAN (DAFTAR RUANGAN)
     public function index()
     {
-        // Ambil semua ruangan
         $ruangan = $this->db->table('tbl_ruangan')->orderBy('nama_ruangan', 'ASC')->get()->getResultArray();
         
-        // Hitung jumlah siswa per ruangan (subquery manual biar ringan)
         foreach ($ruangan as &$r) {
             $r['jumlah_siswa'] = $this->db->table('tbl_ruang_peserta')
                                     ->where('id_ruangan', $r['id'])
                                     ->countAllResults();
+            
+            // Hitung yang sedang online/mengerjakan (Opsional, biar admin tau mana ruang yang aktif)
+            $r['sedang_ujian'] = $this->db->table('tbl_ruang_peserta')
+                                    ->join('tbl_ujian_siswa', 'tbl_ujian_siswa.id_siswa = tbl_ruang_peserta.id_siswa')
+                                    ->where('tbl_ruang_peserta.id_ruangan', $r['id'])
+                                    ->where('DATE(tbl_ujian_siswa.waktu_mulai)', date('Y-m-d'))
+                                    ->where('tbl_ujian_siswa.status', 0)
+                                    ->countAllResults();
         }
 
-        $data = [
-            'title'   => 'Monitoring Ruangan',
-            'ruangan' => $ruangan
-        ];
-
-        return view('guru/monitoring/index', $data);
+        return view('admin/monitoring_ruang/index', ['title' => 'Monitoring Ruangan', 'ruangan' => $ruangan]);
     }
 
-    // 2. HALAMAN DETAIL: TABEL SISWA (REALTIME)
+    // 2. HALAMAN DETAIL (LIVE MONITORING)
     public function lihat($id_ruangan)
     {
-        // Ambil Info Ruangan
         $ruangInfo = $this->db->table('tbl_ruangan')->where('id', $id_ruangan)->get()->getRowArray();
+        if(!$ruangInfo) return redirect()->to('admin/monitoring-ruang');
 
-        if(!$ruangInfo) {
-            return redirect()->to('guru/monitoring')->with('error', 'Ruangan tidak ditemukan.');
-        }
-        
-        // QUERY UTAMA (Sama persis dengan Admin)
-        // Mengambil data siswa yang duduk di ruangan ini + Status Ujiannya
+        // AMBIL DATA SISWA + UJIAN HARI INI
         $siswa = $this->db->table('tbl_ruang_peserta')
             ->select('
                 tbl_ruang_peserta.no_komputer, 
@@ -56,104 +50,92 @@ class Monitoring extends BaseController
                 tbl_siswa.nis, 
                 tbl_kelas.nama_kelas, 
                 
-                -- Data Nilai / Status Ujian
-                tbl_nilai.id as nilai_id, 
-                tbl_nilai.status, 
-                tbl_nilai.nilai_sementara, 
-                tbl_nilai.jml_benar, 
-                tbl_nilai.jml_salah,
-                tbl_nilai.waktu_mulai, 
-                tbl_nilai.waktu_selesai, 
-                tbl_nilai.ip_address, 
-                tbl_nilai.is_locked,
+                tbl_ujian_siswa.id as id_ujian_siswa,
+                tbl_ujian_siswa.status as status_raw, 
+                tbl_ujian_siswa.nilai as nilai_sementara, 
+                tbl_ujian_siswa.waktu_mulai, 
+                tbl_ujian_siswa.waktu_submit as waktu_selesai,
+                tbl_ujian_siswa.is_blocked,
+                tbl_ujian_siswa.is_locked,
                 
-                -- Info Ujian
-                tbl_bank_soal.judul_ujian
+                tbl_mapel.nama_mapel
             ')
             ->join('tbl_siswa', 'tbl_siswa.id = tbl_ruang_peserta.id_siswa')
             ->join('tbl_kelas', 'tbl_kelas.id = tbl_siswa.kelas_id')
             
-            // LEFT JOIN ke Nilai (Cari yang sedang aktif / hari ini)
-            // Menggunakan logika admin: status != NONAKTIF
-            ->join('tbl_nilai', 'tbl_nilai.id_siswa = tbl_siswa.id AND tbl_nilai.status != "NONAKTIF"', 'left')
-            
-            ->join('tbl_jadwal_ujian', 'tbl_jadwal_ujian.id = tbl_nilai.id_jadwal', 'left')
+            // JOIN UJIAN (Hanya Hari Ini)
+            ->join('tbl_ujian_siswa', 'tbl_ujian_siswa.id_siswa = tbl_siswa.id AND DATE(tbl_ujian_siswa.waktu_mulai) = CURDATE()', 'left')
+            ->join('tbl_jadwal_ujian', 'tbl_jadwal_ujian.id = tbl_ujian_siswa.id_jadwal', 'left')
             ->join('tbl_bank_soal', 'tbl_bank_soal.id = tbl_jadwal_ujian.id_bank_soal', 'left')
+            ->join('tbl_mapel', 'tbl_mapel.id = tbl_bank_soal.id_mapel', 'left')
             
             ->where('tbl_ruang_peserta.id_ruangan', $id_ruangan)
             ->orderBy('tbl_ruang_peserta.no_komputer', 'ASC')
+            ->orderBy('tbl_siswa.nama_lengkap', 'ASC')
             ->get()->getResultArray();
 
-        // HITUNG STATISTIK (CARD ATAS)
-        $stats = [
-            'belum'  => 0,
-            'sedang' => 0,
-            'selesai'=> 0,
-            'total'  => count($siswa)
-        ];
-
-        foreach($siswa as $s) {
-            if($s['status'] == 'SELESAI') $stats['selesai']++;
-            elseif($s['status'] == 'SEDANG MENGERJAKAN' || $s['status'] == 'RAGU') $stats['sedang']++;
-            else $stats['belum']++;
+        // MAPPING STATUS
+        $stats = ['belum' => 0, 'sedang' => 0, 'selesai' => 0];
+        foreach($siswa as &$s) {
+            if ($s['status_raw'] === '1') {
+                $s['status'] = 'SELESAI';
+                $stats['selesai']++;
+            } elseif ($s['status_raw'] === '0') {
+                $s['status'] = 'MENGERJAKAN';
+                $stats['sedang']++;
+            } else {
+                $s['status'] = null; 
+                $stats['belum']++;
+            }
         }
 
-        $data = [
-            'title' => 'Live: ' . $ruangInfo['nama_ruangan'],
+        return view('admin/monitoring_ruang/detail', [
             'ruang' => $ruangInfo,
             'siswa' => $siswa,
             'stats' => $stats
-        ];
-
-        // Pastikan nama file view sesuai (lihat langkah 3)
-        return view('guru/monitoring/lihat', $data); 
+        ]);
     }
 
-    // 3. PROSES AKSI MASAL (RESET/STOP/UNLOCK/ADD TIME)
+    // 3. AKSI MASAL (RESET, STOP, UNLOCK, ADD TIME)
     public function aksi_masal()
     {
         $jenis_aksi = $this->request->getPost('aksi'); 
-        $siswa_ids  = $this->request->getPost('ids'); 
+        $sesi_ids   = $this->request->getPost('ids'); 
         $menit      = $this->request->getPost('menit') ?? 0;
 
-        if(empty($siswa_ids)) return $this->response->setJSON(['status' => 'error', 'msg' => 'Tidak ada siswa dipilih']);
+        if(empty($sesi_ids)) return $this->response->setJSON(['status' => 'error', 'msg' => 'Pilih data dulu']);
 
-        $db = $this->db->table('tbl_nilai');
+        $cache = \Config\Services::cache();
+        $db = $this->db->table('tbl_ujian_siswa');
 
         switch ($jenis_aksi) {
             case 'reset':
-                // Hapus nilai (Siswa login dari awal)
-                $db->whereIn('id_siswa', $siswa_ids)->delete();
-                // Hapus jawaban detail juga jika perlu
-                $this->db->table('tbl_jawaban_siswa')->whereIn('id_siswa', $siswa_ids)->delete();
+                $db->whereIn('id', $sesi_ids)->delete();
+                foreach($sesi_ids as $sid) { $cache->delete("ujian_tmp_" . $sid); }
                 $msg = 'Ujian berhasil di-reset.';
                 break;
 
             case 'stop':
-                // Paksa Selesai
-                $db->whereIn('id_siswa', $siswa_ids)
-                   ->where('status !=', 'SELESAI')
-                   ->update(['status' => 'SELESAI', 'waktu_selesai' => date('Y-m-d H:i:s')]);
+                $db->whereIn('id', $sesi_ids)->where('status', 0)->update([
+                    'status' => 1, 'waktu_submit' => date('Y-m-d H:i:s'), 'is_locked' => 0
+                ]);
                 $msg = 'Ujian dipaksa selesai.';
                 break;
 
             case 'unlock':
-                // Buka Kunci
-                $db->whereIn('id_siswa', $siswa_ids)->update(['is_locked' => 0]);
-                $msg = 'Login peserta dibuka.';
+                $db->whereIn('id', $sesi_ids)->update(['is_locked' => 0, 'is_blocked' => 0]);
+                $msg = 'Kunci dibuka.';
                 break;
 
             case 'add_time':
-                // Tambah Waktu
-                // Menggunakan query raw untuk increment
-                foreach($siswa_ids as $sid) {
-                    $this->db->query("UPDATE tbl_nilai SET extra_time = extra_time + ? WHERE id_siswa = ?", [$menit, $sid]);
+                foreach($sesi_ids as $sid) {
+                    $this->db->query("UPDATE tbl_ujian_siswa SET waktu_selesai_seharusnya = DATE_ADD(waktu_selesai_seharusnya, INTERVAL ? MINUTE) WHERE id = ? AND status = 0", [$menit, $sid]);
                 }
                 $msg = "Waktu ditambah $menit menit.";
                 break;
             
             default:
-                return $this->response->setJSON(['status' => 'error', 'msg' => 'Aksi tidak dikenal']);
+                return $this->response->setJSON(['status' => 'error', 'msg' => 'Aksi error']);
         }
 
         return $this->response->setJSON(['status' => 'success', 'msg' => $msg]);
