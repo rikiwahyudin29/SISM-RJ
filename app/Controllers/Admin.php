@@ -38,95 +38,124 @@ class Admin extends BaseController
     // =================================================================
     // 1. DASHBOARD
     // =================================================================
+   // =================================================================
+    // 1. DASHBOARD (FIXED)
+    // =================================================================
     public function index()
-{
-    $db = \Config\Database::connect();
+    {
+        $db = \Config\Database::connect();
 
-    // 1. SDM & AKADEMIK (Join untuk Role Khusus)
-    $totalGuru = $db->table('user_roles')
-        ->join('roles', 'roles.id = user_roles.role_id')
-        ->where('roles.role_key', 'guru')
-        ->countAllResults();
+        // 1. SDM & AKADEMIK (Join untuk Role Khusus)
+        // Cek dulu apakah tabel user_roles dan roles ada isinya
+        $totalGuru = $db->table('tbl_guru')->countAllResults();
+        $totalSiswa = $db->table('tbl_siswa')->countAllResults(); 
+        $totalUser  = $db->table('tbl_users')->countAllResults();
+        $totalKelas = $db->table('tbl_kelas')->countAllResults();
+        $totalMapel = $db->table('tbl_mapel')->countAllResults();
 
-    $totalSiswa = $db->table('tbl_siswa')->countAllResults(); 
-    $totalUser  = $db->table('tbl_users')->countAllResults();
-    $totalKelas = $db->table('tbl_kelas')->countAllResults();
-    $totalMapel = $db->table('tbl_mapel')->countAllResults();
+        // 2. HITUNG ROLE SPESIFIK (Wali Kelas, BK, Piket)
+        $total_walikelas = 0;
+        // Cek kolom 'guru_id' ada di tabel kelas atau tidak untuk menghindari error
+        if ($db->fieldExists('guru_id', 'tbl_kelas')) {
+             $total_walikelas = $db->table('tbl_kelas')
+                                  ->where('guru_id !=', 0)
+                                  ->countAllResults();
+        }
+            
+        // Hitung BK & Piket (Cek tabel roles)
+        $totalBK = 0;
+        $totalPiket = 0;
+        if ($db->tableExists('roles') && $db->tableExists('user_roles')) {
+            $totalBK = $db->table('user_roles')
+                ->join('roles', 'roles.id = user_roles.role_id')
+                ->where('roles.role_key', 'bk')->countAllResults();
 
-    // 2. HITUNG ROLE SPESIFIK (Wali Kelas, BK, Piket)
-   $total_walikelas = $db->table('tbl_kelas')
-                          ->where('guru_id !=', null) // Pastikan bukan yang 'Belum Set'
-                          ->selectCount('guru_id', 'total')
-                          ->get()->getRow()->total;
+            $totalPiket = $db->table('user_roles')
+                ->join('roles', 'roles.id = user_roles.role_id')
+                ->where('roles.role_key', 'piket')->countAllResults();
+        }
+
+        // 3. KEDISIPLINAN & BK (Cek Tabel Dulu)
+        $totalPelanggaran = 0; $belumDibina = 0; $sudahDibina = 0; $totalPrestasi = 0;
+        if ($db->tableExists('tbl_pelanggaran')) {
+            $totalPelanggaran = $db->table('tbl_pelanggaran')->countAllResults();
+            $belumDibina      = $db->table('tbl_pelanggaran')->where('status', 'belum')->countAllResults();
+            $sudahDibina      = $db->table('tbl_pelanggaran')->where('status', 'sudah')->countAllResults();
+        }
+        if ($db->tableExists('tbl_prestasi')) {
+            $totalPrestasi    = $db->table('tbl_prestasi')->countAllResults();
+        }
+
+        // 4. PRESENSI & IZIN (Hari Ini)
+        // Placeholder nilai 0 agar tidak error jika tabel belum ada
+        $absSakit = 0; $absIzin = 0; $absAlpha = 0; $izIn = 0; $izOut = 0;
+
+        // 5. KEUANGAN (FIXED ERROR 'SISA')
+        // Total Uang Masuk (Dari tbl_transaksi, bukan tbl_pembayaran)
+        $totalBayar = 0;
+        if ($db->tableExists('tbl_transaksi')) {
+            $queryBayar = $db->table('tbl_transaksi')->selectSum('jumlah_bayar')->get()->getRow();
+            $totalBayar = $queryBayar->jumlah_bayar ?? 0;
+        }
+
+        // Total Tunggakan (Hitung: Tagihan - Terbayar)
+        $totalTunggak = 0;
+        if ($db->tableExists('tbl_tagihan')) {
+            $queryTagihan = $db->table('tbl_tagihan')
+                ->selectSum('nominal_tagihan')
+                ->selectSum('nominal_terbayar')
+                ->get()->getRow();
+            
+            $sumTagihan  = $queryTagihan->nominal_tagihan ?? 0;
+            $sumTerbayar = $queryTagihan->nominal_terbayar ?? 0;
+            $totalTunggak = $sumTagihan - $sumTerbayar;
+        }
+
+        // 6. DATA GRAFIK (Dummy/Statis dulu)
+        $chartLabels   = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+        $chartPresensi = [90, 85, 95, 92, 88, 0, 0];
+        $chartKeuangan = [(int)$totalBayar, (int)$totalTunggak]; 
+
+        // 7. AKTIVITAS & LOGS
+        $lastLogin = [];
+        if ($db->fieldExists('last_login', 'tbl_users')) {
+            $lastLogin = $db->table('tbl_users')->select('nama_lengkap, last_login')->orderBy('last_login', 'DESC')->limit(5)->get()->getResultArray();
+        }
         
-    $totalBK = $db->table('user_roles')
-        ->join('roles', 'roles.id = user_roles.role_id')
-        ->where('roles.role_key', 'bk')->countAllResults();
+        $logs = [
+            ['time' => date('H:i'), 'user' => 'System', 'act' => 'Dashboard Command Center Aktif'],
+        ];
 
-    $totalPiket = $db->table('user_roles')
-        ->join('roles', 'roles.id = user_roles.role_id')
-        ->where('roles.role_key', 'piket')->countAllResults();
+        $data = [
+            'title'             => 'Dashboard Administrator',
+            'total_guru'        => $totalGuru,
+            'total_siswa'       => $totalSiswa,
+            'total_user'        => $totalUser,
+            'total_kelas'       => $totalKelas,
+            'total_mapel'       => $totalMapel,
+            'total_walikelas'   => $total_walikelas,
+            'total_bk'          => $totalBK,
+            'total_piket'       => $totalPiket,
+            'total_pelanggaran' => $totalPelanggaran,
+            'belum_dibina'      => $belumDibina,
+            'sudah_dibina'      => $sudahDibina,
+            'total_prestasi'    => $totalPrestasi,
+            'absensi_sakit'     => $absSakit,
+            'absensi_izin'      => $absIzin,
+            'absensi_alpha'     => $absAlpha,
+            'izin_masuk'        => $izIn,
+            'izin_pulang'       => $izOut,
+            'total_bayar'       => $totalBayar,
+            'total_tunggak'     => $totalTunggak,
+            'chart_labels'      => $chartLabels,
+            'chart_presensi'    => $chartPresensi,
+            'chart_keuangan'    => $chartKeuangan,
+            'last_login'        => $lastLogin,
+            'logs'              => $logs
+        ];
 
-    // 3. KEDISIPLINAN & BK
-    $totalPelanggaran = $db->table('tbl_pelanggaran')->countAllResults();
-    $belumDibina      = $db->table('tbl_pelanggaran')->where('status', 'belum')->countAllResults();
-    $sudahDibina      = $db->table('tbl_pelanggaran')->where('status', 'sudah')->countAllResults();
-    $totalPrestasi    = $db->table('tbl_prestasi')->countAllResults();
-
-    // 4. PRESENSI & IZIN (Hari Ini)
-    $tgl = date('Y-m-d');
-    $absSakit  = $db->table('tbl_absensi')->where(['tgl' => $tgl, 'status' => 'S'])->countAllResults();
-    $absIzin   = $db->table('tbl_absensi')->where(['tgl' => $tgl, 'status' => 'I'])->countAllResults();
-    $absAlpha  = $db->table('tbl_absensi')->where(['tgl' => $tgl, 'status' => 'A'])->countAllResults();
-    $izIn      = $db->table('tbl_perizinan')->where(['tgl' => $tgl, 'tipe' => 'masuk'])->countAllResults();
-    $izOut     = $db->table('tbl_perizinan')->where(['tgl' => $tgl, 'tipe' => 'pulang'])->countAllResults();
-
-    // 5. KEUANGAN (Sum Nilai dari tbl_pengaturan atau tbl_keuangan)
-    $totalBayar   = $db->table('tbl_pembayaran')->selectSum('jumlah')->get()->getRow()->jumlah ?? 0;
-    $totalTunggak = $db->table('tbl_tagihan')->where('status', 'belum')->selectSum('sisa')->get()->getRow()->sisa ?? 0;
-
-    // 6. DATA GRAFIK (7 Hari Terakhir)
-    $chartLabels   = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
-    $chartPresensi = [90, 85, 95, 92, 88, 0, 0]; // Contoh data tren kehadiran %
-    $chartKeuangan = [$totalBayar, $totalTunggak]; // Data untuk Doughnut Chart
-
-    // 7. AKTIVITAS & LOGS
-    $lastLogin = $db->table('tbl_users')->select('nama_lengkap, last_login')->orderBy('last_login', 'DESC')->limit(5)->get()->getResultArray();
-    $logs = [
-        ['time' => 'Baru saja', 'user' => 'System', 'act' => 'Dashboard Command Center Aktif'],
-        ['time' => '5 menit lalu', 'user' => session()->get('nama_lengkap'), 'act' => 'Membuka Manajemen Web'],
-    ];
-
-    $data = [
-        'title'             => 'Dashboard Administrator',
-        'total_guru'        => $totalGuru,
-        'total_siswa'       => $totalSiswa,
-        'total_user'        => $totalUser,
-        'total_kelas'       => $totalKelas,
-        'total_mapel'       => $totalMapel,
-        'total_walikelas'   => $total_walikelas,
-        'total_bk'          => $totalBK,
-        'total_piket'       => $totalPiket,
-        'total_pelanggaran' => $totalPelanggaran,
-        'belum_dibina'      => $belumDibina,
-        'sudah_dibina'      => $sudahDibina,
-        'total_prestasi'    => $totalPrestasi,
-        'absensi_sakit'     => $absSakit,
-        'absensi_izin'      => $absIzin,
-        'absensi_alpha'     => $absAlpha,
-        'izin_masuk'        => $izIn,
-        'izin_pulang'       => $izOut,
-        'total_bayar'       => $totalBayar,
-        'total_tunggak'     => $totalTunggak,
-        'chart_labels'      => $chartLabels,
-        'chart_presensi'    => $chartPresensi,
-        'chart_keuangan'    => $chartKeuangan,
-        'last_login'        => $lastLogin,
-        'logs'              => $logs
-    ];
-
-    return view('admin/dashboard', $data);
-}
+        return view('admin/dashboard', $data);
+    }
 
     // =================================================================
     // 2. MANAJEMEN GURU (UPDATED FOR MULTI-ROLE)

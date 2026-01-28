@@ -131,6 +131,9 @@
 <div id="modalBayar" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity opacity-0">
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-100 dark:border-slate-700 transform scale-95 transition-transform" id="modalContent">
         <form action="<?= base_url('admin/keuangan/pembayaran/proses') ?>" method="post">
+            
+            <?= csrf_field() ?>
+            
             <input type="hidden" name="id_siswa" value="<?= $siswa['id'] ?>">
             <input type="hidden" name="id_tagihan" id="inputTagihanId">
             
@@ -189,6 +192,7 @@
 </div>
 
 <form id="formBatal" action="<?= base_url('admin/keuangan/pembayaran/batal') ?>" method="post" class="hidden">
+    <?= csrf_field() ?>
     <input type="hidden" name="id_transaksi" id="batalId">
 </form>
 

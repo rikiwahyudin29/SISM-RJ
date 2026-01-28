@@ -103,6 +103,9 @@
 <div id="modalForm" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity opacity-0">
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg border border-slate-100 dark:border-slate-700 transform scale-95 transition-transform" id="modalContent">
         <form action="<?= base_url('admin/keuangan/jenis/simpan') ?>" method="post" id="formJenis">
+            
+            <?= csrf_field() ?>
+            
             <input type="hidden" name="id" id="inputId">
             
             <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-t-2xl">
@@ -163,6 +166,9 @@
 <div id="modalGenerate" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity opacity-0">
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg border border-slate-100 dark:border-slate-700 transform scale-95 transition-transform" id="modalGenerateContent">
         <form action="<?= base_url('admin/keuangan/tagihan/generate') ?>" method="post">
+            
+            <?= csrf_field() ?>
+            
             <input type="hidden" name="id_jenis_bayar" id="genId">
             
             <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 rounded-t-2xl">
@@ -226,6 +232,7 @@
 </script>
 
 <form id="formHapus" action="<?= base_url('admin/keuangan/jenis/hapus') ?>" method="post" class="hidden">
+    <?= csrf_field() ?>
     <input type="hidden" name="id" id="hapusId">
 </form>
 

@@ -3,14 +3,18 @@
 namespace App\Controllers\Admin\Keuangan;
 
 use App\Controllers\BaseController;
+use App\Libraries\LogService; // Pastikan Library Log dipanggil
+use App\Libraries\WaService;
 
 class Pembayaran extends BaseController
 {
     protected $db;
+    protected $log;
 
     public function __construct()
     {
         $this->db = \Config\Database::connect();
+        $this->log = new LogService(); // Init Logger
     }
 
     // 1. HALAMAN PENCARIAN SISWA
@@ -78,7 +82,7 @@ class Pembayaran extends BaseController
             ->join('tbl_pos_bayar', 'tbl_pos_bayar.id = tbl_jenis_bayar.id_pos_bayar')
             ->where('tbl_transaksi.id_siswa', $id_siswa)
             ->orderBy('tbl_transaksi.created_at', 'DESC')
-            ->limit(10) // Tampilkan 10 terakhir
+            ->limit(10) 
             ->get()->getResultArray();
 
         return view('admin/keuangan/pembayaran/transaksi', [
@@ -108,10 +112,10 @@ class Pembayaran extends BaseController
             'id_tagihan'     => $id_tagihan,
             'id_siswa'       => $id_siswa,
             'jumlah_bayar'   => $bayar,
-            'petugas_id'     => session()->get('id') ?? 1
+            'petugas_id'     => session()->get('id_user') ?? 0,
+            'created_at'     => date('Y-m-d H:i:s')
         ]);
         
-        // Ambil ID Transaksi barusan untuk popup cetak
         $trx_id = $this->db->insertID();
 
         // Update Tagihan
@@ -123,23 +127,56 @@ class Pembayaran extends BaseController
             'status_bayar'     => $status_baru
         ]);
 
-        // Redirect dengan Flashdata 'new_trx_id' agar popup muncul
-        return redirect()->back()->with('success', 'Pembayaran Berhasil!')->with('new_trx_id', $trx_id);
+        // LOG & NOTIFIKASI WA
+        // 1. Ambil Data Siswa (Nama & No HP)
+        $siswaLog = $this->db->table('tbl_siswa')
+            ->select('nama_lengkap, no_hp_siswa, nis') // Pastikan kolom no_hp_siswa ada
+            ->where('id', $id_siswa)->get()->getRow();
+            
+        $namaSiswa = $siswaLog ? $siswaLog->nama_lengkap : 'ID:'.$id_siswa;
+        $nomorHp   = $siswaLog ? $siswaLog->no_hp_siswa : ''; // Bisa diganti no_hp_ortu juga
+
+        // 2. Catat Log
+        $this->log->catat("Menerima Pembayaran Tunai Rp " . number_format($bayar, 0, ',', '.') . " dari siswa $namaSiswa");
+
+        // 3. KIRIM WHATSAPP (New!)
+        if (!empty($nomorHp)) {
+            $wa = new \App\Libraries\WaService();
+            $tgl = date('d-m-Y H:i');
+            $rp  = number_format($bayar, 0, ',', '.');
+            
+            $pesanWA = "*PEMBAYARAN DITERIMA* ✅\n\n";
+            $pesanWA .= "Halo, pembayaran sekolah telah kami terima.\n";
+            $pesanWA .= "👤 Siswa: *$namaSiswa*\n";
+            $pesanWA .= "💰 Nominal: *Rp $rp*\n";
+            $pesanWA .= "📅 Tanggal: $tgl\n";
+            $pesanWA .= "ℹ️ Status: *$status_baru*\n\n";
+            $pesanWA .= "Terima kasih. \n_Keuangan SMK Digital Indonesia_";
+
+            $wa->kirim($nomorHp, $pesanWA);
+        }
+
+        return redirect()->back()->with('success', 'Pembayaran Berhasil & Notifikasi WA Terkirim!')->with('new_trx_id', $trx_id);
     }
 
-    // 4. BATALKAN TRANSAKSI (NEW)
+    // 4. BATALKAN TRANSAKSI (AUDIT DETAIL)
     public function batal()
     {
         $id_transaksi = $this->request->getPost('id_transaksi');
         
-        // Ambil data transaksi
+        // 1. Ambil data transaksi
         $trx = $this->db->table('tbl_transaksi')->where('id', $id_transaksi)->get()->getRow();
         if(!$trx) return redirect()->back()->with('error', 'Transaksi tidak ditemukan');
 
-        // Ambil tagihan terkait
+        // 2. Ambil tagihan terkait
         $tagihan = $this->db->table('tbl_tagihan')->where('id', $trx->id_tagihan)->get()->getRow();
 
-        // Kembalikan saldo tagihan (Reverse)
+        // 3. AMBIL DATA SISWA & NOMINAL (Supaya Log Jelas)
+        $siswa = $this->db->table('tbl_siswa')->where('id', $trx->id_siswa)->get()->getRow();
+        $nama_siswa = $siswa ? $siswa->nama_lengkap : 'Siswa Tidak Dikenal';
+        $nominal_rp = number_format($trx->jumlah_bayar, 0, ',', '.');
+
+        // 4. Kembalikan saldo tagihan (Reverse)
         $saldo_baru = $tagihan->nominal_terbayar - $trx->jumlah_bayar;
         
         // Tentukan status baru (Mundur)
@@ -149,25 +186,28 @@ class Pembayaran extends BaseController
         } elseif ($saldo_baru < $tagihan->nominal_tagihan) {
             $status_baru = 'CICIL';
         } else {
-            $status_baru = 'LUNAS'; // Case jarang terjadi (pembatalan parsial?)
+            $status_baru = 'LUNAS'; 
         }
 
-        // Update DB
+        // 5. Update DB
         $this->db->table('tbl_tagihan')->where('id', $trx->id_tagihan)->update([
             'nominal_terbayar' => $saldo_baru,
             'status_bayar'     => $status_baru
         ]);
 
-        // Hapus Log Transaksi
+        // 6. Hapus Log Transaksi
         $this->db->table('tbl_transaksi')->where('id', $id_transaksi)->delete();
+
+        // 7. REKAM LOG AKTIVITAS (AUDIT TRAIL LENGKAP)
+        $this->log->catat("MENGHAPUS Pembayaran a.n $nama_siswa sebesar Rp $nominal_rp (ID Trx: $id_transaksi). Saldo dikembalikan.");
 
         return redirect()->back()->with('success', 'Transaksi berhasil dibatalkan. Saldo tagihan dikembalikan.');
     }
 
-    // 5. CETAK STRUK (Updated: Support Thermal & A4)
+    // 5. CETAK STRUK
     public function cetak($id_transaksi)
     {
-        $mode = $this->request->getGet('mode') ?? 'thermal'; // Default thermal
+        $mode = $this->request->getGet('mode') ?? 'thermal'; 
 
         $transaksi = $this->db->table('tbl_transaksi')
             ->select('tbl_transaksi.*, 
@@ -175,7 +215,6 @@ class Pembayaran extends BaseController
                       tbl_pos_bayar.nama_pos, tbl_tagihan.keterangan as ket_tagihan,
                       tbl_users.nama_lengkap as nama_petugas') 
             ->join('tbl_siswa', 'tbl_siswa.id = tbl_transaksi.id_siswa')
-            // Cek join kelas lagi
             ->join('tbl_kelas', 'tbl_kelas.id = ' . ($this->db->fieldExists('kelas_id', 'tbl_siswa') ? 'tbl_siswa.kelas_id' : 'tbl_siswa.id_kelas'))
             ->join('tbl_tagihan', 'tbl_tagihan.id = tbl_transaksi.id_tagihan')
             ->join('tbl_jenis_bayar', 'tbl_jenis_bayar.id = tbl_tagihan.id_jenis_bayar')
@@ -195,7 +234,6 @@ class Pembayaran extends BaseController
             ]
         ];
 
-        // Pilih View berdasarkan Mode
         if ($mode == 'a4') {
             return view('admin/keuangan/pembayaran/cetak_a4', $data);
         } else {

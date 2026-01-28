@@ -10,6 +10,9 @@
 
     <div class="max-w-xl mx-auto mb-10">
         <form action="" method="get" class="relative">
+            
+            <?= csrf_field() ?>
+            
             <input type="text" name="q" value="<?= esc($keyword) ?>" 
                    class="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-lg font-bold shadow-lg shadow-blue-500/10 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none" 
                    placeholder="Ketik Nama atau NIS..." autocomplete="off" autofocus>

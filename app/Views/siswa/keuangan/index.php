@@ -87,25 +87,51 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                             <?php foreach($riwayat as $r): ?>
-                            <tr class="hover:bg-slate-50">
-                                <td class="p-4 text-slate-500"><?= date('d M Y H:i', strtotime($r['created_at'])) ?></td>
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
+                                <td class="p-4 text-slate-500">
+                                    <span class="block text-xs font-bold text-slate-400 mb-1"><?= date('d M Y', strtotime($r['created_at'])) ?></span>
+                                    <span class="text-sm font-bold text-slate-600 dark:text-slate-300"><?= date('H:i', strtotime($r['created_at'])) ?></span>
+                                </td>
                                 <td class="p-4">
                                     <div class="font-bold text-slate-800 dark:text-white"><?= $r['nama_pos'] ?></div>
-                                    <div class="text-xs text-slate-500"><?= $r['payment_type'] ?></div>
+                                    <div class="text-xs text-slate-500 uppercase tracking-wide font-bold mt-1">
+                                        <?= $r['payment_type'] ?>
+                                    </div>
                                 </td>
-                                <td class="p-4 text-right font-bold text-slate-700">Rp <?= number_format($r['total_bayar'] ?? $r['jumlah_bayar'], 0, ',', '.') ?></td>
+                                
+                                <td class="p-4 text-right font-black text-slate-700 dark:text-white text-lg">
+                                    Rp <?= number_format($r['jumlah_bayar'], 0, ',', '.') ?>
+                                    
+                                    <?php if($r['fee_admin'] > 0): ?>
+                                        <div class="text-[10px] text-slate-400 font-normal mt-1">
+                                            + Admin Rp <?= number_format($r['fee_admin'], 0, ',', '.') ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+
                                 <td class="p-4 text-center">
                                     <?php if($r['status_transaksi'] == 'SUCCESS'): ?>
-                                        <span class="bg-emerald-100 text-emerald-600 px-2 py-1 rounded text-[10px] font-bold">LUNAS</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
+                                            LUNAS
+                                        </span>
                                     <?php elseif($r['status_transaksi'] == 'UNPAID'): ?>
-                                        <span class="bg-amber-100 text-amber-600 px-2 py-1 rounded text-[10px] font-bold">MENUNGGU</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                                            MENUNGGU
+                                        </span>
                                     <?php else: ?>
-                                        <span class="bg-rose-100 text-rose-600 px-2 py-1 rounded text-[10px] font-bold"><?= $r['status_transaksi'] ?></span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200">
+                                            <?= $r['status_transaksi'] ?>
+                                        </span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="p-4 text-center">
                                     <?php if($r['status_transaksi'] == 'UNPAID' && !empty($r['checkout_url'])): ?>
-                                        <a href="<?= $r['checkout_url'] ?>" target="_blank" class="text-blue-600 font-bold text-xs underline">Bayar</a>
+                                        <a href="<?= $r['checkout_url'] ?>" target="_blank" class="text-blue-600 hover:text-blue-800 font-bold text-xs underline decoration-2 underline-offset-2">Bayar Sekarang</a>
+                                    <?php elseif($r['status_transaksi'] == 'SUCCESS' && !empty($r['pdf_url'])): ?>
+                                         <a href="<?= $r['pdf_url'] ?>" target="_blank" class="text-emerald-600 hover:text-emerald-800 font-bold text-xs flex items-center justify-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            Struk
+                                         </a>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -133,9 +159,19 @@
         </div>
 
         <form action="<?= base_url('siswa/keuangan/bayar_online') ?>" method="post" class="flex flex-col flex-1 overflow-hidden">
-            <input type="hidden" name="id_tagihan" id="payIdTagihan">
-            
-            <div class="overflow-y-auto p-2 space-y-2 flex-1 custom-scrollbar bg-slate-50/50">
+    <input type="hidden" name="id_tagihan" id="payIdTagihan">
+    
+    <div class="px-5 py-4 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Mau bayar berapa?</label>
+        <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">Rp</span>
+            <input type="number" name="nominal_bayar" id="inputNominalBayar" required min="10000" 
+                   class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-black text-lg text-slate-800 dark:text-white focus:border-blue-500 focus:ring-0 transition-all placeholder-slate-300">
+        </div>
+        <p class="text-[10px] text-slate-400 mt-2 italic">*Minimal pembayaran Rp 10.000. Masukkan sesuai kemampuan.</p>
+    </div>
+
+    <div class="overflow-y-auto p-2 space-y-2 flex-1 custom-scrollbar bg-slate-50/50">
                 <?php if(empty($channels)): ?>
                     <p class="text-center p-4 text-rose-500 text-xs">Gagal memuat channel pembayaran. Cek konfigurasi API Key.</p>
                 <?php else: ?>
@@ -174,14 +210,30 @@
 <script>
     const modal = document.getElementById('paymentModal');
     const modalContent = document.getElementById('paymentContent');
+const inputNominal = document.getElementById('inputNominalBayar');
 
-    function openPaymentModal(id, title, nominal) {
+    function openPaymentModal(id, title, sisaTagihan) {
+        // 1. Isi ID Tagihan
         document.getElementById('payIdTagihan').value = id;
-        document.getElementById('modalSubtitle').innerText = title + ' - Rp ' + new Intl.NumberFormat('id-ID').format(nominal);
-
+        
+        // 2. Tampilkan Judul & Sisa
+        document.getElementById('modalSubtitle').innerText = title;
+        
+        // 3. LOGIKA CICILAN:
+        // Set nilai default input = sisa tagihan
+        inputNominal.value = sisaTagihan;
+        
+        // Set batas maksimal = sisa tagihan (biar ga kelebihan bayar)
+        inputNominal.max = sisaTagihan;
+        
+        // Buka Modal
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); modalContent.classList.add('scale-100'); }, 10);
+        setTimeout(() => { 
+            modal.classList.remove('opacity-0'); 
+            modalContent.classList.remove('scale-95'); 
+            modalContent.classList.add('scale-100'); 
+        }, 10);
     }
 
     function closePaymentModal() {

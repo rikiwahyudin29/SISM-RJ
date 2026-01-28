@@ -4,16 +4,19 @@ namespace App\Controllers\Siswa;
 
 use App\Controllers\BaseController;
 use App\Libraries\TripayService; // Panggil Library Tripay
+use App\Libraries\LogService;    // Panggil Library Log (Mata-mata)
 
 class Keuangan extends BaseController
 {
     protected $db;
     protected $tripay;
+    protected $log;
 
     public function __construct()
     {
         $this->db = \Config\Database::connect();
-        $this->tripay = new TripayService(); // Init Library
+        $this->tripay = new TripayService(); // Init Library Tripay
+        $this->log = new LogService();       // Init Library Log
     }
 
     public function index()
@@ -60,7 +63,7 @@ class Keuangan extends BaseController
             'tagihan'   => $tagihan,
             'riwayat'   => $riwayat,
             'tunggakan' => $total_tunggakan,
-            'channels'  => $channels // Kirim data channel ke view
+            'channels'  => $channels
         ]);
     }
 
@@ -69,9 +72,13 @@ class Keuangan extends BaseController
     {
         $id_tagihan  = $this->request->getPost('id_tagihan');
         $kode_metode = $this->request->getPost('method'); // Contoh: BRIVA, QRIS
-        $id_user     = session()->get('id_user');
+        
+        // Validasi Input Dasar
+        if(!$id_tagihan || !$kode_metode) {
+            return redirect()->back()->with('error', 'Data pembayaran tidak lengkap.');
+        }
 
-        // Ambil Data Tagihan & Siswa Lengkap
+        // 1. Ambil Data Tagihan & Siswa Lengkap
         $tagihan = $this->db->table('tbl_tagihan')
             ->select('tbl_tagihan.*, tbl_pos_bayar.nama_pos, tbl_siswa.id as id_siswa_asli, tbl_siswa.nama_lengkap, tbl_siswa.email_siswa, tbl_siswa.no_hp_siswa')
             ->join('tbl_jenis_bayar', 'tbl_jenis_bayar.id = tbl_tagihan.id_jenis_bayar')
@@ -82,52 +89,73 @@ class Keuangan extends BaseController
 
         if (!$tagihan) return redirect()->back()->with('error', 'Tagihan tidak valid.');
 
-        $nominal_bayar = $tagihan['nominal_tagihan'] - $tagihan['nominal_terbayar'];
-        $merchant_ref  = 'INV-' . date('ymdHis') . rand(100,999); // Kode Unik Order Kita
+        // 2. LOGIKA CICILAN (Baru)
+        $sisa_tagihan = $tagihan['nominal_tagihan'] - $tagihan['nominal_terbayar'];
 
-        // Siapkan Payload ke Tripay
+        $input_nominal = $this->request->getPost('nominal_bayar');
+        $nominal_fix   = $input_nominal ? (int)$input_nominal : $sisa_tagihan;
+
+        // Validasi A: Jangan sampai user bayar melebihi sisa hutang
+        if ($nominal_fix > $sisa_tagihan) {
+            $nominal_fix = $sisa_tagihan;
+        }
+
+        // Validasi B: Minimal pembayaran
+        if ($nominal_fix < 10000) {
+            return redirect()->back()->with('error', 'Minimal pembayaran adalah Rp 10.000');
+        }
+
+        // Generate Merchant Ref Unik
+        $merchant_ref  = 'INV-' . date('ymdHis') . rand(100,999); 
+
+        // 3. Siapkan Payload ke Tripay
         $payload = [
             'method'         => $kode_metode,
             'merchant_ref'   => $merchant_ref,
-            'amount'         => $nominal_bayar,
+            'amount'         => $nominal_fix,
             'customer_name'  => $tagihan['nama_lengkap'],
             'customer_email' => $tagihan['email_siswa'] ?? 'siswa@sekolah.sch.id',
             'customer_phone' => $tagihan['no_hp_siswa'] ?? '08123456789',
             'order_items'    => [
                 [
                     'sku'      => 'TAG-' . $tagihan['id'],
-                    'name'     => $tagihan['nama_pos'] . ' - ' . $tagihan['keterangan'],
-                    'price'    => $nominal_bayar,
+                    'name'     => $tagihan['nama_pos'] . ' (Cicilan)',
+                    'price'    => $nominal_fix,
                     'quantity' => 1
                 ]
             ]
         ];
 
-        // Tembak API Tripay
+        // 4. Tembak API Tripay
         $result = $this->tripay->requestTransaction($payload);
 
         if ($result['success'] == false) {
             return redirect()->back()->with('error', 'Gagal koneksi ke Tripay: ' . ($result['message'] ?? 'Unknown Error'));
         }
 
-        $data_tripay = $result['data']; // Dapat checkout_url, reference, fee, dll
+        $data_tripay = $result['data'];
 
-        // Simpan ke Database (Status: UNPAID)
+        // 5. Simpan ke Database (Status: UNPAID)
         $this->db->table('tbl_transaksi')->insert([
             'merchant_ref'      => $merchant_ref,
             'reference'         => $data_tripay['reference'], // ID Tripay
             'id_tagihan'        => $id_tagihan,
             'id_siswa'          => $tagihan['id_siswa_asli'],
-            'jumlah_bayar'      => $nominal_bayar, // Nominal Murni
-            'fee_admin'         => $data_tripay['total_fee'] - $data_tripay['amount'], // Hitung Fee
-            'total_bayar'       => $data_tripay['total_fee'], // Total yg harus dibayar siswa
-            'payment_type'      => $data_tripay['payment_name'], // Misal: BRI Virtual Account
-            'status_transaksi'  => 'UNPAID', // Belum bayar
+            'jumlah_bayar'      => $nominal_fix,
+            'fee_admin'         => $data_tripay['total_fee'] - $data_tripay['amount'],
+            'total_bayar'       => $data_tripay['total_fee'],
+            'payment_type'      => $data_tripay['payment_name'], 
+            'status_transaksi'  => 'UNPAID',
             'checkout_url'      => $data_tripay['checkout_url'],
-            'petugas_id'        => 0 // 0 artinya Mandiri Online
+            'petugas_id'        => 0, // 0 artinya Mandiri Online
+            'created_at'        => date('Y-m-d H:i:s')
         ]);
 
-        // Redirect Siswa ke Halaman Bayar Tripay
+        // --- REKAM LOG (Siswa Request Pembayaran) ---
+        $this->log->catat("Membuat Invoice Tripay ($kode_metode) Ref: $merchant_ref senilai Rp " . number_format($nominal_fix, 0, ',', '.'));
+        // --------------------------------------------
+
+        // 6. Redirect Siswa ke Halaman Bayar Tripay
         return redirect()->to($data_tripay['checkout_url']);
     }
 }

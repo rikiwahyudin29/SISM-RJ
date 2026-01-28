@@ -76,8 +76,11 @@ class Filters extends BaseFilters
         'before' => [
            'csrf' => [
                 'except' => [
+                    'api/*',
                     'callback/tripay', // <--- TAMBAHKAN INI
-                    'siswa/keuangan/bayar_online' // Tambahkan ini juga jaga-jaga
+                    'siswa/keuangan/bayar_online', // Tambahkan ini juga jaga-jaga
+                    'admin/presensi/proses_scan', // 👈 TAMBAHKAN INI (Wajib!)
+                    'admin/presensi_guru/simpan_manual' // 👈 Tambahkan ini juga buat jaga-jaga input manual guru
                 ]
             ],
         ],

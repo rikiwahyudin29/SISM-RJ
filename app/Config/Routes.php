@@ -162,6 +162,9 @@ $routes->get('monitoring-ruang', 'Admin\MonitoringRuang::index');
 $routes->get('bank-soal', 'Admin\BankSoal::index');
     $routes->get('bank-soal/detail/(:num)', 'Admin\BankSoal::detail/$1');
     $routes->post('bank-soal/update-target', 'Admin\BankSoal::updateTarget');
+    $routes->get('presensi/jam', 'Admin\JamPresensi::index');       // Halaman Setting
+$routes->post('jam-presensi/update', 'Admin\JamPresensi::update'); // Proses Simpan
+$routes->get('piket', 'Admin\Piket::index');
 });
 
 
@@ -210,6 +213,18 @@ $routes->post('ujian/reset_peserta', 'Guru\Ujian::resetPeserta');       // <--- 
     $routes->get('hasil/index/(:num)', 'Guru\Hasil::index/$1');
     $routes->get('hasil/pdf/(:num)', 'Guru\Hasil::pdf/$1');
     $routes->get('hasil/excel/(:num)', 'Guru\Hasil::excel/$1');
+    $routes->get('presensi', 'Guru\Presensi::index');       // Riwayat Harian
+    $routes->get('presensi/rekap', 'Guru\Presensi::rekap'); // Rekap Bulanan
+   // JURNAL MENGAJAR
+    $routes->get('jurnal', 'Guru\Jurnal::index');
+    $routes->get('jurnal/input', 'Guru\Jurnal::input');
+    $routes->post('jurnal/simpan', 'Guru\Jurnal::simpan');
+    $routes->get('jurnal/hapus/(:num)', 'Guru\Jurnal::hapus/$1');
+    $routes->get('jurnal/absen/(:num)', 'Guru\Jurnal::absen/$1');
+$routes->post('jurnal/simpan_absen', 'Guru\Jurnal::simpan_absen');
+$routes->get('presensi/izin', 'Guru\Presensi::izin');
+$routes->post('presensi/ajukan', 'Guru\Presensi::ajukan');
+$routes->get('presensi/cetak_rekap', 'Guru\Presensi::cetak_rekap');
 });
 
 $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
@@ -230,6 +245,13 @@ $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
     // KEUANGAN SISWA
     $routes->get('keuangan', 'Siswa\Keuangan::index');
     $routes->post('keuangan/bayar_online', 'Siswa\Keuangan::bayar_online');
+    $routes->get('presensi', 'Siswa\Presensi::index');       // Riwayat Harian
+    $routes->get('presensi/rekap', 'Siswa\Presensi::rekap'); // Rekap Bulanan
+    // Izin (Yang kemarin sudah dibuat)
+    $routes->get('presensi/izin', 'Siswa\Presensi::izin');
+    $routes->post('presensi/ajukan', 'Siswa\Presensi::ajukan');
+    $routes->get('presensi/cetak_rekap', 'Siswa\Presensi::cetak_rekap');
+    $routes->get('presensi/pelajaran', 'Siswa\Presensi::pelajaran');
 });
 
 $routes->group('piket', ['filter' => 'role:piket'], function($routes) {
@@ -269,6 +291,7 @@ $routes->group('admin/keuangan', ['filter' => 'role:admin,bendahara'], function(
     $routes->get('laporan/cetak', 'Admin\Keuangan\Laporan::cetak_harian'); // Cetak Laporan PDF/Print
     $routes->get('laporan/cetak_transaksi', 'Admin\Keuangan\Laporan::cetak_transaksi'); // Cetak Pemasukan
     $routes->get('laporan/cetak_tunggakan', 'Admin\Keuangan\Laporan::cetak_tunggakan'); // Cetak Tunggakan
+    $routes->get('laporan/export_excel', 'Admin\Keuangan\Laporan::export_excel');
     // PENGELUARAN OPERASIONAL
     $routes->get('pengeluaran', 'Admin\Keuangan\Pengeluaran::index');
     $routes->post('pengeluaran/simpan', 'Admin\Keuangan\Pengeluaran::simpan');
@@ -277,7 +300,32 @@ $routes->group('admin/keuangan', ['filter' => 'role:admin,bendahara'], function(
     // Master Data Pengeluaran (Ajax Save)
     $routes->post('pengeluaran/master/simpan_divisi', 'Admin\Keuangan\Pengeluaran::simpan_divisi');
     $routes->post('pengeluaran/master/simpan_jenis', 'Admin\Keuangan\Pengeluaran::simpan_jenis');
+    $routes->get('log', 'Admin\Keuangan\Log::index');
 });
 
 // ROUTE CALLBACK TRIPAY (Akses Publik untuk Server Tripay)
 $routes->post('callback/tripay', 'TripayCallback::index');
+// PRESENSI & SCANNER
+$routes->get('admin/presensi/scanner', 'Admin\Presensi::scanner');
+$routes->post('admin/presensi/proses_scan', 'Admin\Presensi::proses_scan'); // Untuk Web
+$routes->post('api/iot/scan', 'Admin\Presensi::proses_scan'); // Untuk Alat IoT
+// CETAK KARTU
+$routes->get('admin/kartu', 'Admin\Kartu::index');
+$routes->get('admin/kartu/cetak', 'Admin\Kartu::cetak');
+$routes->get('admin/kartu/registrasi', 'Admin\Kartu::registrasi');
+$routes->post('admin/kartu/simpan_uid', 'Admin\Kartu::simpan_uid');
+// PRESENSI MANUAL (IZIN/SAKIT)
+$routes->get('admin/presensi/izin', 'Admin\Presensi::izin');
+$routes->post('admin/presensi/simpan_izin', 'Admin\Presensi::simpan_izin');
+$routes->get('admin/presensi/hapus_izin/(:num)', 'Admin\Presensi::hapus_izin/$1');
+// Tambahkan di dalam Group Admin
+$routes->get('admin/presensi/get_siswa_by_kelas/(:num)', 'Admin\Presensi::get_siswa_by_kelas/$1');
+$routes->get('admin/presensi/laporan', 'Admin\Presensi::laporan');
+$routes->get('admin/presensi/cetak_harian', 'Admin\Presensi::cetak_harian');
+$routes->get('admin/presensi/rekap', 'Admin\Presensi::rekap');
+$routes->get('admin/presensi/cetak_rekap', 'Admin\Presensi::cetak_rekap');
+$routes->get('admin/presensi_guru', 'Admin\PresensiGuru::index');
+$routes->post('admin/presensi_guru/simpan_manual', 'Admin\PresensiGuru::simpan_manual');
+$routes->get('admin/presensi_guru/rekap', 'Admin\PresensiGuru::rekap');
+$routes->get('admin/presensi_guru/cetak_rekap', 'Admin\PresensiGuru::cetak_rekap');
+$routes->get('admin/presensi/verifikasi/(:num)/(:segment)', 'Admin\Presensi::verifikasi/$1/$2');
