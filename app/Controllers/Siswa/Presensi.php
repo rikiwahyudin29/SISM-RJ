@@ -215,33 +215,122 @@ class Presensi extends BaseController
             ]
         ]);
     }
-    // --- RIWAYAT ABSEN PER MATA PELAJARAN ---
-    public function pelajaran()
+   public function pelajaran()
     {
-        $id_user_login = session()->get('id_user');
-        $id_siswa = $this->getRealSiswaID($id_user_login); // Pakai Helper ID
+        $id_user = session()->get('id_user');
+        $id_siswa = $this->getRealSiswaID($id_user);
         
-        $bulan = $this->request->getGet('bulan') ?? date('Y-m');
-
-        // Query JOIN 4 Tabel (Absen -> Jurnal -> Mapel -> Guru)
-        // Kita cek nama kolom guru dulu biar aman
-        $kolom_guru = $this->db->fieldExists('nama_guru', 'tbl_guru') ? 'nama_guru' : 'nama_lengkap';
-
-        $data = $this->db->table('tbl_absensi_mapel')
-            ->select("tbl_absensi_mapel.status, tbl_jurnal.tanggal, tbl_jurnal.jam_ke, tbl_jurnal.materi, tbl_jurnal.foto_kegiatan, tbl_mapel.nama_mapel, tbl_guru.$kolom_guru as nama_guru")
-            ->join('tbl_jurnal', 'tbl_jurnal.id = tbl_absensi_mapel.id_jurnal')
-            ->join('tbl_mapel', 'tbl_mapel.id = tbl_jurnal.id_mapel')
-            ->join('tbl_guru', 'tbl_guru.id = tbl_jurnal.id_guru')
-            ->where('tbl_absensi_mapel.id_siswa', $id_siswa)
-            ->like('tbl_jurnal.tanggal', $bulan)
-            ->orderBy('tbl_jurnal.tanggal', 'DESC')
-            ->orderBy('tbl_jurnal.jam_ke', 'DESC')
+        // A. FILTER TAHUN AJARAN
+        $ta_list = $this->db->table('tbl_tahun_ajaran')
+            ->orderBy('tahun_ajaran', 'DESC')
+            ->orderBy('semester', 'DESC')
             ->get()->getResultArray();
 
-        return view('siswa/presensi/pelajaran', [
-            'title' => 'Absensi Pelajaran',
-            'data'  => $data,
-            'bulan' => $bulan
+        $ta_aktif = $this->db->table('tbl_tahun_ajaran')->where('status', 'Aktif')->get()->getRow();
+        
+        // Ambil ID TA dari URL, kalau tidak ada pakai TA Aktif
+        $selected_ta_id = $this->request->getGet('id_ta') ?? ($ta_aktif->id ?? 0);
+
+        // B. DATA SISWA & KELAS
+        $kolom_kelas = $this->db->fieldExists('id_kelas', 'tbl_siswa') ? 'id_kelas' : 'kelas_id';
+        $siswa = $this->db->table('tbl_siswa')->select($kolom_kelas)->where('id', $id_siswa)->get()->getRow();
+
+        if (!$siswa) return redirect()->to('siswa/dashboard');
+        $id_kelas = $siswa->$kolom_kelas;
+
+        // C. AMBIL MAPEL (Hanya yang ada jadwalnya di Semester Ini)
+        $mapel = $this->db->table('tbl_jadwal')
+            ->select('tbl_mapel.id as id_mapel, tbl_mapel.nama_mapel')
+            ->join('tbl_mapel', 'tbl_mapel.id = tbl_jadwal.id_mapel')
+            ->where('tbl_jadwal.id_kelas', $id_kelas)
+            ->where('tbl_jadwal.id_tahun_ajaran', $selected_ta_id) // Filter Mapel per Semester
+            ->groupBy('tbl_jadwal.id_mapel') 
+            ->get()->getResultArray();
+
+        // D. HITUNG STATISTIK (FIX: FILTER STRICT PER SEMESTER)
+        foreach ($mapel as &$m) {
+            
+            // Nama Guru
+            $guru = $this->db->table('tbl_jadwal')
+                ->select('tbl_guru.nama_lengkap')
+                ->join('tbl_guru', 'tbl_guru.id = tbl_jadwal.id_guru')
+                ->where('id_kelas', $id_kelas)
+                ->where('id_mapel', $m['id_mapel'])
+                ->where('id_tahun_ajaran', $selected_ta_id)
+                ->get()->getRow();
+            $m['nama_guru'] = $guru ? $guru->nama_lengkap : '-';
+
+            // --- PERBAIKAN UTAMA DISINI ---
+            // Statistik hanya menghitung jurnal yang ID TA-nya sesuai pilihan dropdown
+            $stats = $this->db->table('tbl_absensi_mapel')
+                ->select("
+                    COUNT(*) as total,
+                    SUM(CASE WHEN tbl_absensi_mapel.status = 'H' THEN 1 ELSE 0 END) as hadir,
+                    SUM(CASE WHEN tbl_absensi_mapel.status = 'S' THEN 1 ELSE 0 END) as sakit,
+                    SUM(CASE WHEN tbl_absensi_mapel.status = 'I' THEN 1 ELSE 0 END) as izin,
+                    SUM(CASE WHEN tbl_absensi_mapel.status = 'A' THEN 1 ELSE 0 END) as alpha
+                ")
+                ->join('tbl_jurnal', 'tbl_jurnal.id = tbl_absensi_mapel.id_jurnal')
+                ->where('tbl_absensi_mapel.id_siswa', $id_siswa)
+                ->where('tbl_jurnal.id_mapel', $m['id_mapel'])
+                ->where('tbl_jurnal.id_tahun_ajaran', $selected_ta_id) // <--- PENYEBAB MASALAH SEBELUMNYA (LUPA FILTER INI)
+                ->get()->getRowArray();
+
+            $m['stats'] = $stats;
+            
+            // Persentase
+            if ($stats['total'] > 0) {
+                $m['persentase'] = round(($stats['hadir'] / $stats['total']) * 100);
+            } else {
+                $m['persentase'] = 0;
+            }
+        }
+
+        return view('siswa/presensi/pelajaran_list', [
+            'title'       => 'Absensi Pelajaran',
+            'mapel'       => $mapel,
+            'ta_list'     => $ta_list,
+            'selected_ta' => $selected_ta_id
         ]);
     }
+
+   // -------------------------------------------------------------------------
+    // 2. HALAMAN DETAIL RIWAYAT (FILTER SEMESTER)
+    // -------------------------------------------------------------------------
+    public function pelajaran_detail($id_mapel)
+    {
+        $id_user = session()->get('id_user');
+        $id_siswa = $this->getRealSiswaID($id_user);
+
+        // Ambil Filter dari URL, jika tidak ada ambil TA Aktif
+        $ta_aktif = $this->db->table('tbl_tahun_ajaran')->where('status', 'Aktif')->get()->getRow();
+        $id_ta = $this->request->getGet('id_ta') ?? ($ta_aktif->id ?? 0);
+
+        // Info Mapel & TA
+        $info_mapel = $this->db->table('tbl_mapel')->where('id', $id_mapel)->get()->getRowArray();
+        $info_ta = $this->db->table('tbl_tahun_ajaran')->where('id', $id_ta)->get()->getRowArray();
+
+        // Query Riwayat (Filter Ketat Semester)
+        $builder = $this->db->table('tbl_absensi_mapel')
+            ->select('tbl_absensi_mapel.status, tbl_jurnal.tanggal, tbl_jurnal.jam_ke, tbl_jurnal.materi, tbl_jurnal.foto_kegiatan, tbl_guru.nama_lengkap as nama_guru')
+            ->join('tbl_jurnal', 'tbl_jurnal.id = tbl_absensi_mapel.id_jurnal')
+            ->join('tbl_guru', 'tbl_guru.id = tbl_jurnal.id_guru')
+            ->where('tbl_absensi_mapel.id_siswa', $id_siswa)
+            ->where('tbl_jurnal.id_mapel', $id_mapel);
+
+        // Cek kolom id_tahun_ajaran di tbl_jurnal
+        if ($this->db->fieldExists('id_tahun_ajaran', 'tbl_jurnal')) {
+            $builder->where('tbl_jurnal.id_tahun_ajaran', $id_ta);
+        }
+
+        $riwayat = $builder->orderBy('tbl_jurnal.tanggal', 'DESC')->get()->getResultArray();
+
+        return view('siswa/presensi/pelajaran_detail', [
+            'title'   => 'Detail Kehadiran',
+            'mapel'   => $info_mapel,
+            'riwayat' => $riwayat,
+            'ta'      => $info_ta
+        ]);
+    }
+
 }

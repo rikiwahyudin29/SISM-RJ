@@ -1,17 +1,24 @@
 <?php 
 // 1. SETUP ROLE & USER DATA
-$roles = session()->get('roles') ?? []; 
-if (!is_array($roles)) $roles = [$roles]; 
-$roleActive = session()->get('role_active');
-$uri = service('uri')->getPath(); // Ambil URL aktif
+$sessionRoles = session()->get('roles') ?? []; 
+if (!is_array($sessionRoles)) $sessionRoles = [$sessionRoles]; 
 
-// 2. SETUP STYLE CLASSES (Biar kodingan di bawah tidak berantakan)
+// --- FIX PENTING: BERSIHKAN DATA ROLE ---
+// Ini akan mengubah " Piket ", "PIKET", "piket " menjadi "piket" (bersih)
+$roles = array_map(function($r) {
+    return strtolower(trim($r)); 
+}, $sessionRoles);
+
+$roleActive = session()->get('role_active');
+$uri = service('uri')->getPath(); 
+
+// 2. SETUP STYLE CLASSES
 $baseClass     = "flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm";
 $activeClass   = "bg-blue-600 text-white shadow-md shadow-blue-600/20";
 $inactiveClass = "text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white";
 $headerClass   = "pt-4 pb-2 px-3 text-xs font-extrabold text-gray-400 dark:text-slate-600 uppercase tracking-widest";
 
-// Helper kecil untuk cek aktif
+// Helper
 function is_active($url) {
     return strpos(uri_string(), $url) !== false;
 }
@@ -123,32 +130,53 @@ function is_active($url) {
                     </a>
                 </li>
 
+         <?php 
+                // 1. AMBIL DATA LANGSUNG DARI SESSION
+                $raw_roles = session()->get('roles') ?? [];
+                if (!is_array($raw_roles)) $raw_roles = [$raw_roles];
+
+                // 2. BERSIHKAN DATA (Hapus spasi, ubah ke huruf kecil semua)
+                // Ini menjamin ' Piket ' atau 'PIKET' tetap terbaca sebagai 'piket'
+                $clean_roles = array_map(function($r) { 
+                    return strtolower(trim($r)); 
+                }, $raw_roles);
+
+                // 3. TENTUKAN HAK AKSES
+                // Admin BOLEH, Piket BOLEH
+                $boleh_lihat = in_array('admin', $clean_roles) || in_array('piket', $clean_roles);
+                ?>
+
+                <?php if ($boleh_lihat) : ?>
+                
                 <li class="<?= $headerClass ?>">Presensi & Disiplin</li>
 
                 <li>
-                    <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-presensi" data-collapse-toggle="dropdown-presensi">
+                    <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-presensi-final" data-collapse-toggle="dropdown-presensi-final">
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.2-2.873.571-4.244M5.753 11c.883-2.671 2.946-4.672 5.753-5.274M20.25 15.364c-.64-1.319-1-2.8-1-4.364 0-1.457-.2-2.873-.571-4.244"></path></svg>
                         <span class="ml-3 flex-1 text-left whitespace-nowrap">Presensi Digital</span>
                         <svg class="w-3 h-3 text-gray-400 transition-transform group-aria-expanded:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <ul id="dropdown-presensi" class="hidden py-1 space-y-0.5">
+                    <ul id="dropdown-presensi-final" class="hidden py-1 space-y-0.5">
                         <li><a href="<?= base_url('admin/presensi/scanner') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Scanner (QR/RFID)</a></li>
                         <li><a href="<?= base_url('admin/presensi/laporan') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Laporan Kehadiran</a></li>
-                        <li><a href="<?= base_url('admin/presensi/rekap') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Rekap Bulanan</a></li>
                         <li><a href="<?= base_url('admin/presensi/izin') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Data Izin/Sakit</a></li>
-                        <li><a href="<?= base_url('admin/presensi/jam') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Setting Jam</a></li>
-                        <li><a href="<?= base_url('admin/kartu/registrasi') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Registrasi Kartu</a></li>
-                        <li><a href="<?= base_url('admin/presensi_guru') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Harian Guru</a></li>
-                        <li><a href="<?= base_url('admin/presensi_guru/rekap') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Rekap Guru</a></li>
                         
+                        <?php if (in_array('admin', $clean_roles)) : ?>
+                        <li><a href="<?= base_url('admin/presensi/jam') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Setting Jam</a></li>
+                        <?php endif; ?>
+
+                        <li><a href="<?= base_url('admin/presensi_guru') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Harian Guru</a></li>
+                        <li><a href="<?= base_url('admin/jurnal') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Monitoring Jurnal</a></li>
                     </ul>
                 </li>
-<li>
-    <a href="<?= base_url('admin/piket') ?>" class="<?= $baseClass ?> <?= is_active('admin/piket') ? $activeClass : $inactiveClass ?>">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-        <span class="ml-3">Monitoring Piket</span>
-    </a>
-</li>
+
+                <li>
+                    <a href="<?= base_url('admin/piket') ?>" class="<?= $baseClass ?> <?= is_active('admin/piket') ? $activeClass : $inactiveClass ?>">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        <span class="ml-3">Monitoring Piket</span>
+                    </a>
+                </li>
+                <?php endif; ?>
                 <li class="<?= $headerClass ?>">Administrasi</li>
 
                 <li>
@@ -346,6 +374,48 @@ function is_active($url) {
                         <i class="fas fa-chart-line w-4 h-4 text-center transition-colors"></i>
                         <span class="ml-3 flex-1">Riwayat Nilai</span>
                     </a>
+                </li>
+                <?php endif; ?>
+
+            </ul>
+            <?php 
+                // Kita cek manual disini biar tidak terpengaruh kodingan atas
+                $my_roles = session()->get('roles') ?? [];
+                if (!is_array($my_roles)) $my_roles = [$my_roles];
+                
+                // Cek apakah punya tiket 'piket' atau 'admin'?
+                $is_piket_or_admin = false;
+                foreach($my_roles as $r) {
+                    if (strtolower(trim($r)) == 'piket' || strtolower(trim($r)) == 'admin') {
+                        $is_piket_or_admin = true;
+                        break;
+                    }
+                }
+                ?>
+
+                <?php if ($is_piket_or_admin) : ?>
+                <li class="pt-4 pb-2 px-3 text-xs font-extrabold text-emerald-600 uppercase tracking-widest">
+                    Tugas Piket
+                </li>
+
+                <li>
+                    <a href="<?= base_url('admin/piket') ?>" class="flex items-center px-3 py-2 rounded-lg transition-all group font-bold text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 dark:text-slate-400 dark:hover:bg-slate-800">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        <span class="ml-3">Monitoring Piket</span>
+                    </a>
+                </li>
+
+                <li>
+                    <button type="button" class="flex items-center w-full px-3 py-2 rounded-lg transition-all group font-bold text-sm text-gray-600 hover:bg-gray-100" aria-controls="dropdown-piket-tools" data-collapse-toggle="dropdown-piket-tools">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <span class="ml-3 flex-1 text-left whitespace-nowrap">Data Presensi</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <ul id="dropdown-piket-tools" class="hidden py-1 space-y-0.5">
+                        <li><a href="<?= base_url('admin/presensi/laporan') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-emerald-600">Laporan Siswa</a></li>
+                        <li><a href="<?= base_url('admin/presensi_guru') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-emerald-600">Absen Guru</a></li>
+                        <li><a href="<?= base_url('admin/jurnal') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-emerald-600">Jurnal Mengajar</a></li>
+                    </ul>
                 </li>
                 <?php endif; ?>
 

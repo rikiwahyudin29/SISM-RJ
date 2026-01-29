@@ -25,80 +25,140 @@ class Jurnal extends BaseController
     }
 
     // 1. HALAMAN RIWAYAT JURNAL
-    public function index()
+public function index()
     {
         $id_user = session()->get('id_user');
         $id_guru = $this->getRealGuruID($id_user);
+
+        // 1. Ambil Filter Bulan (Default bulan ini)
         $bulan = $this->request->getGet('bulan') ?? date('Y-m');
 
-        $data = $this->db->table('tbl_jurnal')
+        // 2. Ambil Tahun Ajaran Aktif
+        $ta_aktif = $this->db->table('tbl_tahun_ajaran')->where('status', 'Aktif')->get()->getRow();
+
+        // 3. QUERY JURNAL (PAKAI LEFT JOIN AGAR LEBIH AMAN)
+        // LEFT JOIN menjamin data jurnal tetap muncul meski data kelas/mapel terhapus/error
+        $builder = $this->db->table('tbl_jurnal')
             ->select('tbl_jurnal.*, tbl_kelas.nama_kelas, tbl_mapel.nama_mapel')
-            ->join('tbl_kelas', 'tbl_kelas.id = tbl_jurnal.id_kelas')
-            ->join('tbl_mapel', 'tbl_mapel.id = tbl_jurnal.id_mapel')
-            ->where('tbl_jurnal.id_guru', $id_guru)
-            ->like('tbl_jurnal.tanggal', $bulan)
-            ->orderBy('tbl_jurnal.tanggal', 'DESC')
-            ->orderBy('tbl_jurnal.jam_ke', 'DESC')
-            ->get()->getResultArray();
+            ->join('tbl_kelas', 'tbl_kelas.id = tbl_jurnal.id_kelas', 'left') // <--- PENTING: left
+            ->join('tbl_mapel', 'tbl_mapel.id = tbl_jurnal.id_mapel', 'left') // <--- PENTING: left
+            ->where('tbl_jurnal.id_guru', $id_guru);
+
+        // 4. FILTER SEMESTER (Jika TA Aktif ditemukan)
+        if ($ta_aktif) {
+            $builder->where('tbl_jurnal.id_tahun_ajaran', $ta_aktif->id);
+        }
+
+        // 5. FILTER BULAN
+        if (!empty($bulan)) {
+            $builder->like('tbl_jurnal.tanggal', $bulan, 'after');
+        }
+
+        $jurnal = $builder->orderBy('tbl_jurnal.id', 'DESC')->get()->getResultArray();
+
+        // 6. DEBUG FLASH MESSAGE (Jika Kosong)
+        // Ini akan memberi tahu kita kenapa kosong
+        if (empty($jurnal)) {
+            $jumlah_asli = $this->db->table('tbl_jurnal')->where('id_guru', $id_guru)->countAllResults();
+            $pesan = "Data kosong. Padahal di database Guru ID $id_guru punya $jumlah_asli data total.";
+            if ($ta_aktif) $pesan .= " (Filter TA ID: $ta_aktif->id).";
+            session()->setFlashdata('error', $pesan);
+        }
 
         return view('guru/jurnal/index', [
-            'title' => 'Jurnal Mengajar',
-            'data'  => $data,
-            'bulan' => $bulan
+            'title'  => 'Riwayat Jurnal Mengajar',
+            'jurnal' => $jurnal,
+            'bulan'  => $bulan
         ]);
     }
 
     // 2. FORM INPUT JURNAL
-    public function input()
+   public function input()
     {
-        // ... (Logic Input masih sama) ...
         $id_user = session()->get('id_user');
         $id_guru = $this->getRealGuruID($id_user);
-        
-        // Ambil Jadwal Hari Ini
-        $hari_ini = $this->getHariIndo(date('l'));
-        $jadwal_hari_ini = $this->db->table('tbl_jadwal')
-            ->select('tbl_jadwal.*, tbl_kelas.nama_kelas, tbl_mapel.nama_mapel')
-            ->join('tbl_kelas', 'tbl_kelas.id = tbl_jadwal.id_kelas')
+
+        // 1. AMBIL TAHUN AJARAN AKTIF (Wajib)
+        $ta_aktif = $this->db->table('tbl_tahun_ajaran')
+            ->where('status', 'Aktif')
+            ->get()->getRow();
+
+        if (!$ta_aktif) {
+            return redirect()->to('guru/dashboard')->with('error', 'Tidak ada Tahun Ajaran aktif!');
+        }
+
+        // 2. AMBIL JADWAL HARI INI (FILTER SEMESTER AKTIF)
+        // Kita tambahkan select 'id_kelas' dan 'id_mapel' agar bisa dipakai untuk pengecekan jurnal
+        $jadwal = $this->db->table('tbl_jadwal')
+            ->select('tbl_jadwal.id, tbl_jadwal.id_kelas, tbl_jadwal.id_mapel, tbl_mapel.nama_mapel, tbl_kelas.nama_kelas, tbl_jadwal.jam_mulai, tbl_jadwal.jam_selesai')
             ->join('tbl_mapel', 'tbl_mapel.id = tbl_jadwal.id_mapel')
-            ->where('id_guru', $id_guru)
-            ->where('hari', $hari_ini)
-            ->orderBy('jam_mulai', 'ASC')
+            ->join('tbl_kelas', 'tbl_kelas.id = tbl_jadwal.id_kelas')
+            ->where('tbl_jadwal.id_guru', $id_guru)
+            ->where('tbl_jadwal.hari', $this->getHariIndo(date('l'))) // Hari ini
+            ->where('tbl_jadwal.id_tahun_ajaran', $ta_aktif->id)     // Filter Semester Aktif
             ->get()->getResultArray();
 
-        return view('guru/jurnal/input', ['title' => 'Isi Jurnal KBM', 'jadwal' => $jadwal_hari_ini]);
+        // 3. CEK APAKAH SUDAH ISI JURNAL?
+        // Perbaikan: Cek berdasarkan Kelas & Mapel (Bukan id_jadwal)
+        foreach ($jadwal as &$j) {
+            $cek = $this->db->table('tbl_jurnal')
+                ->where('id_kelas', $j['id_kelas'])
+                ->where('id_mapel', $j['id_mapel'])
+                ->where('id_guru', $id_guru)
+                ->where('tanggal', date('Y-m-d'))
+                ->countAllResults();
+                
+            $j['sudah_isi'] = ($cek > 0);
+        }
+
+        return view('guru/jurnal/input', [
+            'title'    => 'Isi Jurnal Mengajar',
+            'jadwal'   => $jadwal,
+            'ta_aktif' => $ta_aktif
+        ]);
     }
 
     // 3. PROSES SIMPAN JURNAL -> REDIRECT KE ABSEN
     public function simpan()
     {
+        // 1. AMBIL ID GURU & TA AKTIF
         $id_user = session()->get('id_user');
-        $id_guru = $this->getRealGuruID($id_user);
+        $id_guru = $this->getRealGuruID($id_user); 
 
-        $file = $this->request->getFile('foto');
-        $namaFile = null;
-        if ($file && $file->isValid()) {
-            $namaFile = $file->getRandomName();
-            $file->move('uploads/jurnal', $namaFile);
+        $ta_aktif = $this->db->table('tbl_tahun_ajaran')->where('status', 'Aktif')->get()->getRow();
+        
+        if(!$ta_aktif) {
+            return redirect()->back()->with('error', 'Gagal: Tidak ada Tahun Ajaran aktif!');
         }
 
+        // 2. SIAPKAN DATA (REVISI: Hapus id_jadwal)
         $data = [
-            'id_guru'       => $id_guru,
-            'id_kelas'      => $this->request->getPost('id_kelas'),
-            'id_mapel'      => $this->request->getPost('id_mapel'),
-            'tanggal'       => $this->request->getPost('tanggal'),
-            'jam_ke'        => $this->request->getPost('jam_ke'),
-            'materi'        => $this->request->getPost('materi'),
-            'keterangan'    => $this->request->getPost('keterangan'),
-            'foto_kegiatan' => $namaFile
+            'id_guru'         => $id_guru,
+            'id_tahun_ajaran' => $ta_aktif->id,
+            'id_kelas'        => $this->request->getPost('id_kelas'),
+            'id_mapel'        => $this->request->getPost('id_mapel'),
+            // 'id_jadwal'    => ...,  <-- BARIS INI KITA HAPUS KARENA KOLOMNYA TIDAK ADA
+            'tanggal'         => date('Y-m-d'),
+            'jam_ke'          => $this->request->getPost('jam_ke'),
+            'materi'          => $this->request->getPost('materi'),
+            'keterangan'      => $this->request->getPost('keterangan'),
+            'foto_kegiatan'   => '' 
         ];
 
+        // 3. PROSES UPLOAD FOTO
+        $file = $this->request->getFile('foto_kegiatan');
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $newName = $file->getRandomName();
+            $file->move('uploads/jurnal', $newName);
+            $data['foto_kegiatan'] = $newName;
+        }
+
+        // 4. EKSEKUSI SIMPAN
         $this->db->table('tbl_jurnal')->insert($data);
-        
-        // --- PERUBAHAN: AMBIL ID JURNAL BARU & REDIRECT KE ABSEN ---
-        $id_jurnal_baru = $this->db->insertID();
-        
-        return redirect()->to('guru/jurnal/absen/' . $id_jurnal_baru);
+        $id_jurnal = $this->db->insertID();
+
+        // 5. Redirect ke Absen
+        return redirect()->to('guru/jurnal/absen/'.$id_jurnal)->with('success', 'Jurnal berhasil disimpan!');
     }
 
     // 4. HALAMAN ABSEN SISWA (PER MAPEL)
