@@ -218,6 +218,9 @@
         ids.forEach(id => formData.append('ids[]', id)); // MENGIRIM ID SESI
         formData.append('aksi', aksi);
         formData.append('menit', menit);
+        const csrfToken = document.querySelector('input[name="csrf_test_name"]')?.value 
+                      || '<?= csrf_hash() ?>';
+    formData.append('csrf_test_name', csrfToken);
 
         fetch('<?= base_url('guru/monitoring/aksi_masal') ?>', {
             method: 'POST',

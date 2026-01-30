@@ -71,6 +71,7 @@
                 <?php endif; ?>
 
                 <form action="<?= base_url('siswa/ujian/mulai') ?>" method="post" id="formKonfirmasi">
+                    <?= csrf_field() ?>
                     
                     <input type="hidden" name="id_jadwal" value="<?= $bank['id'] ?>"> 
                     

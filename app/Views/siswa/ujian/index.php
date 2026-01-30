@@ -59,13 +59,12 @@
                                 <?php endif; ?>
                             </div>
 
-                        <?php elseif ($u['status_ujian'] == 0): ?>
-                            <a href="<?= base_url('siswa/ujian/kerjakan/' . $this->db->table('tbl_ujian_siswa')->where('id_jadwal', $u['id_jadwal'])->where('id_siswa', session('id'))->get()->getRow()->id ?? '') ?>" 
-                               class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow transition-transform active:scale-95">
-                                <i class="fas fa-play mr-2"></i> Lanjutkan
-                            </a>
-
-                        <?php else: ?>
+                       <?php elseif ($u['status_ujian'] == 0): ?>
+    <a href="<?= base_url('siswa/ujian/kerjakan/' . ($u['id_sesi'] ?? '')) ?>" 
+       class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow transition-transform active:scale-95">
+        <i class="fas fa-play mr-2"></i> Lanjutkan
+    </a>
+<?php else: ?>
                             <?php if ($u['status_waktu'] == 'BELUM_MULAI'): ?>
                                 <button disabled class="w-full bg-gray-200 text-gray-500 font-bold py-2.5 rounded-lg cursor-not-allowed">
                                     <i class="fas fa-clock mr-2"></i> Belum Dibuka

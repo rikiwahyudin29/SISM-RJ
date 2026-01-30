@@ -21,6 +21,7 @@
                 <h3 class="font-bold text-gray-700 dark:text-gray-200 mb-2"><i class="fas fa-user-plus mr-2"></i> Pilih Siswa (Sumber)</h3>
                 
                 <form action="" method="get" class="flex gap-2">
+                    <?= csrf_field() ?>
                     <input type="hidden" name="id_sesi" value="<?= $sesi_aktif ?>"> <select name="id_kelas" class="w-full text-sm p-2 rounded border bg-white dark:bg-slate-900 dark:text-white" onchange="this.form.submit()">
                         <option value="">-- Pilih Kelas --</option>
                         <?php foreach($kelas as $k): ?>
@@ -33,6 +34,7 @@
             </div>
 
             <form action="<?= base_url('admin/aturruangan/tambah') ?>" method="post" class="flex-1 flex flex-col overflow-hidden">
+                <?= csrf_field() ?>
                 <input type="hidden" name="id_ruangan" value="<?= $ruang['id'] ?>">
                 <input type="hidden" name="id_sesi" value="<?= $sesi_aktif ?>">
 

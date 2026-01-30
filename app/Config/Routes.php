@@ -69,6 +69,8 @@ $routes->group('admin', ['filter' => 'role:admin,piket'], function($routes) {
         // Helper Data
         $routes->get('get_siswa_by_kelas/(:num)', 'Admin\Presensi::get_siswa_by_kelas/$1');
         $routes->get('verifikasi/(:num)/(:segment)', 'Admin\Presensi::verifikasi/$1/$2');
+        $routes->get('cetak_bulanan', 'Admin\Presensi::cetak_bulanan');
+        
     });
 
     // --- PRESENSI GURU ---
@@ -97,6 +99,25 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
     $routes->get('dashboard', 'Admin::index');
     $routes->get('pengaturan', 'Admin::pengaturan');
     $routes->post('pengaturan/update', 'Admin::pengaturan_update');
+    $routes->get('sekolah/identitas', 'Admin\Sekolah::identitas');
+    // Tambahkan ini untuk profil
+    $routes->get('profil', 'Admin\Profil::index');
+    $routes->post('profil/simpan', 'Admin\Profil::simpan');
+
+    // INTEGRASI DAPODIK
+    $routes->get('dapodik', 'Admin\Dapodik::index');
+    $routes->post('dapodik/update_setting', 'Admin\Dapodik::update_setting'); // Buat method ini jika perlu simpan
+    $routes->get('dapodik/cek_koneksi', 'Admin\Dapodik::cek_koneksi');
+    $routes->get('dapodik/tarik_siswa', 'Admin\Dapodik::tarik_siswa');
+    $routes->get('dapodik/tarik_guru', 'Admin\Dapodik::tarik_guru');
+    $routes->post('dapodik/kirim_raport', 'Admin\Dapodik::kirim_raport');
+    $routes->get('dapodik/test_manual', 'Admin\Dapodik::test_manual');
+    $routes->get('dapodik/tarik_rombel', 'Admin\Dapodik::tarik_rombel'); // <--- TAMBAHKAN INI
+    $routes->get('dapodik/tarik_jurusan', 'Admin\Dapodik::tarik_jurusan');
+    $routes->get('dapodik/test_jurusan', 'Admin\Dapodik::test_jurusan');
+    $routes->get('dapodik/tarik_mapel', 'Admin\Dapodik::tarik_mapel');
+    $routes->get('dapodik/test_mapel', 'Admin\Dapodik::test_mapel');
+    $routes->get('dapodik/tarik_sekolah', 'Admin\Dapodik::tarik_sekolah');
 
     // Setting Presensi (Jam & Lokasi) -> Hanya Admin yang boleh ubah
     $routes->get('presensi/jam', 'Admin\JamPresensi::index');
@@ -278,6 +299,9 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     // Akademik
     $routes->get('jadwal', 'Guru\Jadwal::index');
     $routes->get('nilai', 'Guru\Nilai::index');
+
+    $routes->get('profil', 'Guru\Profil::index');
+    $routes->post('profil/simpan', 'Guru\Profil::simpan');
     
     // Jurnal KBM
     $routes->get('jurnal', 'Guru\Jurnal::index');
@@ -286,6 +310,11 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     $routes->get('jurnal/hapus/(:num)', 'Guru\Jurnal::hapus/$1');
     $routes->get('jurnal/absen/(:num)', 'Guru\Jurnal::absen/$1');
     $routes->post('jurnal/simpan_absen', 'Guru\Jurnal::simpan_absen');
+
+    // ROUTE E-LEARNING MATERI
+    $routes->get('materi', 'Guru\Materi::index');
+    $routes->post('materi/save', 'Guru\Materi::save');
+    $routes->get('materi/delete/(:num)', 'Guru\Materi::delete/$1');
     
     // Presensi Guru
     $routes->get('presensi', 'Guru\Presensi::index');
@@ -293,6 +322,8 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     $routes->get('presensi/izin', 'Guru\Presensi::izin');
     $routes->post('presensi/ajukan', 'Guru\Presensi::ajukan');
     $routes->get('presensi/cetak_rekap', 'Guru\Presensi::cetak_rekap');
+    $routes->get('presensi/absen', 'Guru\Presensi::absen_harian');       // Halaman Absen
+    $routes->post('presensi/submit_absen', 'Guru\Presensi::submit_absen'); // Proses Simpan
 
     // Bank Soal
     $routes->get('bank_soal', 'Guru\BankSoal::index');
@@ -318,7 +349,7 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
 
     // Monitoring & Hasil
     $routes->get('monitoring', 'Guru\Monitoring::index');
-    $routes->get('monitoring/lihat/(:num)', 'Guru\Monitoring::index/$1');
+    $routes->get('monitoring/lihat/(:num)', 'Guru\Monitoring::lihat/$1');
     $routes->post('monitoring/aksi_masal', 'Guru\Monitoring::aksi_masal');
     
     $routes->get('hasil/index/(:num)', 'Guru\Hasil::index/$1');
@@ -344,18 +375,23 @@ $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
     $routes->post('presensi/ajukan', 'Siswa\Presensi::ajukan');
     $routes->get('presensi/cetak_rekap', 'Siswa\Presensi::cetak_rekap');
     $routes->get('presensi/pelajaran', 'Siswa\Presensi::pelajaran');
+    $routes->get('presensi/absen', 'Siswa\Presensi::absen_harian');       // NEW
+    $routes->post('presensi/submit_absen', 'Siswa\Presensi::submit_absen'); // NEW
 
     // Ujian
     $routes->get('ujian', 'Siswa\Ujian::index');
     $routes->get('ujian/konfirmasi/(:num)', 'Siswa\Ujian::konfirmasi/$1');
     $routes->post('ujian/mulai', 'Siswa\Ujian::mulai');
     $routes->get('ujian/kerjakan/(:num)', 'Siswa\Ujian::kerjakan/$1');
-    $routes->post('ujian/simpanjawaban', 'Siswa\Ujian::simpanJawaban');
+   $routes->post('ujian/simpanJawaban', 'Siswa\Ujian::simpanJawaban');
     $routes->post('ujian/selesaiUjian', 'Siswa\Ujian::selesaiUjian');
-    
+    $routes->post('ujian/catatPelanggaran', 'Siswa\Ujian::catatPelanggaran');
     // Keamanan Ujian
     $routes->post('ujian/catatPelanggaran', 'Siswa\Ujian::catatPelanggaran'); 
     $routes->post('ujian/blokirSiswa', 'Siswa\Ujian::blokirSiswa'); 
     $routes->get('presensi/pelajaran', 'Siswa\Presensi::pelajaran'); // Halaman List Mapel
     $routes->get('presensi/pelajaran/(:num)', 'Siswa\Presensi::pelajaran_detail/$1'); // Halaman Detail per Mapel
+
+    $routes->get('profil', 'Siswa\Profil::index');
+    $routes->post('profil/simpan', 'Siswa\Profil::simpan');
 });

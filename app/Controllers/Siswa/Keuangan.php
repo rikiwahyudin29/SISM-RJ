@@ -21,13 +21,14 @@ class Keuangan extends BaseController
 
     public function index()
     {
-        $id_user = session()->get('id_user');
+        $id_user = session()->get('id_user') ?? session()->get('user_id');
 
-        // 1. Cari Data Siswa
+        // 1. Cari Data Siswa (Perbaikan JOIN & WHERE)
         $siswa = $this->db->table('tbl_siswa')
             ->select('tbl_siswa.id as id_siswa, tbl_siswa.nama_lengkap, tbl_siswa.nis, tbl_kelas.nama_kelas')
             ->join('tbl_kelas', 'tbl_kelas.id = tbl_siswa.kelas_id', 'left') 
-            ->where('tbl_siswa.user_id', $id_user)
+            // Perbaikan: Gunakan COALESCE agar mendukung id_user (Dapodik) maupun user_id (Manual)
+            ->where('COALESCE(tbl_siswa.user_id, tbl_siswa.id_user) =', $id_user)
             ->get()->getRowArray();
 
         if (!$siswa) return "Error: Data siswa tidak ditemukan.";
@@ -78,18 +79,20 @@ class Keuangan extends BaseController
             return redirect()->back()->with('error', 'Data pembayaran tidak lengkap.');
         }
 
-        // 1. Ambil Data Tagihan & Siswa Lengkap
+        // 1. Ambil Data Tagihan & Siswa Lengkap (Perbaikan JOIN ke tbl_users)
         $tagihan = $this->db->table('tbl_tagihan')
-            ->select('tbl_tagihan.*, tbl_pos_bayar.nama_pos, tbl_siswa.id as id_siswa_asli, tbl_siswa.nama_lengkap, tbl_siswa.email_siswa, tbl_siswa.no_hp_siswa')
+            ->select('tbl_tagihan.*, tbl_pos_bayar.nama_pos, tbl_siswa.id as id_siswa_asli, tbl_siswa.nama_lengkap, tbl_users.email, tbl_siswa.no_hp_siswa')
             ->join('tbl_jenis_bayar', 'tbl_jenis_bayar.id = tbl_tagihan.id_jenis_bayar')
             ->join('tbl_pos_bayar', 'tbl_pos_bayar.id = tbl_jenis_bayar.id_pos_bayar')
             ->join('tbl_siswa', 'tbl_siswa.id = tbl_tagihan.id_siswa')
+            // FIX: Tambahkan JOIN ke tbl_users agar kolom 'email' bisa ditemukan
+            ->join('tbl_users', 'tbl_users.id = COALESCE(tbl_siswa.user_id, tbl_siswa.id_user)', 'left')
             ->where('tbl_tagihan.id', $id_tagihan)
             ->get()->getRowArray();
 
         if (!$tagihan) return redirect()->back()->with('error', 'Tagihan tidak valid.');
 
-        // 2. LOGIKA CICILAN (Baru)
+        // 2. LOGIKA CICILAN
         $sisa_tagihan = $tagihan['nominal_tagihan'] - $tagihan['nominal_terbayar'];
 
         $input_nominal = $this->request->getPost('nominal_bayar');
@@ -114,7 +117,7 @@ class Keuangan extends BaseController
             'merchant_ref'   => $merchant_ref,
             'amount'         => $nominal_fix,
             'customer_name'  => $tagihan['nama_lengkap'],
-            'customer_email' => $tagihan['email_siswa'] ?? 'siswa@sekolah.sch.id',
+            'customer_email' => $tagihan['email'] ?? 'siswa@sekolah.sch.id',
             'customer_phone' => $tagihan['no_hp_siswa'] ?? '08123456789',
             'order_items'    => [
                 [
@@ -151,11 +154,10 @@ class Keuangan extends BaseController
             'created_at'        => date('Y-m-d H:i:s')
         ]);
 
-        // --- REKAM LOG (Siswa Request Pembayaran) ---
+        // 6. Rekam Log
         $this->log->catat("Membuat Invoice Tripay ($kode_metode) Ref: $merchant_ref senilai Rp " . number_format($nominal_fix, 0, ',', '.'));
-        // --------------------------------------------
 
-        // 6. Redirect Siswa ke Halaman Bayar Tripay
+        // 7. Redirect ke Tripay
         return redirect()->to($data_tripay['checkout_url']);
     }
 }

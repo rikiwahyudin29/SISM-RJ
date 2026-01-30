@@ -12,19 +12,26 @@ class Ujian extends BaseController
     protected $cache;
 
     public function __construct()
-    {
-        $this->db = \Config\Database::connect();
-        $this->cache = \Config\Services::cache(); 
-        
-        $userId = session()->get('id_user');
-        if($userId) {
-            $siswa = $this->db->table('tbl_siswa')->where('user_id', $userId)->get()->getRow();
-            if ($siswa) {
-                $this->id_siswa = $siswa->id;
-                $this->id_kelas = $siswa->id_kelas ?? $siswa->kelas_id ?? $siswa->id_rombel ?? 0;
-            }
+{
+    $this->db = \Config\Database::connect();
+    $this->cache = \Config\Services::cache(); 
+    
+    // Ambil ID dari session (Cek kedua kemungkinan key)
+    $userId = session()->get('id_user') ?? session()->get('user_id');
+
+    if($userId) {
+        // PERBAIKAN: Gunakan WHERE dengan COALESCE agar mendeteksi user_id maupun id_user
+        $siswa = $this->db->table('tbl_siswa')
+            ->where('COALESCE(user_id, id_user) =', $userId)
+            ->get()->getRow();
+
+        if ($siswa) {
+            $this->id_siswa = $siswa->id;
+            // Gunakan null coalescing untuk fleksibilitas nama kolom kelas
+            $this->id_kelas = $siswa->kelas_id ?? $siswa->id_kelas ?? $siswa->id_rombel ?? 0;
         }
     }
+}
 
     // 1. DAFTAR UJIAN & HISTORI NILAI
     public function index()
@@ -77,6 +84,7 @@ class Ujian extends BaseController
                 
             $u['status_ujian'] = $log ? $log->status : 'BELUM_KERJA'; // 0=Mengerjakan, 1=Selesai
             $u['id'] = $u['id_jadwal']; 
+            $u['id_sesi'] = $log ? $log->id : null;
             
             // [LOGIC TAMPIL NILAI]
             // Jika status selesai (1), ambil nilai dari database

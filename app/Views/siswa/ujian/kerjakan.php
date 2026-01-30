@@ -74,6 +74,7 @@
 
         <div class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar relative" id="soal-container">
             <form id="form-ujian">
+                <?= csrf_field() ?>
                 <?php foreach($soal as $index => $s): 
                     $idSoal = $s['id_soal_real']; 
                     // Inisialisasi status untuk JS
@@ -221,6 +222,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    const csrfName = '<?= csrf_token() ?>';
+    const csrfHash = '<?= csrf_hash() ?>';
     const CONFIG = {
         totalSoal: <?= count($soal) ?>,
         idUjianSiswa: <?= $sesi->id ?>,
@@ -339,86 +342,75 @@
     }
 
     // --- LOGIC SIMPAN JAWABAN (AJAX) ---
-    function simpanJawaban(idSoal, tipe, idx) {
-        // Update State Lokal
-        stateSoal[idx].isi = true;
-        
-        if (tipe === 'kompleks') {
-            const checked = document.querySelectorAll(`.chk-kompleks-${idSoal}:checked`).length;
-            stateSoal[idx].isi = (checked > 0);
-        } else if (tipe === 'essai') {
-            const val = document.getElementById(`input_essai_${idSoal}`).value.trim();
-            stateSoal[idx].isi = (val !== '' && val !== '{}');
-        }
-        
-        renderGrid(); // Update warna grid jadi hijau
+ function simpanJawaban(idSoal, tipe, idx) {
+    // 1. Update State Lokal
+    stateSoal[idx].isi = true;
+    
+    if (tipe === 'kompleks') {
+        const checked = document.querySelectorAll(`.chk-kompleks-${idSoal}:checked`).length;
+        stateSoal[idx].isi = (checked > 0);
+    } else if (tipe === 'essai') {
+        const val = document.getElementById(`input_essai_${idSoal}`).value.trim();
+        stateSoal[idx].isi = (val !== '' && val !== '{}');
+    }
+    
+    renderGrid(); 
 
-        // Kirim Data
-        const fd = new FormData();
-        fd.append('id_ujian_siswa', CONFIG.idUjianSiswa);
-        fd.append('id_soal', idSoal);
+    // 2. Siapkan Form Data
+    const fd = new FormData();
+    fd.append('id_ujian_siswa', CONFIG.idUjianSiswa);
+    fd.append('id_soal', idSoal);
 
-        if (tipe === 'pg') {
-            const val = document.querySelector(`input[name="jawaban_${idSoal}"]:checked`)?.value;
-            if(val) fd.append('id_opsi', val);
-        } else if (tipe === 'kompleks') {
-            const checked = [];
-            document.querySelectorAll(`.chk-kompleks-${idSoal}:checked`).forEach(el => checked.push(el.value));
-            checked.forEach(val => fd.append('id_opsi[]', val));
-            if(checked.length === 0) fd.append('id_opsi', '');
-        } else if (tipe === 'essai') {
-            const val = document.getElementById(`input_essai_${idSoal}`).value;
-            fd.append('jawaban_isian', val);
-        }
+    // --- PERBAIKAN DI SINI ---
+    // Deklarasikan variabel csrfInput terlebih dahulu
+    const csrfInput = document.querySelector('input[name="<?= csrf_token() ?>"]');
+    
+    if (csrfInput) {
+        fd.append('<?= csrf_token() ?>', csrfInput.value);
+    } else {
+        // Fallback jika input tidak ditemukan, ambil dari variabel global/template
+        fd.append('<?= csrf_token() ?>', '<?= csrf_hash() ?>');
+    }
+    // -------------------------
 
-        fetch('<?= site_url('siswa/ujian/simpanJawaban') ?>', {
-            method: 'POST',
-            body: fd,
-            headers: {'X-Requested-With':'XMLHttpRequest'}
-        });
+    if (tipe === 'pg') {
+        const val = document.querySelector(`input[name="jawaban_${idSoal}"]:checked`)?.value;
+        if(val) fd.append('id_opsi', val);
+    } else if (tipe === 'kompleks') {
+        const checked = [];
+        document.querySelectorAll(`.chk-kompleks-${idSoal}:checked`).forEach(el => checked.push(el.value));
+        checked.forEach(val => fd.append('id_opsi[]', val));
+        if(checked.length === 0) fd.append('id_opsi', '');
+    } else if (tipe === 'essai') {
+        const val = document.getElementById(`input_essai_${idSoal}`).value;
+        fd.append('jawaban_isian', val);
     }
 
-    // --- CEK SELESAI (VALIDASI RAGU) ---
-    function cekSelesai() {
-        // Cek Ragu
-        const adaRagu = stateSoal.some(s => s.ragu === true);
-        if (adaRagu) {
-            Swal.fire({
-                title: 'Belum Bisa Selesai!',
-                text: 'Masih ada jawaban Ragu-ragu (Kuning). Silakan cek kembali.',
-                icon: 'warning',
-                confirmButtonText: 'Baik'
-            });
-            // Buka sidebar biar kelihatan
-            if(window.innerWidth < 1024) document.getElementById('nav-sidebar').classList.remove('translate-x-full');
-            return;
+    fetch('<?= base_url('siswa/ujian/simpanJawaban') ?>', {
+        method: 'POST',
+        body: fd,
+        headers: {'X-Requested-With':'XMLHttpRequest'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Jika server mengirimkan token baru (Regenerate: true), update nilai inputnya
+        if (data.csrf_test_name && csrfInput) {
+            csrfInput.value = data.csrf_test_name;
         }
-
-        const adaKosong = stateSoal.some(s => !s.isi);
-        let msg = "Yakin ingin mengumpulkan jawaban?";
-        if (adaKosong) msg = "Masih ada soal yang BELUM DIJAWAB (Putih). Yakin ingin menyelesaikan?";
-
-        Swal.fire({
-            title: 'Konfirmasi Selesai',
-            text: msg,
-            icon: adaKosong ? 'warning' : 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, Kumpulkan',
-            confirmButtonColor: '#16a34a',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                selesaiUjian(false);
-            }
-        });
-    }
-
+    })
+    .catch(error => console.error('Error:', error));
+}
     function selesaiUjian(isAuto) {
         if (!isAuto) Swal.fire({ title: 'Menyimpan...', didOpen: () => Swal.showLoading() });
         
-        const fd = new FormData();
-        fd.append('id_ujian_siswa', CONFIG.idUjianSiswa);
-        if(isAuto) fd.append('is_auto', '1');
+       // Ambil token CSRF terbaru dari input hidden yang ada di dalam form
+    const csrfInput = document.querySelector('input[name="<?= csrf_token() ?>"]');
+    const currentToken = csrfInput ? csrfInput.value : '<?= csrf_hash() ?>';
+
+    const fd = new FormData();
+    fd.append('id_ujian_siswa', CONFIG.idUjianSiswa);
+    fd.append('<?= csrf_token() ?>', currentToken); // Masukkan token terbaru
+    if(isAuto) fd.append('is_auto', '1');
 
         fetch('<?= site_url('siswa/ujian/selesaiUjian') ?>', { method: 'POST', body: fd })
         .then(r=>r.json()).then(d=>{
@@ -486,6 +478,8 @@
         const fd = new FormData();
         fd.append('id_ujian_siswa', CONFIG.idUjianSiswa);
         fd.append('jenis', jenis);
+        const currentToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
+    fd.append('<?= csrf_token() ?>', currentToken);
         fetch('<?= site_url('siswa/ujian/catatPelanggaran') ?>', {method:'POST', body:fd})
         .then(r=>r.json()).then(d=>{
             if(d.status === 'locked') {

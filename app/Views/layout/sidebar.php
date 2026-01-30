@@ -55,6 +55,12 @@ function is_active($url) {
                         <span class="ml-3">Dashboard</span>
                     </a>
                 </li>
+                <li>
+    <a href="<?= base_url($roleActive . '/profil') ?>" class="<?= $baseClass ?> <?= is_active($roleActive . '/profil') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span class="ml-3">Profil Saya</span>
+    </a>
+</li>
 
                 <?php if (in_array('admin', $roles)) : ?>
                 
@@ -74,8 +80,33 @@ function is_active($url) {
                         <li><a href="<?= base_url('admin/master/kelas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Data Kelas</a></li>
                         <li><a href="<?= base_url('admin/master/mapel') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Mata Pelajaran</a></li>
                         <li><a href="<?= base_url('admin/jam') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Jam Belajar (Bel)</a></li>
+                    <li class="nav-item">
+            <a href="<?= base_url('admin/sekolah/identitas') ?>" class="nav-link <?= (uri_string() == 'admin/sekolah/identitas') ? 'active' : '' ?>">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Identitas Sekolah</p>
+            </a>
+        </li>
                     </ul>
                 </li>
+
+                <a href="<?= base_url('admin/dapodik') ?>" class="flex items-center gap-3 p-3 rounded-xl transition-all mb-1 group <?= (uri_string() == 'admin/dapodik') ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/30' : 'text-slate-500 hover:bg-slate-50 hover:text-orange-600' ?>">
+    <div class="<?= (uri_string() == 'admin/dapodik') ? 'text-white' : 'text-slate-400 group-hover:text-orange-600' ?>">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+        </svg>
+    </div>
+    <span class="font-semibold text-sm">Integrasi Dapodik</span>
+    
+    <?php 
+    // Cek status koneksi (Query ringan biar tau status tanpa buka menu)
+    $db = \Config\Database::connect();
+    $dapo = $db->table('tbl_dapodik_setting')->select('status_koneksi')->where('id', 1)->get()->getRow();
+    if($dapo && $dapo->status_koneksi == 'Terhubung'): ?>
+        <span class="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+    <?php else: ?>
+        <span class="ml-auto w-2 h-2 rounded-full bg-rose-500"></span>
+    <?php endif; ?>
+</a>
 
                 <li>
                     <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-keuangan-adm" data-collapse-toggle="dropdown-keuangan-adm">
@@ -167,6 +198,8 @@ function is_active($url) {
 
                         <li><a href="<?= base_url('admin/presensi_guru') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Harian Guru</a></li>
                         <li><a href="<?= base_url('admin/jurnal') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Monitoring Jurnal</a></li>
+                        <li><a href="<?= base_url('admin/kartu') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Kartu Pelajar</a></li>
+                        <li><a href="<?= base_url('admin/presensi/rekap') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Rekap Kehadiran</a></li>
                     </ul>
                 </li>
 
@@ -262,12 +295,37 @@ function is_active($url) {
                 <?php if (in_array('guru', $roles)) : ?>
                 <li class="<?= $headerClass ?>">Area Guru</li>
                 
+                
                 <li>
                     <a href="<?= base_url('guru/jadwal') ?>" class="<?= $baseClass ?> <?= is_active('guru/jadwal') ? $activeClass : $inactiveClass ?>">
                         <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         <span class="ml-3">Jadwal Mengajar</span>
                     </a>
                 </li>
+                <li>
+    <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-elearning-guru" data-collapse-toggle="dropdown-elearning-guru">
+        <i class="fas fa-chalkboard-teacher w-4 h-4 flex-shrink-0"></i>
+        <span class="ml-3 flex-1 text-left whitespace-nowrap">E-Learning (KBM)</span>
+        <svg class="w-3 h-3 text-gray-400 transition-transform group-aria-expanded:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </button>
+    <ul id="dropdown-elearning-guru" class="hidden py-1 space-y-0.5">
+        <li><a href="<?= base_url('guru/materi') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">Materi Pelajaran</a></li>
+        <li><a href="<?= base_url('guru/tugas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">Tugas & PR</a></li>
+        <li><a href="<?= base_url('guru/bank_soal') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">Bank Soal</a></li>
+        <li><a href="<?= base_url('guru/ujian') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">Jadwal Ujian</a></li>
+    </ul>
+</li>
+                <a href="<?= base_url('guru/presensi/absen') ?>" class="flex items-center gap-3 p-3 rounded-xl transition-all mb-1 group <?= uri_string() == 'guru/presensi/absen' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600' ?>">
+    <div class="<?= uri_string() == 'guru/presensi/absen' ? 'text-white' : 'text-slate-400 group-hover:text-blue-600' ?>">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+    </div>
+    <span class="font-semibold text-sm">Absen Sekarang</span>
+    
+    <span class="ml-auto px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white">NEW</span>
+</a>
 
                 <li>
                     <a href="<?= base_url('guru/presensi') ?>" class="<?= $baseClass ?> <?= is_active('guru/presensi') ? $activeClass : $inactiveClass ?>">
@@ -327,6 +385,28 @@ function is_active($url) {
 
                 <?php if ($roleActive == 'siswa') : ?>
                 <li class="<?= $headerClass ?>">Area Siswa</li>
+                <li class="pt-2 pb-1 px-3 text-[10px] font-bold text-gray-400 uppercase">Kegiatan Belajar</li>
+
+<li>
+    <a href="<?= base_url('siswa/materi') ?>" class="<?= $baseClass ?> <?= is_active('siswa/materi') ? $activeClass : $inactiveClass ?>">
+        <i class="fas fa-book-reader w-4 h-4"></i>
+        <span class="ml-3 flex-1">Materi & Bahan Ajar</span>
+    </a>
+</li>
+
+<li>
+    <a href="<?= base_url('siswa/tugas') ?>" class="<?= $baseClass ?> <?= is_active('siswa/tugas') ? $activeClass : $inactiveClass ?>">
+        <i class="fas fa-tasks w-4 h-4"></i>
+        <span class="ml-3 flex-1">Tugas Sekolah</span>
+    </a>
+</li>
+
+<li>
+    <a href="<?= base_url('siswa/ujian') ?>" class="<?= $baseClass ?> <?= is_active('siswa/ujian') ? $activeClass : $inactiveClass ?>">
+        <i class="fas fa-pen-alt w-4 h-4"></i>
+        <span class="ml-3 flex-1">Ujian Sekolah</span>
+    </a>
+</li>
                 
                 <li>
                     <a href="<?= base_url('siswa/keuangan') ?>" class="<?= $baseClass ?> <?= is_active('siswa/keuangan') ? $activeClass : $inactiveClass ?>">
@@ -334,6 +414,9 @@ function is_active($url) {
                         <span class="ml-3 flex-1">Keuangan Saya</span>
                     </a>
                 </li>
+                <a href="<?= base_url('siswa/presensi/absen') ?>" class="flex items-center gap-3 p-3 ...">
+    <span class="font-semibold text-sm">Absen Datang/Pulang</span>
+</a>
 
                 <li>
                     <a href="<?= base_url('siswa/presensi') ?>" class="<?= $baseClass ?> <?= is_active('siswa/presensi') ? $activeClass : $inactiveClass ?>">
@@ -362,19 +445,6 @@ function is_active($url) {
     </a>
 </li>
 
-                <li>
-                    <a href="<?= base_url('siswa/ujian') ?>" class="<?= $baseClass ?> <?= is_active('siswa/ujian') ? $activeClass : $inactiveClass ?>">
-                        <i class="fas fa-pen-alt w-4 h-4 text-center transition-colors"></i>
-                        <span class="ml-3 flex-1">Ujian Sekolah</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="<?= base_url('siswa/nilai') ?>" class="<?= $baseClass ?> <?= is_active('siswa/nilai') ? $activeClass : $inactiveClass ?>">
-                        <i class="fas fa-chart-line w-4 h-4 text-center transition-colors"></i>
-                        <span class="ml-3 flex-1">Riwayat Nilai</span>
-                    </a>
-                </li>
                 <?php endif; ?>
 
             </ul>

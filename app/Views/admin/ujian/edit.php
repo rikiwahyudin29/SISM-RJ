@@ -15,6 +15,8 @@
 
     <form action="<?= base_url('admin/jadwalujian/update/' . $j['id']) ?>" method="post" class="space-y-6 pb-10">
         
+        <?= csrf_field() ?>
+
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
                 <h3 class="font-bold text-gray-800 dark:text-white flex items-center gap-2">
@@ -131,30 +133,30 @@
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border">
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
                 <div class="flex justify-between items-center mb-3">
                     <span class="font-bold text-gray-800 dark:text-white text-sm">Mode Ketat</span>
                     <input type="checkbox" name="setting_strict" value="1" <?= $j['setting_strict'] ? 'checked' : '' ?> onclick="toggleStrict(this)" class="w-4 h-4 rounded text-blue-600">
                 </div>
-                <div id="strictOptions" class="<?= $j['setting_strict'] ? '' : 'opacity-50 pointer-events-none' ?> space-y-3">
-                    <input type="number" name="setting_max_violation" value="<?= $j['setting_max_violation'] ?>" class="w-full p-2 text-sm border rounded dark:bg-slate-900 dark:text-white" placeholder="Max Pelanggaran">
-                    <input type="number" name="setting_afk_timeout" value="<?= $j['setting_afk_timeout'] ?>" class="w-full p-2 text-sm border rounded dark:bg-slate-900 dark:text-white" placeholder="AFK (Detik)">
+                <div id="strictOptions" class="<?= $j['setting_strict'] ? '' : 'opacity-50 pointer-events-none' ?> space-y-3 transition-opacity">
+                    <input type="number" name="setting_max_violation" value="<?= $j['setting_max_violation'] ?>" class="w-full p-2 text-sm border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" placeholder="Max Pelanggaran">
+                    <input type="number" name="setting_afk_timeout" value="<?= $j['setting_afk_timeout'] ?>" class="w-full p-2 text-sm border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white" placeholder="AFK (Detik)">
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border">
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
                 <div class="flex justify-between items-center mb-3">
                     <span class="font-bold text-gray-800 dark:text-white text-sm">Pakai Token</span>
                     <input type="checkbox" name="setting_token" value="1" id="chkToken" <?= $j['setting_token'] ? 'checked' : '' ?> onchange="toggleToken()" class="w-4 h-4 rounded text-blue-600">
                 </div>
-                <input type="text" name="token" value="<?= $j['token'] ?>" id="inpToken" class="<?= $j['setting_token'] ? '' : 'hidden' ?> w-full p-2 text-center uppercase font-mono bg-gray-50 border rounded dark:bg-slate-900 dark:text-white">
-                <div class="mt-2 pt-2 border-t flex justify-between">
-                    <span class="text-xs">Show Nilai?</span>
+                <input type="text" name="token" value="<?= $j['token'] ?>" id="inpToken" class="<?= $j['setting_token'] ? '' : 'hidden' ?> w-full p-2 text-center uppercase font-mono bg-gray-50 border rounded dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                <div class="mt-2 pt-2 border-t dark:border-slate-700 flex justify-between">
+                    <span class="text-xs dark:text-gray-300">Show Nilai?</span>
                     <input type="checkbox" name="setting_show_score" value="1" <?= $j['setting_show_score'] ? 'checked' : '' ?> class="w-4 h-4 rounded text-blue-600">
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border flex items-center justify-between">
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
                     <span class="font-bold text-gray-800 dark:text-white text-sm block">Single Device</span>
                     <span class="text-[10px] text-gray-500">1 Akun 1 Perangkat</span>
@@ -162,7 +164,7 @@
                 <input type="checkbox" name="setting_multi_login" value="1" <?= $j['setting_multi_login'] ? 'checked' : '' ?> class="w-4 h-4 rounded text-blue-600">
             </div>
 
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border space-y-3">
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 space-y-3">
                 <label class="flex justify-between items-center cursor-pointer">
                     <span class="text-sm font-bold dark:text-white">Acak Soal</span>
                     <input type="checkbox" name="acak_soal" value="1" <?= $j['acak_soal'] ? 'checked' : '' ?> class="w-4 h-4 rounded text-blue-600">
@@ -175,7 +177,9 @@
         </div>
 
         <div class="flex justify-end pt-6">
-            <button type="submit" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg">SIMPAN PERUBAHAN</button>
+            <button type="submit" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95">
+                SIMPAN PERUBAHAN
+            </button>
         </div>
 
     </form>
@@ -195,8 +199,10 @@
         const inp = document.getElementById('inpToken');
         if (chk.checked) {
             inp.classList.remove('hidden');
+            inp.required = true;
         } else {
             inp.classList.add('hidden');
+            inp.required = false;
         }
     }
 </script>

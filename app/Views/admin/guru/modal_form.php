@@ -1,173 +1,267 @@
 <div id="modal-guru-form" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
     <div class="relative w-full max-w-4xl max-h-full">
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white" id="modal-guru-title">
-                    Tambah Guru Baru
+        <div class="relative bg-white rounded-xl shadow-2xl dark:bg-gray-700 ring-1 ring-gray-200 dark:ring-gray-600">
+            <div class="flex items-center justify-between p-5 border-b rounded-t dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center" id="modal-title">
+                    <i class="fas fa-user-plus text-blue-600 mr-3"></i>
+                    <span>Tambah Data Guru</span>
                 </h3>
-                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-guru-form">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white transition-colors" data-modal-hide="modal-guru-form">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
                 </button>
             </div>
+            
             <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
-                <form action="<?= base_url('admin/guru/simpan') ?>" method="POST" id="form-guru" enctype="multipart/form-data">
+                
+                <form id="formGuru" action="<?= base_url('admin/guru/simpan') ?>" method="POST" enctype="multipart/form-data">
+                    
                     <?= csrf_field() ?>
-                    <input type="hidden" name="id" id="guru-id">
 
-                    <div class="grid grid-cols-6 gap-6">
+                    <input type="hidden" name="id" id="id_guru">
+                    
+                    <div class="bg-blue-50/50 p-4 rounded-lg border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 mb-6">
+                        <h4 class="text-sm font-bold text-blue-700 uppercase mb-4 flex items-center dark:text-blue-400">
+                            <i class="fas fa-id-card mr-2"></i> Identitas & Akun Login
+                        </h4>
                         
-                        <div class="col-span-6">
-                             <h4 class="text-base font-bold text-gray-900 dark:text-white mb-3 pb-2 border-b dark:border-gray-600">Identitas & Akun</h4>
-                        </div>
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="nip" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">NIP (Sebagai Username Login) <span class="text-red-500">*</span></label>
-                            <input type="text" name="nip" id="nip" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Contoh: 19850101..." required>
-                        </div>
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="nama_lengkap" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Lengkap (Tanpa Gelar) <span class="text-red-500">*</span></label>
-                            <input type="text" name="nama_lengkap" id="nama_lengkap" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Contoh: Budi Santoso" required>
-                        </div>
-                        <div class="col-span-6 sm:col-span-2">
-                            <label for="gelar_depan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Gelar Depan</label>
-                            <input type="text" name="gelar_depan" id="gelar_depan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Contoh: Dr., Drs.">
-                        </div>
-                        <div class="col-span-6 sm:col-span-2">
-                            <label for="gelar_belakang" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Gelar Belakang</label>
-                            <input type="text" name="gelar_belakang" id="gelar_belakang" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Contoh: S.Pd., M.Kom.">
-                        </div>
-                        <div class="col-span-6 sm:col-span-2">
-                            <label for="jenis_kelamin" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jenis Kelamin</label>
-                            <select name="jenis_kelamin" id="jenis_kelamin" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                                <option value="L">Laki-Laki</option>
-                                <option value="P">Perempuan</option>
-                            </select>
+                        <div class="grid gap-6 mb-4 md:grid-cols-3">
+                            <div>
+                                <label class="block mb-2 text-sm font-semibold text-gray-900 dark:text-white">NIK (KTP) <span class="text-red-500">*</span></label>
+                                <input type="text" name="nik" id="nik" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 shadow-sm" required placeholder="16 digit NIK">
+                                <p class="mt-1 text-[11px] text-gray-500"><i class="fas fa-key mr-1"></i>Username Login</p>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-semibold text-gray-900 dark:text-white">NIP (Opsional)</label>
+                                <input type="text" name="nip" id="nip" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 shadow-sm" placeholder="-">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-semibold text-gray-900 dark:text-white">NUPTK</label>
+                                <input type="text" name="nuptk" id="nuptk" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 shadow-sm" placeholder="-">
+                            </div>
                         </div>
 
-                         <div class="col-span-6 mt-4">
-                             <h4 class="text-base font-bold text-gray-900 dark:text-white mb-3 pb-2 border-b dark:border-gray-600">Data Pribadi & Kontak</h4>
-                        </div>
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="tempat_lahir" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tempat Lahir</label>
-                            <input type="text" name="tempat_lahir" id="tempat_lahir" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                        </div>
-                         <div class="col-span-6 sm:col-span-3">
-                            <label for="tanggal_lahir" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Lahir</label>
-                            <input type="date" name="tanggal_lahir" id="tanggal_lahir" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                        </div>
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="no_hp" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">No. HP / WhatsApp</label>
-                            <input type="text" name="no_hp" id="no_hp" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                        </div>
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email Aktif</label>
-                            <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                        </div>
-                        <div class="col-span-6">
-                            <label for="alamat" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alamat Lengkap</label>
-                            <textarea name="alamat" id="alamat" rows="2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"></textarea>
-                        </div>
-                        <div class="col-span-6 sm:col-span-6">
-    <label for="telegram_chat_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-        ID Telegram (Wajib untuk OTP Login) <span class="text-red-500">*</span>
-    </label>
-    <div class="relative">
-        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-            </svg>
-        </div>
-        <input type="text" name="telegram_chat_id" id="telegram_chat_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Contoh: 123456789">
-    </div>
-    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">User bisa cek ID via bot Telegram.</p>
-</div>
-
-                        <div class="col-span-6 mt-4">
-                             <h4 class="text-base font-bold text-gray-900 dark:text-white mb-3 pb-2 border-b dark:border-gray-600">Kepegawaian & Pendidikan</h4>
-                        </div>
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="status_guru" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status Kepegawaian</label>
-                            <select name="status_guru" id="status_guru" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                                <option value="GTY">GTY (Tetap Yayasan)</option>
-                                <option value="GTT">GTT (Tidak Tetap)</option>
-                                <option value="PNS">PNS</option>
-                                <option value="PPPK">PPPK</option>
-                                <option value="HONORER">Honorer</option>
-                            </select>
-                        </div>
-                        <div class="col-span-6 sm:col-span-3">
-                            <label for="pendidikan_terakhir" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pendidikan Terakhir</label>
-                            <input type="text" name="pendidikan_terakhir" id="pendidikan_terakhir" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Contoh: S1 Pendidikan Matematika">
-                        </div>
-                        <div class="col-span-6">
-                            <label for="sertifikasi" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Sertifikasi / Keahlian</label>
-                            <input type="text" name="sertifikasi" id="sertifikasi" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Contoh: Sertifikat Pendidik 2023">
-                        </div>
-
-                        <div class="col-span-6 mt-4">
-                             <h4 class="text-base font-bold text-gray-900 dark:text-white mb-3 pb-2 border-b dark:border-gray-600">Foto Profil</h4>
-                        </div>
-                        <div class="col-span-6">
-                            
-                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="foto">Upload Foto (Opsional)</label>
-                            <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400" id="foto" name="foto" type="file" accept="image/png, image/jpeg, image/jpg">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-300" id="file_input_help">Format: JPG, JPEG, PNG. Maks. 2MB.</p>
+                        <div class="grid gap-6 md:grid-cols-4">
+                            <div class="col-span-1">
+                                <label class="block mb-2 text-sm font-semibold text-gray-900 dark:text-white">Gelar Depan</label>
+                                <input type="text" name="gelar_depan" id="gelar_depan" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 shadow-sm" placeholder="Dr.">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block mb-2 text-sm font-semibold text-gray-900 dark:text-white">Nama Lengkap <span class="text-red-500">*</span></label>
+                                <input type="text" name="nama_lengkap" id="nama_lengkap" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 shadow-sm" required placeholder="Nama Tanpa Gelar">
+                            </div>
+                            <div class="col-span-1">
+                                <label class="block mb-2 text-sm font-semibold text-gray-900 dark:text-white">Gelar Belakang</label>
+                                <input type="text" name="gelar_belakang" id="gelar_belakang" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 shadow-sm" placeholder="S.Pd">
+                            </div>
                         </div>
                     </div>
+
+                    <div class="mb-6">
+                        <h4 class="text-sm font-bold text-gray-700 uppercase mb-4 border-b border-gray-200 pb-2 flex items-center dark:text-gray-300">
+                            <i class="fas fa-user mr-2"></i> Data Pribadi & Kontak
+                        </h4>
+
+                        <div class="grid gap-6 mb-4 md:grid-cols-3">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tempat Lahir</label>
+                                <input type="text" name="tempat_lahir" id="tempat_lahir" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Lahir</label>
+                                <input type="date" name="tgl_lahir" id="tgl_lahir" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jenis Kelamin</label>
+                                <select name="jk" id="jk" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    <option value="L">Laki-laki</option>
+                                    <option value="P">Perempuan</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-6 mb-4 md:grid-cols-2">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Ibu Kandung</label>
+                                <input type="text" name="ibu_kandung" id="ibu_kandung" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">No. HP / WhatsApp</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <i class="fab fa-whatsapp text-green-500"></i>
+                                    </div>
+                                    <input type="text" name="no_hp" id="no_hp" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5" placeholder="08xxxxxxxxxx">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alamat Lengkap</label>
+                            <textarea name="alamat" id="alamat" rows="2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Jalan, RT/RW, Kecamatan..."></textarea>
+                        </div>
+
+                        <div class="grid gap-6 md:grid-cols-2">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email Aktif</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <i class="fas fa-envelope text-gray-400"></i>
+                                    </div>
+                                    <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5" placeholder="email@sekolah.sch.id">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    ID Telegram (Wajib OTP) <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <i class="fab fa-telegram text-blue-500"></i>
+                                    </div>
+                                    <input type="text" name="telegram_chat_id" id="telegram_chat_id" class="bg-blue-50 border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5" placeholder="Contoh: 108546xxxx">
+                                </div>
+                                <p class="mt-1 text-[10px] text-gray-500">Dapatkan ID via bot Telegram sekolah.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4 class="text-sm font-bold text-gray-700 uppercase mb-4 border-b border-gray-200 pb-2 flex items-center dark:text-gray-300">
+                            <i class="fas fa-briefcase mr-2"></i> Kepegawaian & Fasilitas
+                        </h4>
+                        
+                        <div class="grid gap-6 md:grid-cols-3">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status Kepegawaian</label>
+                                <select name="status_kepegawaian" id="status_kepegawaian" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    <option value="GTY">GTY (Tetap Yayasan)</option>
+                                    <option value="GTT">GTT (Tidak Tetap)</option>
+                                    <option value="PNS">PNS / PPPK</option>
+                                    <option value="Honorer">Honorer Sekolah</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pendidikan Terakhir</label>
+                                <input type="text" name="pendidikan_terakhir" id="pendidikan_terakhir" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="S1 Pendidikan...">
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">RFID UID (Absen)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <i class="fas fa-wifi text-purple-500"></i>
+                                    </div>
+                                    <input type="text" name="rfid_uid" id="rfid_uid" class="bg-purple-50 border border-purple-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full pl-10 p-2.5" placeholder="Tempel Kartu...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end p-4 space-x-3 border-t border-gray-200 rounded-b dark:border-gray-600 bg-gray-50 dark:bg-gray-800 -mx-6 -mb-6 mt-6 sticky bottom-0">
+                        <button data-modal-hide="modal-guru-form" type="button" class="text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-300 text-sm font-medium px-5 py-2.5 hover:text-red-600 focus:z-10 shadow-sm transition-all">
+                            <i class="fas fa-times mr-2"></i> Batal
+                        </button>
+                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+                            <i class="fas fa-save mr-2"></i> Simpan Data
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" id="btn-simpan-guru">Simpan Data</button>
-                <button data-modal-hide="modal-guru-form" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Batal</button>
-            </div>
-            </form>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const modalTitle = document.getElementById('modal-guru-title');
-        const formGuru = document.getElementById('form-guru');
-        const btnSimpan = document.getElementById('btn-simpan-guru');
-        const inputId = document.getElementById('guru-id');
+    document.addEventListener("DOMContentLoaded", function() {
+        const editButtons = document.querySelectorAll('.btn-edit-guru');
+        const modalTitle = document.getElementById('modal-title');
+        
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // 1. Ubah Judul Modal jadi Edit
+                modalTitle.innerHTML = '<i class="fas fa-edit text-yellow-500 mr-3"></i><span>Edit Data Guru</span>';
+                
+                // 2. Ambil data dari atribut tombol (sesuai index.php)
+                const id = this.getAttribute('data-id');
+                const nik = this.getAttribute('data-nik');
+                const nip = this.getAttribute('data-nip');
+                const nuptk = this.getAttribute('data-nuptk');
+                const nama = this.getAttribute('data-nama');
+                const depan = this.getAttribute('data-gelar-depan');
+                const belakang = this.getAttribute('data-gelar-belakang');
+                
+                // Data Pribadi (Perhatikan nama atributnya, sesuaikan dengan index.php)
+                const tempat = this.getAttribute('data-tempat-lahir'); 
+                const tgl = this.getAttribute('data-tgl-lahir');
+                const jk = this.getAttribute('data-jk');
+                const ibu = this.getAttribute('data-ibu');
+                const alamat = this.getAttribute('data-alamat');
+                
+                // Kontak & Akun
+                const hp = this.getAttribute('data-hp');
+                const email = this.getAttribute('data-email');
+                const telegram = this.getAttribute('data-telegram');
+                
+                // Kepegawaian
+                const pend = this.getAttribute('data-pendidikan');
+                const status = this.getAttribute('data-status');
+                const rfid = this.getAttribute('data-rfid');
 
-        // Helper untuk set value (biar gak error kalau null)
-        const setValue = (id, val) => { document.getElementById(id).value = val ?? ''; };
-
-        // MODE TAMBAH
-        document.querySelector('[data-modal-toggle="modal-guru-form"]').addEventListener('click', function() {
-            modalTitle.textContent = 'Tambah Guru Baru';
-            formGuru.reset();
-            inputId.value = '';
-            btnSimpan.textContent = 'Simpan Data';
-            document.getElementById('nip').removeAttribute('readonly'); // NIP bisa diedit saat tambah
+                // 3. Masukkan ke Input Form
+                document.getElementById('id_guru').value = id;
+                document.getElementById('nik').value = nik;
+                document.getElementById('nip').value = nip;
+                document.getElementById('nuptk').value = nuptk;
+                document.getElementById('nama_lengkap').value = nama;
+                document.getElementById('gelar_depan').value = depan;
+                document.getElementById('gelar_belakang').value = belakang;
+                
+                document.getElementById('tempat_lahir').value = tempat;
+                document.getElementById('tgl_lahir').value = tgl;
+                
+                // Handle Select Option (JK)
+                if(jk) document.getElementById('jk').value = jk;
+                
+                document.getElementById('ibu_kandung').value = ibu;
+                document.getElementById('alamat').value = alamat;
+                
+                document.getElementById('no_hp').value = hp;
+                document.getElementById('email').value = email;
+                document.getElementById('telegram_chat_id').value = telegram; // Ini Field Telegram
+                
+                document.getElementById('pendidikan_terakhir').value = pend;
+                
+                // Handle Select Option (Status)
+                if(status) {
+                    const statusSelect = document.getElementById('status_kepegawaian');
+                    // Cek jika value ada di option, kalau tidak ada default ke Honorer atau biarkan
+                    let found = false;
+                    for(let i=0; i<statusSelect.options.length; i++){
+                        if(statusSelect.options[i].value == status){
+                            statusSelect.selectedIndex = i;
+                            found = true;
+                            break;
+                        }
+                    }
+                    // Jika status dari DB tidak ada di list option (misal 'Guru Mapel'), bisa ditambahkan logic lain
+                    // Tapi biasanya cocok.
+                }
+                
+                document.getElementById('rfid_uid').value = rfid;
+            });
         });
 
-        // MODE EDIT (Mengisi semua field)
-        document.querySelectorAll('.btn-edit-guru').forEach(button => {
-            button.addEventListener('click', function() {
-                modalTitle.textContent = 'Edit Data Guru';
-                btnSimpan.textContent = 'Simpan Perubahan';
-                
-                const d = this.dataset; // Ambil semua data-attribute
-                
-                inputId.value = d.id;
-                setValue('nip', d.nip);
-                setValue('nama_lengkap', d.nama);
-                setValue('gelar_depan', d.gelar_depan);
-                setValue('gelar_belakang', d.gelar_belakang);
-                setValue('jenis_kelamin', d.jenis_kelamin);
-                setValue('tempat_lahir', d.tempat_lahir);
-                setValue('tanggal_lahir', d.tanggal_lahir);
-                setValue('no_hp', d.no_hp);
-                setValue('email', d.email);
-                setValue('alamat', d.alamat);
-                setValue('status_guru', d.status);
-                setValue('pendidikan_terakhir', d.pendidikan);
-                setValue('sertifikasi', d.sertifikasi);
-                setValue('telegram_chat_id', d.telegram);
-
-                // Opsional: NIP sebaiknya tidak diubah sembarangan saat edit karena terkait username login
-                // document.getElementById('nip').setAttribute('readonly', true); 
+        // Reset form saat tombol Tambah diklik
+        const addBtns = document.querySelectorAll('[data-modal-toggle="modal-guru-form"]');
+        addBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if(!this.classList.contains('btn-edit-guru')) {
+                    modalTitle.innerHTML = '<i class="fas fa-user-plus text-blue-600 mr-3"></i><span>Tambah Data Guru</span>';
+                    document.getElementById('formGuru').reset();
+                    document.getElementById('id_guru').value = '';
+                }
             });
         });
     });

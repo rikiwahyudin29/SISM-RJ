@@ -15,6 +15,8 @@
 
     <form action="<?= base_url('admin/jadwalujian/simpan') ?>" method="post" class="space-y-6 pb-10">
         
+        <?= csrf_field() ?>
+
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
                 <h3 class="font-bold text-gray-800 dark:text-white flex items-center gap-2">
@@ -75,16 +77,13 @@
                         <input type="number" name="bobot_pg" value="100" class="w-full p-3 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-purple-500 text-gray-900 dark:text-white" placeholder="100">
                         <span class="absolute right-4 top-3 text-gray-400 text-sm">%</span>
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">*Khusus untuk soal tipe Pilihan Ganda Biasa.</p>
                 </div>
-                
                 <div>
                     <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Bobot Non-PG (Esai/Kompleks/Jodoh)</label>
                     <div class="relative">
                         <input type="number" name="bobot_esai" value="100" class="w-full p-3 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-purple-500 text-gray-900 dark:text-white" placeholder="100">
                         <span class="absolute right-4 top-3 text-gray-400 text-sm">%</span>
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">*Untuk Essay, PG Kompleks, Menjodohkan, dll.</p>
                 </div>
             </div>
         </div>
@@ -132,7 +131,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            
             <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
                 <div class="flex justify-between items-center mb-3">
                     <span class="font-bold text-gray-800 dark:text-white text-sm">Mode Ketat (Strict)</span>
@@ -145,12 +143,10 @@
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1">Batas Max Pelanggaran</label>
                         <input type="number" name="setting_max_violation" value="3" class="w-full p-2 text-sm bg-gray-50 dark:bg-slate-900 border rounded-lg dark:border-slate-600 dark:text-white">
-                        <p class="text-[9px] text-red-500 mt-1">*Otomatis Selesai jika limit tercapai</p>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1">AFK Timeout (Detik)</label>
-                        <input type="number" name="setting_afk_timeout" value="0" class="w-full p-2 text-sm bg-gray-50 dark:bg-slate-900 border rounded-lg dark:border-slate-600 dark:text-white" placeholder="Contoh: 60">
-                        <p class="text-[9px] text-gray-400 mt-1">*Siswa dikeluarkan jika diam xx detik</p>
+                        <input type="number" name="setting_afk_timeout" value="0" class="w-full p-2 text-sm bg-gray-50 dark:bg-slate-900 border rounded-lg dark:border-slate-600 dark:text-white">
                     </div>
                 </div>
             </div>
@@ -172,9 +168,6 @@
                     <span class="font-bold text-gray-800 dark:text-white text-sm">Single Device</span>
                     <input type="checkbox" name="setting_multi_login" value="1" checked class="w-4 h-4 rounded text-blue-600">
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                    Jika aktif, siswa hanya bisa login di 1 perangkat. Sesi lama akan terkunci jika login di tempat baru.
-                </p>
             </div>
 
             <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
@@ -185,7 +178,7 @@
                     </label>
                     <hr class="dark:border-slate-700">
                     <label class="flex justify-between items-center cursor-pointer">
-                        <span class="text-sm font-bold text-gray-800 dark:text-white">Acak Opsi (A/B/C)</span>
+                        <span class="text-sm font-bold text-gray-800 dark:text-white">Acak Opsi</span>
                         <input type="checkbox" name="acak_opsi" value="1" checked class="w-4 h-4 rounded text-blue-600">
                     </label>
                 </div>

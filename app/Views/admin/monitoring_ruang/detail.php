@@ -219,6 +219,9 @@
         formData.append('aksi', aksi);
         formData.append('menit', menit);
 
+        // TAMBAHKAN TOKEN CSRF
+    formData.append('<?= csrf_token() ?>', '<?= csrf_hash() ?>');
+
         fetch('<?= base_url('guru/monitoring/aksi_masal') ?>', {
             method: 'POST',
             body: formData,

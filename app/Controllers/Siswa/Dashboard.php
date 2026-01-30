@@ -9,18 +9,22 @@ class Dashboard extends BaseController
     public function index()
     {
         $db = \Config\Database::connect();
-        $userId = session()->get('id_user');
+        
+        // Ambil ID dari session (Cek kedua kemungkinan key session)
+        $userId = session()->get('id_user') ?? session()->get('user_id');
 
-        // 1. AMBIL DATA SISWA (Untuk tahu dia kelas berapa)
+        // 1. AMBIL DATA SISWA (Gunakan COALESCE untuk kolom user_id dan id_user)
         $siswa = $db->table('tbl_siswa')
                     ->select('tbl_siswa.*, tbl_kelas.nama_kelas, tbl_jurusan.nama_jurusan')
                     ->join('tbl_kelas', 'tbl_kelas.id = tbl_siswa.kelas_id', 'left')
                     ->join('tbl_jurusan', 'tbl_jurusan.id = tbl_siswa.jurusan_id', 'left')
-                    ->where('tbl_siswa.user_id', $userId)
+                    // JURUS SAKTI: Cek di kedua kolom relasi agar sinkron Dapodik & Manual
+                    ->where('COALESCE(tbl_siswa.user_id, tbl_siswa.id_user) =', $userId)
                     ->get()->getRowArray();
 
+        // Jika data profil tetap tidak ada di tbl_siswa
         if (!$siswa) {
-            return "Error: Data profil siswa tidak ditemukan.";
+            return "Error: Data profil siswa tidak ditemukan di database untuk User ID: " . $userId . ". Mohon hubungi Admin untuk sinkronisasi data relasi di tbl_siswa.";
         }
 
         // 2. AMBIL JADWAL PELAJARAN (Sesuai Kelas Siswa)

@@ -319,6 +319,68 @@ class Presensi extends BaseController
             ]
         ]);
     }
+    // --- FITUR BARU: CETAK REKAP MATRIX BULANAN PER KELAS ---
+public function cetak_bulanan()
+    {
+        // 1. Ambil Filter
+        $bulanStr = $this->request->getGet('bulan');
+        $id_kelas = $this->request->getGet('id_kelas');
+
+        if (empty($bulanStr) || empty($id_kelas)) {
+            return redirect()->back()->with('error', 'Pilih Bulan dan Kelas terlebih dahulu!');
+        }
+
+        // 2. Info Kelas & Sekolah
+        $kelas = $this->db->table('tbl_kelas')->where('id', $id_kelas)->get()->getRowArray();
+        $sekolah = [
+            'nama'   => 'SMK DIGITAL INDONESIA',
+            'alamat' => 'Jl. Teknologi No. 1'
+        ];
+
+        // 3. Ambil Semua Siswa (REVISI: Pakai 'kelas_id')
+        $siswa = $this->db->table('tbl_siswa')
+            ->where('kelas_id', $id_kelas) // <--- DULU 'id_kelas', SEKARANG 'kelas_id'
+            ->orderBy('nama_lengkap', 'ASC')
+            ->get()->getResultArray();
+
+        // 4. Ambil Data Absensi (REVISI: Pakai 'kelas_id' saat filter siswa)
+        $absensi = $this->db->table('tbl_presensi')
+            ->select('tbl_presensi.*, tbl_siswa.id as id_siswa_real')
+            ->join('tbl_siswa', 'tbl_siswa.id = tbl_presensi.user_id')
+            ->where('tbl_presensi.role', 'siswa')
+            ->where('tbl_siswa.kelas_id', $id_kelas) // <--- DULU 'id_kelas', SEKARANG 'kelas_id'
+            ->like('tbl_presensi.tanggal', $bulanStr)
+            ->get()->getResultArray();
+
+        // 5. Mapping Data ke Matrix
+        $data_matrix = [];
+        foreach ($absensi as $row) {
+            $tgl = (int) date('d', strtotime($row['tanggal']));
+            $id_s = $row['id_siswa_real'];
+            
+            // Kode Status Singkat
+            $status = 'A';
+            if ($row['status_kehadiran'] == 'Hadir') $status = 'H';
+            if ($row['status_kehadiran'] == 'Terlambat') $status = 'T';
+            if ($row['status_kehadiran'] == 'Sakit') $status = 'S';
+            if ($row['status_kehadiran'] == 'Izin') $status = 'I';
+            if ($row['status_kehadiran'] == 'Alpha') $status = 'A';
+
+            $data_matrix[$id_s][$tgl] = $status;
+        }
+
+        $jml_hari = date('t', strtotime($bulanStr));
+
+        return view('admin/presensi/cetak_matrix', [
+            'title'       => 'Rekap Absensi Bulanan',
+            'siswa'       => $siswa,
+            'matrix'      => $data_matrix,
+            'jml_hari'    => $jml_hari,
+            'bulan'       => $bulanStr,
+            'kelas'       => $kelas,
+            'sekolah'     => $sekolah
+        ]);
+    }
     public function rekap()
     {
         $bulan = $this->request->getGet('bulan') ?? date('Y-m');
