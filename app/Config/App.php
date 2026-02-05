@@ -16,7 +16,7 @@ class App extends BaseConfig
      *
      * E.g., http://example.com/
      */
-    public string $baseURL = 'https://d4fddb4f0663.ngrok-free.app';
+    public string $baseURL = 'https://5c4683e4996e.ngrok-free.app';
     
 
     /**

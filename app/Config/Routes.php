@@ -130,7 +130,13 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
         $routes->get('registrasi', 'Admin\Kartu::registrasi');
         $routes->post('simpan_uid', 'Admin\Kartu::simpan_uid');
     });
-
+$routes->get('jenis_ujian', 'Admin\Master::jenis_ujian');
+    $routes->post('jenis_ujian/simpan', 'Admin\Master::jenis_ujian_simpan');
+    $routes->post('jenis_ujian/update/(:num)', 'Admin\Master::jenis_ujian_update/$1');
+    $routes->get('jenis_ujian/hapus/(:num)', 'Admin\Master::jenis_ujian_hapus/$1');
+    $routes->get('jam', 'Admin\Jam::index');
+    $routes->post('jam/simpan', 'Admin\Jam::simpan');
+    $routes->get('jam/hapus/(:num)', 'Admin\Jam::hapus/$1');
     // --- MASTER DATA ---
     $routes->group('master', function($routes) {
         // Tahun Ajaran

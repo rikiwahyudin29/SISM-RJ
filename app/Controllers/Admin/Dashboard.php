@@ -15,6 +15,7 @@ class Dashboard extends BaseController
 
     public function index()
     {
+        $db = \Config\Database::connect();
         // 1. DATA CARD STATISTIK (Counter Real)
         $total_guru  = $this->db->table('tbl_guru')->countAllResults();
         $total_siswa = $this->db->table('tbl_siswa')->countAllResults();
@@ -66,16 +67,17 @@ class Dashboard extends BaseController
             ->get()->getResultArray();
 
         // 5. LOG TRANSAKSI KEUANGAN TERAKHIR (REAL)
-        $log_keuangan = [];
-        if($this->db->tableExists('tbl_pembayaran')) {
-            // Join ke tabel siswa untuk dapat nama pembayar
-            $log_keuangan = $this->db->table('tbl_pembayaran')
-                ->select('tbl_pembayaran.*, tbl_siswa.nama_lengkap')
-                ->join('tbl_siswa', 'tbl_siswa.id = tbl_pembayaran.id_siswa', 'left')
-                ->orderBy('tbl_pembayaran.tanggal_bayar', 'DESC')
-                ->limit(5)
-                ->get()->getResultArray();
-        }
+      $log_keuangan = [];
+    if ($db->tableExists('tbl_log_keuangan')) {
+        $log_keuangan = $db->table('tbl_log_keuangan')
+            ->select('tbl_log_keuangan.*, tbl_siswa.nama_lengkap')
+            ->join('tbl_siswa', 'tbl_siswa.id = tbl_log_keuangan.id_siswa', 'left')
+            ->orderBy('tbl_log_keuangan.created_at', 'DESC') // Pastikan kolom ini ada di DB
+            ->limit(5)
+            ->get()->getResultArray();
+    }
+    $stats_lunas = 0; 
+    $stats_tunggakan = 0;
 
         return view('admin/dashboard', [
             'title' => 'Dashboard Admin',

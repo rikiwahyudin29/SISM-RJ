@@ -9,6 +9,7 @@ use App\Models\UserModel;
 class Master extends BaseController {
     protected $kelasModel;
     protected $siswaModel;
+    protected $db;
 protected $userModel; // <--- DEFINISIKAN PROPERTY
     public function __construct()
     {
@@ -16,6 +17,7 @@ protected $userModel; // <--- DEFINISIKAN PROPERTY
         $this->kelasModel = new KelasModel();
         $this->siswaModel = new SiswaModel();
         $this->userModel  = new UserModel();
+        $this->db = \Config\Database::connect();
     }
     // TAHUN AJARAN
     public function tahun_ajaran() {
@@ -423,4 +425,56 @@ public function download_template_siswa()
     $writer->save('php://output');
     exit;
 }
+public function jenis_ujian()
+    {
+        $data = [
+            'title' => 'Data Jenis Ujian',
+            'jenis' => $this->db->table('tbl_jenis_ujian')->get()->getResultArray()
+        ];
+
+        return view('admin/jenis_ujian/index', $data);
+    }
+
+    /**
+     * Simpan Jenis Ujian Baru
+     */
+    public function jenis_ujian_simpan()
+    {
+        $nama = $this->request->getPost('nama_jenis');
+        $kode = $this->request->getPost('kode_jenis');
+
+        if (!$nama) return redirect()->back()->with('error', 'Nama jenis tidak boleh kosong');
+
+        $this->db->table('tbl_jenis_ujian')->insert([
+            'nama_jenis' => $nama,
+            'kode_jenis' => strtoupper($kode)
+        ]);
+
+        return redirect()->to('admin/jenis_ujian')->with('success', 'Data berhasil disimpan');
+    }
+
+    /**
+     * Update Jenis Ujian
+     */
+    public function jenis_ujian_update($id)
+    {
+        $nama = $this->request->getPost('nama_jenis');
+        $kode = $this->request->getPost('kode_jenis');
+
+        $this->db->table('tbl_jenis_ujian')->where('id', $id)->update([
+            'nama_jenis' => $nama,
+            'kode_jenis' => strtoupper($kode)
+        ]);
+
+        return redirect()->to('admin/jenis_ujian')->with('success', 'Data berhasil diupdate');
+    }
+
+    /**
+     * Hapus Jenis Ujian
+     */
+    public function jenis_ujian_hapus($id)
+    {
+        $this->db->table('tbl_jenis_ujian')->where('id', $id)->delete();
+        return redirect()->to('admin/jenis_ujian')->with('success', 'Data berhasil dihapus');
+    }
 }

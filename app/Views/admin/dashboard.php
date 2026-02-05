@@ -148,33 +148,47 @@
             </div>
         </div>
 
-        <div class="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
-            <h3 class="font-bold text-gray-800 dark:text-white text-lg mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Transaksi Terakhir
-            </h3>
-            <div class="overflow-hidden">
-                <table class="w-full text-sm text-left">
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                        <?php if(!empty($log_keuangan)): foreach($log_keuangan as $k): ?>
-                        <tr>
-                            <td class="py-3">
-                                <p class="font-bold text-gray-800 dark:text-white"><?= esc($k['nama_lengkap']) ?></p>
-                                <p class="text-xs text-gray-400">Pembayaran SPP/Lainnya</p>
-                            </td>
-                            <td class="py-3 text-right">
-                                <p class="font-bold text-emerald-600">+ Rp <?= number_format($k['jumlah_bayar'],0,',','.') ?></p>
-                                <p class="text-[10px] text-gray-400"><?= date('d M Y', strtotime($k['tanggal_bayar'])) ?></p>
-                            </td>
-                        </tr>
-                        <?php endforeach; else: ?>
-                        <tr><td class="py-4 text-center text-gray-400 italic">Belum ada transaksi.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
+<div class="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
+    <h3 class="font-bold text-gray-800 dark:text-white text-lg mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Transaksi Terakhir
+    </h3>
+    <div class="overflow-hidden">
+        <table class="w-full text-sm text-left">
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                <?php if(!empty($log_keuangan)): foreach($log_keuangan as $k): ?>
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td class="py-3">
+                        <p class="font-bold text-gray-800 dark:text-white uppercase text-[11px]">
+                            <?= esc($k['nama_lengkap']) ?>
+                        </p>
+                        <p class="text-[10px] text-gray-400 font-medium">
+                            <?= esc($k['keterangan'] ?? 'Pembayaran Sekolah') ?>
+                        </p>
+                    </td>
+                    <td class="py-3 text-right">
+                        <p class="font-black text-emerald-600 text-xs">
+                            + Rp <?= number_format($k['nominal'] ?? $k['jumlah'] ?? 0, 0, ',', '.') ?>
+                        </p>
+                        <p class="text-[9px] text-gray-400 font-bold">
+                            <?= date('d M Y', strtotime($k['created_at'] ?? $k['tanggal'] ?? 'now')) ?>
+                        </p>
+                    </td>
+                </tr>
+                <?php endforeach; else: ?>
+                <tr>
+                    <td colspan="2" class="py-16 text-center text-gray-400 italic text-xs">
+                        <svg class="w-12 h-12 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        Belum ada transaksi terbaru.
+                    </td>
+                </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
     </div>
 </div>
 

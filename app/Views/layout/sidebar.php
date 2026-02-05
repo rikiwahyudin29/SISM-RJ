@@ -80,12 +80,7 @@ function is_active($url) {
                         <li><a href="<?= base_url('admin/master/kelas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Data Kelas</a></li>
                         <li><a href="<?= base_url('admin/master/mapel') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Mata Pelajaran</a></li>
                         <li><a href="<?= base_url('admin/jam') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Jam Belajar (Bel)</a></li>
-                    <li class="nav-item">
-            <a href="<?= base_url('admin/sekolah/identitas') ?>" class="nav-link <?= (uri_string() == 'admin/sekolah/identitas') ? 'active' : '' ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Identitas Sekolah</p>
-            </a>
-        </li>
+                        <li><a href="<?= base_url('admin/sekolah/identitas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Identitas Sekolah</a></li>
                     </ul>
                 </li>
 
