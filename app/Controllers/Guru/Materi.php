@@ -13,97 +13,113 @@ class Materi extends BaseController
         $this->db = \Config\Database::connect();
     }
 
-    // 1. HALAMAN DAFTAR MATERI
     public function index()
     {
-        // Ambil ID User yang login
-        $id_user = session()->get('id'); // Sesuaikan session user id bos
+        $id_guru = session()->get('id_guru'); // Pastikan session id_guru ada saat login
         
-        // Cari ID Guru berdasarkan User Login
-        $guru = $this->db->table('tbl_guru')->where('id_user', $id_user)->get()->getRow();
-        if (!$guru) return redirect()->to('/')->with('error', 'Data Guru tidak ditemukan.');
+        // Kalau session id_guru belum diset (misal login pakai id_user), cari dulu:
+        if (!$id_guru) {
+            $user_id = session()->get('id_user');
+            $guru = $this->db->table('tbl_guru')->where('user_id', $user_id)->get()->getRow(); // Sesuaikan kolom user_id/id_user
+            $id_guru = $guru ? $guru->id : 0;
+        }
 
-        // Ambil Materi milik guru ini saja
-        $materi = $this->db->table('tbl_materi')
-            ->select('tbl_materi.*, tbl_kelas.nama_kelas, tbl_mapel.nama_mapel')
-            ->join('tbl_kelas', 'tbl_kelas.id = tbl_materi.kelas_id')
-            ->join('tbl_mapel', 'tbl_mapel.id = tbl_materi.mapel_id')
-            ->where('tbl_materi.guru_id', $guru->id)
-            ->orderBy('tbl_materi.created_at', 'DESC')
-            ->get()->getResultArray();
+        // 1. Ambil Data Materi yang pernah diupload guru ini
+        // Kita join ke Tabel Kelas dan Mapel biar namanya muncul di View
+       $materi = $this->db->table('tbl_materi')
+        ->select('tbl_materi.*, tbl_kelas.nama_kelas, tbl_mapel.nama_mapel')
+        ->join('tbl_kelas', 'tbl_kelas.id = tbl_materi.kelas_id')
+        ->join('tbl_mapel', 'tbl_mapel.id = tbl_materi.mapel_id')
+        ->where('tbl_materi.guru_id', $id_guru)
+        ->orderBy('tbl_materi.created_at', 'DESC')
+        ->get()->getResultArray();
 
-        // Ambil Data Kelas & Mapel untuk Dropdown di Modal Tambah
-        $kelas = $this->db->table('tbl_kelas')->get()->getResultArray();
-        $mapel = $this->db->table('tbl_mapel')->get()->getResultArray();
+        // 2. Ambil Data Kelas & Mapel untuk Dropdown di Modal Tambah
+        $kelas = $this->db->table('tbl_kelas')->orderBy('nama_kelas', 'ASC')->get()->getResultArray();
+        $mapel = $this->db->table('tbl_mapel')->orderBy('nama_mapel', 'ASC')->get()->getResultArray();
 
-        $data = [
-            'title'  => 'Materi Pembelajaran',
+        // Kirim data ke View index.php yang Bos upload
+        return view('guru/materi/index', [
+            'title'  => 'E-Learning: Materi Ajar',
+            'guru'   => (object)['id' => $id_guru], // Biar form hidden guru_id tidak error
             'materi' => $materi,
             'kelas'  => $kelas,
-            'mapel'  => $mapel,
-            'guru'   => $guru
-        ];
-
-        return view('guru/materi/index', $data);
+            'mapel'  => $mapel
+        ]);
     }
 
-    // 2. PROSES SIMPAN UPLOAD
+    // Fungsi Simpan Materi (Action form di index.php)
     public function save()
     {
-        // Validasi
-        if (!$this->validate([
-            'judul'    => 'required',
-            'kelas_id' => 'required',
-            'mapel_id' => 'required',
-            'file_materi' => [
-                'rules' => 'max_size[file_materi,10240]|ext_in[file_materi,pdf,doc,docx,ppt,pptx,jpg,png]',
-                'errors' => [
-                    'max_size' => 'Ukuran file terlalu besar (Maks 10MB)',
-                    'ext_in'   => 'Format file tidak diizinkan'
-                ]
-            ]
-        ])) {
-            return redirect()->back()->withInput()->with('error', 'Validasi Gagal. Cek ukuran atau format file.');
-        }
-
-        $id_guru = $this->request->getPost('guru_id');
+        // 1. Handle File Upload
         $file = $this->request->getFile('file_materi');
-        $nama_file = null;
+        $namaFile = null;
 
-        // Handle File Upload
         if ($file && $file->isValid() && !$file->hasMoved()) {
-            $nama_file = $file->getRandomName(); // Nama acak biar aman
-            $file->move('uploads/materi', $nama_file);
+            $namaFile = $file->getRandomName();
+            $file->move('uploads/materi', $namaFile); // Pastikan folder public/uploads/materi ada
         }
 
+        // 2. Simpan ke Database
         $data = [
-            'guru_id'      => $id_guru,
-            'mapel_id'     => $this->request->getPost('mapel_id'),
+            'guru_id'      => $this->request->getPost('guru_id'),
             'kelas_id'     => $this->request->getPost('kelas_id'),
+            'mapel_id'     => $this->request->getPost('mapel_id'),
             'judul'        => $this->request->getPost('judul'),
             'deskripsi'    => $this->request->getPost('deskripsi'),
-            'link_youtube' => $this->request->getPost('link_youtube'),
-            'file_materi'  => $nama_file,
-            'status'       => 1
+            'link_youtube' => $this->request->getPost('link_youtube'), //
+            'file_materi'  => $namaFile
         ];
 
         $this->db->table('tbl_materi')->insert($data);
-        return redirect()->back()->with('success', 'Materi berhasil diupload!');
+
+        return redirect()->to('guru/materi')->with('success', 'Materi berhasil diupload!');
     }
 
-    // 3. HAPUS MATERI
+    // Fungsi Hapus Materi
     public function delete($id)
     {
-        // Cek file lama untuk dihapus dari folder
+        // 1. Cek File Fisik dulu untuk dihapus
         $materi = $this->db->table('tbl_materi')->where('id', $id)->get()->getRow();
         
         if ($materi) {
+            // Hapus file dari folder jika ada
             if ($materi->file_materi && file_exists('uploads/materi/' . $materi->file_materi)) {
                 unlink('uploads/materi/' . $materi->file_materi);
             }
+
+            // Hapus data dari database
             $this->db->table('tbl_materi')->where('id', $id)->delete();
-            return redirect()->back()->with('success', 'Materi dihapus.');
         }
-        return redirect()->back()->with('error', 'Data tidak ditemukan.');
+
+        return redirect()->to('guru/materi')->with('success', 'Materi berhasil dihapus.');
     }
+    public function update()
+{
+    $id = $this->request->getPost('id');
+    $file = $this->request->getFile('file_materi');
+    
+    $data = [
+        'kelas_id'     => $this->request->getPost('kelas_id'),
+        'mapel_id'     => $this->request->getPost('mapel_id'),
+        'judul'        => $this->request->getPost('judul'),
+        'deskripsi'    => $this->request->getPost('deskripsi'),
+        'link_youtube' => $this->request->getPost('link_youtube'),
+    ];
+
+    if ($file && $file->isValid() && !$file->hasMoved()) {
+        // Hapus file lama jika ada
+        $old = $this->db->table('tbl_materi')->where('id', $id)->get()->getRow();
+        if ($old->file_materi && file_exists('uploads/materi/' . $old->file_materi)) {
+            unlink('uploads/materi/' . $old->file_materi);
+        }
+
+        $newName = $file->getRandomName();
+        $file->move('uploads/materi', $newName);
+        $data['file_materi'] = $newName;
+    }
+
+    $this->db->table('tbl_materi')->where('id', $id)->update($data);
+    return redirect()->to('guru/materi')->with('success', 'Materi diperbarui!');
+}
 }

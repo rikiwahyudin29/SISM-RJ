@@ -318,10 +318,11 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     $routes->post('jurnal/simpan_absen', 'Guru\Jurnal::simpan_absen');
 
     // ROUTE E-LEARNING MATERI
-    $routes->get('materi', 'Guru\Materi::index');
+  $routes->get('materi', 'Guru\Materi::index');
     $routes->post('materi/save', 'Guru\Materi::save');
+    $routes->post('materi/update', 'Guru\Materi::update');
     $routes->get('materi/delete/(:num)', 'Guru\Materi::delete/$1');
-    
+
     // Presensi Guru
     $routes->get('presensi', 'Guru\Presensi::index');
     $routes->get('presensi/rekap', 'Guru\Presensi::rekap');
@@ -377,6 +378,24 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     // Rapor
     $routes->get('rapor', 'Guru\Rapor::index');
     $routes->get('rapor/cetak/(:num)', 'Guru\Rapor::cetak/$1');
+    // --- MODUL TUGAS ---
+    $routes->get('tugas', 'Guru\Tugas::index');
+    $routes->post('tugas/save', 'Guru\Tugas::save');
+    $routes->get('tugas/delete/(:num)', 'Guru\Tugas::delete/$1');
+    $routes->get('tugas/hasil/(:num)', 'Guru\Tugas::hasil/$1'); // Lihat Hasil
+    $routes->post('tugas/nilai', 'Guru\Tugas::nilai');          // Simpan Nilai
+    
+    // --- MODUL BK (Simple) ---
+    $routes->get('bk', 'Guru\Bk::index');
+    $routes->post('bk/save', 'Guru\Bk::save');
+    $routes->get('bk/delete/(:num)', 'Guru\Bk::delete/$1');
+    // --- MODUL MASTER BK (Satu Controller dengan BK) ---
+    $routes->get('bk/master', 'Guru\Bk::master');
+    $routes->post('bk/master/save', 'Guru\Bk::saveMaster');
+    $routes->get('bk/master/delete/(:num)', 'Guru\Bk::deleteMaster/$1');
+    $routes->get('bk/settings', 'Guru\Bk::settings');
+    $routes->post('bk/save-settings', 'Guru\Bk::saveSettings');
+    $routes->get('bk/detail-siswa/(:num)', 'Guru\Bk::detailSiswa/$1');
     });
 
 
@@ -416,4 +435,16 @@ $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
 
     $routes->get('profil', 'Siswa\Profil::index');
     $routes->post('profil/simpan', 'Siswa\Profil::simpan');
+    // --- Rapor / Nilai Akademik ---
+    // Gunakan URL 'nilai-akademik' agar beda dengan 'nilai' (Ujian)
+    $routes->get('nilai-akademik', 'Siswa\NilaiAkademik::index');
+
+    // --- MODUL MATERI ---
+    $routes->get('materi', 'Siswa\Materi::index');
+
+    // --- MODUL TUGAS ---
+    $routes->get('tugas', 'Siswa\Tugas::index');
+    $routes->post('tugas/upload', 'Siswa\Tugas::upload');
+
+    $routes->get('bk', 'Siswa\Bk::index');
 });

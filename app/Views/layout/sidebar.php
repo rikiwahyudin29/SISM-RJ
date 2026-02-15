@@ -401,6 +401,22 @@ function is_active($url) {
         <span class="ml-3 flex-1">Tugas Sekolah</span>
     </a>
 </li>
+<li>
+    <a href="<?= base_url('siswa/nilai-akademik') ?>" class="<?= $baseClass ?> <?= is_active('siswa/nilai-akademik') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        <span class="ml-3">Rapor & Transkrip</span>
+        <span class="ml-auto px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500 text-white shadow-sm shadow-emerald-500/20">NEW</span>
+    </a>
+</li>
+
+<li>
+    <a href="<?= base_url('siswa/bk') ?>" class="<?= $baseClass ?> <?= is_active('siswa/bk') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+        <span class="ml-3 font-bold uppercase text-[10px]">Kedisiplinan Saya</span>
+    </a>
+</li>
 
 <li>
     <a href="<?= base_url('siswa/ujian') ?>" class="<?= $baseClass ?> <?= is_active('siswa/ujian') ? $activeClass : $inactiveClass ?>">
@@ -493,6 +509,26 @@ function is_active($url) {
             </ul>
         </div>
 
+        <?php 
+    // Cek Akses BK (Role ID 7)
+    $db = \Config\Database::connect();
+    $isBk = $db->table('user_roles')
+             ->where('user_id', session()->get('id_user'))
+             ->where('role_id', 7) // 7 = BK
+             ->countAllResults();
+    
+    // Tampilkan Menu jika Admin (role=admin) ATAU Guru BK (isBk > 0)
+    if (session()->get('role') == 'admin' || $isBk > 0) : 
+?>
+    <li class="pt-4 pb-1 px-3 text-[10px] font-bold text-gray-400 uppercase">KEDISIPLINAN</li>
+    <li>
+        <a href="<?= base_url('guru/bk') ?>" class="<?= $baseClass ?> <?= is_active('guru/bk') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+            <span class="ml-3">Ruang BK</span>
+        </a>
+    </li>
+<?php endif; ?>
+
         <div class="mt-2 pt-3 border-t border-gray-100 dark:border-slate-800/50">
              <a href="<?= base_url('logout') ?>" class="flex items-center px-3 py-2 text-gray-500 rounded-lg hover:bg-red-50 hover:text-red-600 dark:text-slate-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all group">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
@@ -500,4 +536,6 @@ function is_active($url) {
             </a>
         </div>
     </div>
+
+
 </aside>
