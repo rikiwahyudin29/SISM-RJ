@@ -79,8 +79,8 @@
             <div class="px-6 py-6 lg:px-8">
                 <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">📤 Upload Materi Baru</h3>
                 
-                <form class="space-y-4" action="<?= base_url('guru/materi/save') ?>" method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="guru_id" value="<?= $guru->id ?>">
+               <form class="space-y-4" action="<?= base_url('guru/materi/save') ?>" method="POST" enctype="multipart/form-data">
+    <?= csrf_field(); ?> <input type="hidden" name="guru_id" value="<?= $guru->id ?>">
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>

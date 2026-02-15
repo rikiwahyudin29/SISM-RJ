@@ -361,7 +361,23 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     $routes->get('hasil/index/(:num)', 'Guru\Hasil::index/$1');
     $routes->get('hasil/pdf/(:num)', 'Guru\Hasil::pdf/$1');
     $routes->get('hasil/excel/(:num)', 'Guru\Hasil::excel/$1');
-});
+    // --- FITUR NILAI & IMPORT ---
+    $routes->get('nilai', 'Guru\Nilai::index');
+    $routes->post('nilai/save_batch', 'Guru\Nilai::save_batch');   // Simpan Nilai Tabel
+    $routes->post('nilai/save_setting', 'Guru\Nilai::save_setting'); // Simpan Bobot/KKM
+    $routes->get('nilai/download_template', 'Guru\Nilai::download_template'); // <--- YANG BOS CARI
+    $routes->post('nilai/import', 'Guru\Nilai::import');           // Proses Upload CSV
+// --- FITUR LEGER ---
+    $routes->get('leger', 'Guru\Leger::index');
+    $routes->get('leger/cetak', 'Guru\Leger::cetak');
+    // --- FITUR CATATAN WALI ---
+    $routes->get('catatan', 'Guru\Catatan::index');
+    $routes->post('catatan/save', 'Guru\Catatan::save');
+    $routes->get('catatan/generate/(:num)', 'Guru\Catatan::generate_absensi/$1');
+    // Rapor
+    $routes->get('rapor', 'Guru\Rapor::index');
+    $routes->get('rapor/cetak/(:num)', 'Guru\Rapor::cetak/$1');
+    });
 
 
 // =========================================================================

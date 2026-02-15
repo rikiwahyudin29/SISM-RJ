@@ -145,62 +145,80 @@ class Presensi extends BaseController
     // FITUR LAMA (EXISTING)
     // =========================================================================
 
-    public function index()
-    {
-        $id_user_login = session()->get('id_user');
-        $id_siswa = $this->getRealSiswaID($id_user_login);
-        $bulan    = $this->request->getGet('bulan') ?? date('Y-m');
+  public function index()
+{
+    $id_user_login = session()->get('id_user');
+    $id_siswa = $this->getRealSiswaID($id_user_login);
+    $bulan    = $this->request->getGet('bulan') ?? date('Y-m');
 
-        $data = $this->db->table('tbl_presensi')
-            ->where('user_id', $id_siswa)
-            ->where('role', 'siswa')
-            ->like('tanggal', $bulan)
-            ->orderBy('tanggal', 'DESC')
-            ->get()->getResultArray();
+    $data = $this->db->table('tbl_presensi')
+        ->where('user_id', $id_siswa)
+        ->where('role', 'siswa')
+        ->like('tanggal', $bulan)
+        ->orderBy('tanggal', 'DESC')
+        ->get()->getResultArray();
 
-        return view('siswa/presensi/index', [
-            'title' => 'Riwayat Kehadiran',
-            'data'  => $data,
-            'bulan' => $bulan
-        ]);
+    // Mapping untuk tampilan agar user tahu status aslinya
+    foreach ($data as &$d) {
+        if (in_array($d['status_kehadiran'], ['Izin', 'Sakit']) && $d['status_verifikasi'] !== 'Disetujui') {
+            $d['display_status'] = 'Alpha (Menunggu Verifikasi)';
+        } else {
+            $d['display_status'] = $d['status_kehadiran'];
+        }
     }
+
+    return view('siswa/presensi/index', [
+        'title' => 'Riwayat Kehadiran',
+        'data'  => $data,
+        'bulan' => $bulan
+    ]);
+}
 
     public function rekap()
-    {
-        $id_user_login = session()->get('id_user');
-        $id_siswa = $this->getRealSiswaID($id_user_login);
-        $bulan    = $this->request->getGet('bulan') ?? date('Y-m');
-        $jml_hari = date('t', strtotime($bulan));
+{
+    $id_user_login = session()->get('id_user');
+    $id_siswa = $this->getRealSiswaID($id_user_login);
+    $bulan    = $this->request->getGet('bulan') ?? date('Y-m');
+    $jml_hari = date('t', strtotime($bulan));
 
-        $absen = $this->db->table('tbl_presensi')
-            ->where('user_id', $id_siswa)
-            ->where('role', 'siswa')
-            ->like('tanggal', $bulan)
-            ->get()->getResultArray();
+    $absen = $this->db->table('tbl_presensi')
+        ->where('user_id', $id_siswa)
+        ->where('role', 'siswa')
+        ->like('tanggal', $bulan)
+        ->get()->getResultArray();
 
-        $map = [];
-        $total = ['H'=>0, 'S'=>0, 'I'=>0, 'A'=>0, 'T'=>0];
+    $map = [];
+    $total = ['H'=>0, 'S'=>0, 'I'=>0, 'A'=>0, 'T'=>0];
 
-        foreach($absen as $a) {
-            $tgl = (int) date('d', strtotime($a['tanggal']));
-            $st  = $a['status_kehadiran'];
-            $map[$tgl] = $st;
+    foreach($absen as $a) {
+        $tgl = (int) date('d', strtotime($a['tanggal']));
+        $st  = $a['status_kehadiran'];
+        $verif = $a['status_verifikasi']; // Ambil status verifikasi
 
-            if($st == 'Hadir') $total['H']++;
-            if($st == 'Terlambat') { $total['T']++; $total['H']++; }
-            if($st == 'Sakit') $total['S']++;
-            if($st == 'Izin') $total['I']++;
-            if($st == 'Alpha') $total['A']++;
+        // LOGIKA BARU: Jika belum disetujui, anggap Alpha
+        if (in_array($st, ['Izin', 'Sakit']) && $verif !== 'Disetujui') {
+            $st_final = 'Alpha';
+        } else {
+            $st_final = $st;
         }
 
-        return view('siswa/presensi/rekap', [
-            'title'    => 'Rekap Bulanan',
-            'bulan'    => $bulan,
-            'map'      => $map,
-            'total'    => $total,
-            'jml_hari' => $jml_hari
-        ]);
+        $map[$tgl] = $st_final;
+
+        if($st_final == 'Hadir') $total['H']++;
+        if($st_final == 'Terlambat') { $total['T']++; $total['H']++; }
+        if($st_final == 'Sakit') $total['S']++;
+        if($st_final == 'Izin') $total['I']++;
+        if($st_final == 'Alpha') $total['A']++;
     }
+
+    return view('siswa/presensi/rekap', [
+        'title'    => 'Rekap Bulanan',
+        'bulan'    => $bulan,
+        'map'      => $map,
+        'total'    => $total,
+        'jml_hari' => $jml_hari
+    ]);
+}
 
     public function izin()
     {
@@ -220,39 +238,39 @@ class Presensi extends BaseController
     }
 
     public function ajukan()
-    {
-        $id_user_login = session()->get('id_user');
-        $id_siswa = $this->getRealSiswaID($id_user_login);
+{
+    $id_user_login = session()->get('id_user');
+    $id_siswa = $this->getRealSiswaID($id_user_login);
 
-        $file = $this->request->getFile('bukti');
-        $namaFile = null;
-        if ($file && $file->isValid()) {
-            $namaFile = $file->getRandomName();
-            $file->move('uploads/surat_izin', $namaFile);
-        }
+    $file = $this->request->getFile('bukti');
+    $namaFile = null;
+    if ($file && $file->isValid()) {
+        $namaFile = $file->getRandomName();
+        $file->move('uploads/surat_izin', $namaFile);
+    }
 
-        $cek = $this->db->table('tbl_presensi')
+    $cek = $this->db->table('tbl_presensi')
              ->where('user_id', $id_siswa)
              ->where('tanggal', $this->request->getPost('tanggal'))
              ->countAllResults();
 
-        if($cek > 0) {
-            return redirect()->back()->with('error', 'Anda sudah tercatat presensi pada tanggal tersebut.');
-        }
-
-        $this->db->table('tbl_presensi')->insert([
-            'user_id'           => $id_siswa,
-            'role'              => 'siswa',
-            'tanggal'           => $this->request->getPost('tanggal'),
-            'status_kehadiran'  => $this->request->getPost('status'),
-            'keterangan'        => $this->request->getPost('keterangan'),
-            'bukti_izin'        => $namaFile,
-            'metode'            => 'Online',
-            'status_verifikasi' => 'Pending'
-        ]);
-
-        return redirect()->back()->with('success', 'Pengajuan berhasil dikirim. Menunggu ACC Guru/Admin.');
+    if($cek > 0) {
+        return redirect()->back()->with('error', 'Anda sudah tercatat presensi pada tanggal tersebut.');
     }
+
+    $this->db->table('tbl_presensi')->insert([
+        'user_id'           => $id_siswa,
+        'role'              => 'siswa',
+        'tanggal'           => $this->request->getPost('tanggal'),
+        'status_kehadiran'  => $this->request->getPost('status'), // 'Izin' atau 'Sakit'
+        'keterangan'        => $this->request->getPost('keterangan'),
+        'bukti_izin'        => $namaFile,
+        'metode'            => 'Online',
+        'status_verifikasi' => 'Pending' // PASTIKAN TETAP PENDING
+    ]);
+
+    return redirect()->back()->with('success', 'Pengajuan berhasil dikirim. Status Anda masih dianggap Alpha sampai disetujui Admin.');
+}
 
     public function cetak_rekap()
     {

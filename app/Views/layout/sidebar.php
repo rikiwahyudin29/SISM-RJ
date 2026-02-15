@@ -287,96 +287,102 @@ function is_active($url) {
                 </li>
                 <?php endif; ?>
 
-                <?php if (in_array('guru', $roles)) : ?>
-                <li class="<?= $headerClass ?>">Area Guru</li>
-                
-                
-                <li>
-                    <a href="<?= base_url('guru/jadwal') ?>" class="<?= $baseClass ?> <?= is_active('guru/jadwal') ? $activeClass : $inactiveClass ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <span class="ml-3">Jadwal Mengajar</span>
-                    </a>
-                </li>
-                <li>
-    <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-elearning-guru" data-collapse-toggle="dropdown-elearning-guru">
-        <i class="fas fa-chalkboard-teacher w-4 h-4 flex-shrink-0"></i>
-        <span class="ml-3 flex-1 text-left whitespace-nowrap">E-Learning (KBM)</span>
-        <svg class="w-3 h-3 text-gray-400 transition-transform group-aria-expanded:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-    </button>
-    <ul id="dropdown-elearning-guru" class="hidden py-1 space-y-0.5">
-        <li><a href="<?= base_url('guru/materi') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">Materi Pelajaran</a></li>
-        <li><a href="<?= base_url('guru/tugas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">Tugas & PR</a></li>
-        <li><a href="<?= base_url('guru/bank_soal') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">Bank Soal</a></li>
-        <li><a href="<?= base_url('guru/ujian') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">Jadwal Ujian</a></li>
-    </ul>
-</li>
-                <a href="<?= base_url('guru/presensi/absen') ?>" class="flex items-center gap-3 p-3 rounded-xl transition-all mb-1 group <?= uri_string() == 'guru/presensi/absen' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600' ?>">
-    <div class="<?= uri_string() == 'guru/presensi/absen' ? 'text-white' : 'text-slate-400 group-hover:text-blue-600' ?>">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        </svg>
-    </div>
-    <span class="font-semibold text-sm">Absen Sekarang</span>
+<?php if (in_array('guru', $roles)) : ?>
+    <li class="<?= $headerClass ?>">Area Akademik Guru</li>
     
-    <span class="ml-auto px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white">NEW</span>
-</a>
+    <li>
+        <a href="<?= base_url('guru/jadwal') ?>" class="<?= $baseClass ?> <?= is_active('guru/jadwal') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span class="ml-3">Jadwal Mengajar</span>
+        </a>
+    </li>
 
-                <li>
-                    <a href="<?= base_url('guru/presensi') ?>" class="<?= $baseClass ?> <?= is_active('guru/presensi') ? $activeClass : $inactiveClass ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="ml-3 flex-1">Absensi Saya</span>
-                    </a>
-                </li>
+    <li>
+        <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-elearning-guru" data-collapse-toggle="dropdown-elearning-guru">
+            <i class="fas fa-chalkboard-teacher w-4 h-4 flex-shrink-0"></i>
+            <span class="ml-3 flex-1 text-left whitespace-nowrap">E-Learning (KBM)</span>
+            <svg class="w-3 h-3 text-gray-400 transition-transform group-aria-expanded:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <ul id="dropdown-elearning-guru" class="<?= (is_active('guru/materi') || is_active('guru/tugas') || is_active('guru/bank_soal') || is_active('guru/ujian')) ? 'block' : 'hidden' ?> py-1 space-y-0.5">
+            <li><a href="<?= base_url('guru/materi') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium <?= is_active('guru/materi') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' ?> transition-colors">Materi Pelajaran</a></li>
+            <li><a href="<?= base_url('guru/tugas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium <?= is_active('guru/tugas') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' ?> transition-colors">Tugas & PR</a></li>
+            <li><a href="<?= base_url('guru/bank_soal') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium <?= is_active('guru/bank_soal') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' ?> transition-colors">Bank Soal</a></li>
+            <li><a href="<?= base_url('guru/ujian') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium <?= is_active('guru/ujian') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' ?> transition-colors">Jadwal Ujian</a></li>
+        </ul>
+    </li>
 
-                <li>
-                    <a href="<?= base_url('guru/presensi/rekap') ?>" class="<?= $baseClass ?> <?= is_active('guru/presensi/rekap') ? $activeClass : $inactiveClass ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                        <span class="ml-3">Rekap Bulanan</span>
-                    </a>
-                </li>
-                <li>
-    <a href="<?= base_url('guru/presensi/izin') ?>" class="<?= $baseClass ?> <?= is_active('guru/presensi/izin') ? $activeClass : $inactiveClass ?>">
-        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-        <span class="ml-3">Ajukan Izin/Dinas</span>
+    <a href="<?= base_url('guru/presensi/absen') ?>" class="flex items-center gap-3 p-3 rounded-xl transition-all mb-1 mt-1 group <?= uri_string() == 'guru/presensi/absen' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600' ?>">
+        <div class="<?= uri_string() == 'guru/presensi/absen' ? 'text-white' : 'text-slate-400 group-hover:text-blue-600' ?>">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </div>
+        <span class="font-semibold text-sm">Absen Sekarang</span>
+        <span class="ml-auto px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white shadow-sm shadow-rose-500/20">NEW</span>
+    </a>
+
+    <li>
+        <a href="<?= base_url('guru/presensi') ?>" class="<?= $baseClass ?> <?= is_active('guru/presensi') && !is_active('guru/presensi/rekap') && !is_active('guru/presensi/izin') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="ml-3 flex-1">Absensi Saya</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="<?= base_url('guru/presensi/rekap') ?>" class="<?= $baseClass ?> <?= is_active('guru/presensi/rekap') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            <span class="ml-3">Rekap Bulanan</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="<?= base_url('guru/presensi/izin') ?>" class="<?= $baseClass ?> <?= is_active('guru/presensi/izin') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span class="ml-3">Ajukan Izin/Dinas</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="<?= base_url('guru/jurnal') ?>" class="<?= $baseClass ?> <?= is_active('guru/jurnal') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            <span class="ml-3">Jurnal KBM</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="<?= base_url('guru/monitoring') ?>" class="<?= $baseClass ?> <?= is_active('guru/monitoring') ? $activeClass : $inactiveClass ?>">
+            <i class="fas fa-desktop w-4 h-4 flex-shrink-0 text-center transition-colors"></i>
+            <span class="ml-3 flex-1">Mengawas</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="<?= base_url('guru/nilai') ?>" class="<?= $baseClass ?> <?= is_active('guru/nilai') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span class="ml-3 flex-1">E-Rapor & Nilai</span>
+            <span class="ml-auto px-1.5 py-0.5 rounded text-[8px] font-black bg-amber-500 text-white shadow-sm shadow-amber-500/20">HOT</span>
+        </a>
+    </li>
+    <li>
+    <a href="<?= base_url('guru/leger') ?>" class="<?= $baseClass ?> <?= is_active('guru/leger') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        <span class="ml-3">Leger & Ranking</span>
     </a>
 </li>
-
-                <li>
-                    <a href="<?= base_url('guru/jurnal') ?>" class="<?= $baseClass ?> <?= is_active('guru/jurnal') ? $activeClass : $inactiveClass ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                        <span class="ml-3">Jurnal KBM</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="<?= base_url('guru/bank_soal') ?>" class="<?= $baseClass ?> <?= is_active('guru/bank_soal') ? $activeClass : $inactiveClass ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                        <span class="ml-3 flex-1">Bank Soal</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="<?= base_url('guru/ujian') ?>" class="<?= $baseClass ?> <?= is_active('guru/ujian') ? $activeClass : $inactiveClass ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="ml-3 flex-1">Jadwal Ujian</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="<?= base_url('guru/monitoring') ?>" class="<?= $baseClass ?> <?= is_active('guru/monitoring') ? $activeClass : $inactiveClass ?>">
-                        <i class="fas fa-desktop w-4 h-4 flex-shrink-0 text-center transition-colors"></i>
-                        <span class="ml-3 flex-1">Mengawas</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="<?= base_url('guru/nilai') ?>" class="<?= $baseClass ?> <?= is_active('guru/nilai') ? $activeClass : $inactiveClass ?>">
-                        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span class="ml-3 flex-1">Input Nilai</span>
-                    </a>
-                </li>
-                <?php endif; ?>
+<li>
+    <a href="<?= base_url('guru/catatan') ?>" class="<?= $baseClass ?> <?= is_active('guru/catatan') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        <span class="ml-3">Catatan Wali Kelas</span>
+    </a>
+</li>
+<li>
+    <a href="<?= base_url('guru/rapor') ?>" class="<?= $baseClass ?> <?= is_active('guru/rapor') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-4 h-4 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        <span class="ml-3">Cetak Rapor Akhir</span>
+    </a>
+</li>
+<?php endif; ?>
 
                 <?php if ($roleActive == 'siswa') : ?>
                 <li class="<?= $headerClass ?>">Area Siswa</li>

@@ -215,15 +215,16 @@ class Presensi extends BaseController
 
         // Simpan Data
         $this->db->table('tbl_presensi')->insert([
-            'user_id'          => $id_siswa,
-            'role'             => 'siswa',
-            'tanggal'          => $tanggal,
-            'jam_masuk'        => date('H:i:s'), // Jam saat diinput
-            'status_kehadiran' => $status,
-            'metode'           => 'Manual',
-            'keterangan'       => $ket,
-            'bukti_izin'       => $namaFile
-        ]);
+    'user_id'           => $id_siswa,
+    'role'              => 'siswa',
+    'tanggal'           => $tanggal,
+    'jam_masuk'         => date('H:i:s'),
+    'status_kehadiran'  => $status,
+    'metode'            => 'Manual',
+    'status_verifikasi' => 'Disetujui', // Langsung Disetujui
+    'keterangan'        => $ket,
+    'bukti_izin'        => $namaFile
+]);
         
         // Kirim Notifikasi WA (Opsional)
         $siswa = $this->db->table('tbl_siswa')->where('id', $id_siswa)->get()->getRow();
@@ -321,66 +322,69 @@ class Presensi extends BaseController
     }
     // --- FITUR BARU: CETAK REKAP MATRIX BULANAN PER KELAS ---
 public function cetak_bulanan()
-    {
-        // 1. Ambil Filter
-        $bulanStr = $this->request->getGet('bulan');
-        $id_kelas = $this->request->getGet('id_kelas');
+{
+    // 1. Ambil Filter dari URL
+    $bulanStr = $this->request->getGet('bulan');
+    $id_kelas = $this->request->getGet('id_kelas');
 
-        if (empty($bulanStr) || empty($id_kelas)) {
-            return redirect()->back()->with('error', 'Pilih Bulan dan Kelas terlebih dahulu!');
-        }
-
-        // 2. Info Kelas & Sekolah
-        $kelas = $this->db->table('tbl_kelas')->where('id', $id_kelas)->get()->getRowArray();
-        $sekolah = [
-            'nama'   => 'SMK DIGITAL INDONESIA',
-            'alamat' => 'Jl. Teknologi No. 1'
-        ];
-
-        // 3. Ambil Semua Siswa (REVISI: Pakai 'kelas_id')
-        $siswa = $this->db->table('tbl_siswa')
-            ->where('kelas_id', $id_kelas) // <--- DULU 'id_kelas', SEKARANG 'kelas_id'
-            ->orderBy('nama_lengkap', 'ASC')
-            ->get()->getResultArray();
-
-        // 4. Ambil Data Absensi (REVISI: Pakai 'kelas_id' saat filter siswa)
-        $absensi = $this->db->table('tbl_presensi')
-            ->select('tbl_presensi.*, tbl_siswa.id as id_siswa_real')
-            ->join('tbl_siswa', 'tbl_siswa.id = tbl_presensi.user_id')
-            ->where('tbl_presensi.role', 'siswa')
-            ->where('tbl_siswa.kelas_id', $id_kelas) // <--- DULU 'id_kelas', SEKARANG 'kelas_id'
-            ->like('tbl_presensi.tanggal', $bulanStr)
-            ->get()->getResultArray();
-
-        // 5. Mapping Data ke Matrix
-        $data_matrix = [];
-        foreach ($absensi as $row) {
-            $tgl = (int) date('d', strtotime($row['tanggal']));
-            $id_s = $row['id_siswa_real'];
-            
-            // Kode Status Singkat
-            $status = 'A';
-            if ($row['status_kehadiran'] == 'Hadir') $status = 'H';
-            if ($row['status_kehadiran'] == 'Terlambat') $status = 'T';
-            if ($row['status_kehadiran'] == 'Sakit') $status = 'S';
-            if ($row['status_kehadiran'] == 'Izin') $status = 'I';
-            if ($row['status_kehadiran'] == 'Alpha') $status = 'A';
-
-            $data_matrix[$id_s][$tgl] = $status;
-        }
-
-        $jml_hari = date('t', strtotime($bulanStr));
-
-        return view('admin/presensi/cetak_matrix', [
-            'title'       => 'Rekap Absensi Bulanan',
-            'siswa'       => $siswa,
-            'matrix'      => $data_matrix,
-            'jml_hari'    => $jml_hari,
-            'bulan'       => $bulanStr,
-            'kelas'       => $kelas,
-            'sekolah'     => $sekolah
-        ]);
+    if (empty($bulanStr) || empty($id_kelas)) {
+        return redirect()->back()->with('error', 'Pilih Bulan dan Kelas terlebih dahulu!');
     }
+
+    // 2. Info Kelas & Sekolah
+    $kelas = $this->db->table('tbl_kelas')->where('id', $id_kelas)->get()->getRowArray();
+    $sekolah = [
+        'nama'   => 'SMK DIGITAL INDONESIA',
+        'alamat' => 'Jl. Teknologi No. 1'
+    ];
+
+    // 3. Ambil Semua Siswa di Kelas Tersebut
+    $siswa = $this->db->table('tbl_siswa')
+        ->where('kelas_id', $id_kelas)
+        ->orderBy('nama_lengkap', 'ASC')
+        ->get()->getResultArray();
+
+    // 4. Ambil Data Absensi (Join Siswa untuk filter kelas)
+    $absensi = $this->db->table('tbl_presensi')
+        ->select('tbl_presensi.*, tbl_siswa.id as id_siswa_real')
+        ->join('tbl_siswa', 'tbl_siswa.id = tbl_presensi.user_id')
+        ->where('tbl_presensi.role', 'siswa')
+        ->where('tbl_siswa.kelas_id', $id_kelas)
+        ->like('tbl_presensi.tanggal', $bulanStr)
+        ->get()->getResultArray();
+
+    // 5. Mapping Data ke Matrix dengan Logika Verifikasi
+    $data_matrix = [];
+    foreach ($absensi as $row) {
+        $tgl = (int) date('d', strtotime($row['tanggal']));
+        $id_s = $row['id_siswa_real'];
+        $st_asli = $row['status_kehadiran'];
+        $verif   = $row['status_verifikasi'];
+
+        // LOGIKA UTAMA: Default Alpha (A) jika belum Disetujui
+        $status = 'A'; 
+        if ($st_asli == 'Hadir') $status = 'H';
+        if ($st_asli == 'Terlambat') $status = 'T';
+        
+        // S atau I hanya muncul jika sudah di-ACC Admin
+        if ($st_asli == 'Sakit' && $verif == 'Disetujui') $status = 'S';
+        if ($st_asli == 'Izin' && $verif == 'Disetujui') $status = 'I';
+
+        $data_matrix[$id_s][$tgl] = $status;
+    }
+
+    $jml_hari = date('t', strtotime($bulanStr));
+
+    return view('admin/presensi/cetak_matrix', [
+        'title'       => 'Rekap Absensi Bulanan',
+        'siswa'       => $siswa,
+        'matrix'      => $data_matrix,
+        'jml_hari'    => $jml_hari,
+        'bulan'       => $bulanStr,
+        'kelas'       => $kelas,
+        'sekolah'     => $sekolah
+    ]);
+}
     public function rekap()
     {
         $bulan = $this->request->getGet('bulan') ?? date('Y-m');
@@ -417,12 +421,15 @@ public function cetak_bulanan()
 
         // 3. Mapping Data (Logic Matrix)
         // Kita ubah data presensi jadi array asosiatif biar gampang dipanggil: $data[id_siswa][tanggal] = 'Hadir'
-        $absen_map = [];
-        foreach ($presensi as $p) {
-            // Ambil tanggalnya saja (misal '2025-01-28' jadi '28')
-            $tgl = (int) date('d', strtotime($p['tanggal'])); 
-            $absen_map[$p['user_id']][$tgl] = $p['status_kehadiran'];
-        }
+       $absen_map = [];
+    foreach ($presensi as $p) {
+        $tgl = (int) date('d', strtotime($p['tanggal'])); 
+        // SIMPAN STATUS DAN VERIFIKASI SEKALIGUS
+        $absen_map[$p['user_id']][$tgl] = [
+            'status' => $p['status_kehadiran'],
+            'verif'  => $p['status_verifikasi'] //
+        ];
+    }
 
         // 4. Hitung Statistik per Siswa
         $data_rekap = [];
@@ -438,17 +445,32 @@ public function cetak_bulanan()
             ];
 
             // Loop tanggal 1 s/d Akhir Bulan
-            for ($d = 1; $d <= $jumlah_hari; $d++) {
-                $status = $absen_map[$s['id']][$d] ?? '-'; // Ambil status, kalau gak ada isi '-'
-                $row['harian'][$d] = $status;
+           for ($d = 1; $d <= $jumlah_hari; $d++) {
+            $data_tgl = $absen_map[$s['id']][$d] ?? null;
+            
+            if ($data_tgl) {
+                $st_asli = $data_tgl['status'];
+                $verif   = $data_tgl['verif'];
 
-                // Hitung Total
-                if ($status == 'Hadir') $row['total']['H']++;
-                if ($status == 'Terlambat') { $row['total']['T']++; $row['total']['H']++; } // Terlambat dihitung Hadir juga
-                if ($status == 'Sakit') $row['total']['S']++;
-                if ($status == 'Izin') $row['total']['I']++;
-                if ($status == 'Alpha') $row['total']['A']++;
+                // LOGIKA: Jika Izin/Sakit tapi BELUM Disetujui, anggap Alpha
+                if (in_array($st_asli, ['Izin', 'Sakit']) && $verif !== 'Disetujui') {
+                    $status_final = 'Alpha';
+                } else {
+                    $status_final = $st_asli;
+                }
+            } else {
+                $status_final = '-';
             }
+
+            $row['harian'][$d] = $status_final;
+
+            // Hitung Total berdasarkan status_final
+            if ($status_final == 'Hadir') $row['total']['H']++;
+            if ($status_final == 'Terlambat') { $row['total']['T']++; $row['total']['H']++; }
+            if ($status_final == 'Sakit') $row['total']['S']++;
+            if ($status_final == 'Izin') $row['total']['I']++;
+            if ($status_final == 'Alpha') $row['total']['A']++;
+        }
 
             // Hitung Persentase (Hadir / (Total Hari - Libur))
             // Anggaplah hari kerja efektif = Total Hadir + S + I + A (Simulasi sederhana)
@@ -472,81 +494,87 @@ public function cetak_bulanan()
             'jml_hari' => $jumlah_hari
         ]);
     }
-    public function cetak_rekap()
-    {
-        $bulan = $this->request->getGet('bulan');
-        $id_kelas = $this->request->getGet('id_kelas');
+  public function cetak_rekap()
+{
+    $bulan = $this->request->getGet('bulan');
+    $id_kelas = $this->request->getGet('id_kelas');
 
-        // Validasi Sederhana
-        if (!$bulan || !$id_kelas) {
-            return "Silakan pilih Kelas dan Bulan terlebih dahulu.";
-        }
-
-        // 1. Ambil Data Kelas & Sekolah
-        $kelas = $this->db->table('tbl_kelas')->where('id', $id_kelas)->get()->getRow();
-        
-        // 2. Ambil Siswa
-        $kolom_kelas = $this->db->fieldExists('kelas_id', 'tbl_siswa') ? 'kelas_id' : 'id_kelas';
-        $siswa = $this->db->table('tbl_siswa')
-            ->where($kolom_kelas, $id_kelas)
-            ->orderBy('nama_lengkap', 'ASC')
-            ->get()->getResultArray();
-
-        // 3. Ambil Presensi
-        $presensi = $this->db->table('tbl_presensi')
-            ->where('role', 'siswa')
-            ->like('tanggal', $bulan)
-            ->get()->getResultArray();
-
-        // 4. Mapping Data (Logic Matrix)
-        $absen_map = [];
-        foreach ($presensi as $p) {
-            $tgl = (int) date('d', strtotime($p['tanggal'])); 
-            $absen_map[$p['user_id']][$tgl] = $p['status_kehadiran'];
-        }
-
-        // 5. Hitung Statistik
-        $data_rekap = [];
-        $jumlah_hari = date('t', strtotime($bulan)); 
-
-        foreach ($siswa as $s) {
-            $row = [
-                'nama' => $s['nama_lengkap'],
-                'nis'  => $s['nis'],
-                'harian' => [],
-                'total' => ['H'=>0, 'S'=>0, 'I'=>0, 'A'=>0, 'T'=>0],
-                'persen' => 0
-            ];
-
-            for ($d = 1; $d <= $jumlah_hari; $d++) {
-                $status = $absen_map[$s['id']][$d] ?? '-';
-                $row['harian'][$d] = $status;
-
-                if ($status == 'Hadir') $row['total']['H']++;
-                if ($status == 'Terlambat') { $row['total']['T']++; $row['total']['H']++; }
-                if ($status == 'Sakit') $row['total']['S']++;
-                if ($status == 'Izin') $row['total']['I']++;
-                if ($status == 'Alpha') $row['total']['A']++;
-            }
-
-            $total_efektif = $row['total']['H'] + $row['total']['S'] + $row['total']['I'] + $row['total']['A'];
-            if ($total_efektif > 0) {
-                $row['persen'] = round(($row['total']['H'] / $total_efektif) * 100);
-            }
-            $data_rekap[] = $row;
-        }
-
-        return view('admin/presensi/cetak_rekap', [
-            'data_rekap' => $data_rekap,
-            'kelas' => $kelas,
-            'bulan' => $bulan,
-            'jml_hari' => $jumlah_hari,
-            'sekolah' => [
-                'nama' => 'SMK DIGITAL INDONESIA', // Sesuaikan
-                'alamat' => 'Jl. Teknologi No. 1'
-            ]
-        ]);
+    if (!$bulan || !$id_kelas) {
+        return "Silakan pilih Kelas dan Bulan terlebih dahulu.";
     }
+
+    $kelas = $this->db->table('tbl_kelas')->where('id', $id_kelas)->get()->getRow();
+    
+    // Ambil Data Siswa
+    $siswa = $this->db->table('tbl_siswa')
+        ->where('kelas_id', $id_kelas)
+        ->orderBy('nama_lengkap', 'ASC')
+        ->get()->getResultArray();
+
+    // Ambil Data Presensi
+    $presensi = $this->db->table('tbl_presensi')
+        ->where('role', 'siswa')
+        ->like('tanggal', $bulan)
+        ->get()->getResultArray();
+
+    // Mapping Data Presensi ke Array Berdasarkan ID Siswa dan Tanggal
+    $absen_map = [];
+    foreach ($presensi as $p) {
+        $tgl = (int) date('d', strtotime($p['tanggal'])); 
+        $absen_map[$p['user_id']][$tgl] = [
+            'status' => $p['status_kehadiran'],
+            'verif'  => $p['status_verifikasi'] //
+        ];
+    }
+
+    $data_rekap = [];
+    $jumlah_hari = date('t', strtotime($bulan)); 
+
+    foreach ($siswa as $s) {
+        $row = [
+            'nama' => $s['nama_lengkap'],
+            'nis'  => $s['nis'],
+            'total' => ['H'=>0, 'S'=>0, 'I'=>0, 'A'=>0, 'T'=>0]
+        ];
+
+        for ($d = 1; $d <= $jumlah_hari; $d++) {
+            $data_tgl = $absen_map[$s['id']][$d] ?? null;
+            
+            if ($data_tgl) {
+                $st_asli = $data_tgl['status'];
+                $verif   = $data_tgl['verif'];
+
+                // LOGIKA: Jika Izin/Sakit tapi BELUM Disetujui, anggap Alpha
+                if (in_array($st_asli, ['Izin', 'Sakit']) && $verif !== 'Disetujui') {
+                    $status_final = 'Alpha';
+                } else {
+                    $status_final = $st_asli;
+                }
+            } else {
+                $status_final = '-';
+            }
+
+            // Hitung Statistik Berdasarkan Status Final
+            if ($status_final == 'Hadir') $row['total']['H']++;
+            if ($status_final == 'Terlambat') { $row['total']['T']++; $row['total']['H']++; }
+            if ($status_final == 'Sakit') $row['total']['S']++;
+            if ($status_final == 'Izin') $row['total']['I']++;
+            if ($status_final == 'Alpha') $row['total']['A']++;
+        }
+        $data_rekap[] = $row;
+    }
+
+    return view('admin/presensi/cetak_rekap', [
+        'data_rekap' => $data_rekap,
+        'kelas' => $kelas,
+        'bulan' => $bulan,
+        'jml_hari' => $jumlah_hari,
+        'sekolah' => [
+            'nama' => 'SMK DIGITAL INDONESIA',
+            'alamat' => 'Jl. Teknologi No. 1'
+        ]
+    ]);
+}
     public function verifikasi($id, $status)
     {
         // $status isinya: 'Disetujui' atau 'Ditolak'
