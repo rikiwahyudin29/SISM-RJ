@@ -44,16 +44,28 @@ $routes->get('dashboard', 'Dashboard::index', ['filter' => 'role']);
 // 2. SHARED ROUTES: ADMIN & PIKET (Presensi & Monitoring)
 // =========================================================================
 // Fitur ini bisa diakses oleh ADMIN dan PIKET
+// Group ADMIN (Semua route di sini butuh login sebagai admin/piket)
 $routes->group('admin', ['filter' => 'role:admin,piket'], function($routes) {
 
-    // --- MONITORING KBM & PIKET ---
-    $routes->get('piket', 'Admin\Piket::index'); // Dashboard Monitoring
+    // --- 1. MONITORING UTAMA ---
+    $routes->get('piket', 'Admin\Piket::index'); // Dashboard
 
-    // --- PRESENSI SISWA ---
+    // --- 2. FITUR GURU PIKET (Jurnal & Izin) ---
+    // Saya buatkan group 'piket' agar URL-nya rapi: /admin/piket/jurnal dll
+    $routes->group('piket', function($routes) {
+        $routes->get('jurnal', 'Admin\Piket::jurnal');
+        $routes->post('saveJurnal', 'Admin\Piket::saveJurnal');
+        
+        $routes->get('izin', 'Admin\Piket::izin');
+        $routes->post('saveIzin', 'Admin\Piket::saveIzin');
+        $routes->get('cetakIzin/(:num)', 'Admin\Piket::cetakIzin/$1');
+    });
+
+    // --- 3. PRESENSI SISWA ---
     $routes->group('presensi', function($routes) {
         // Scanner
         $routes->get('scanner', 'Admin\Presensi::scanner');
-        $routes->post('proses_scan', 'Admin\Presensi::proses_scan'); // Web
+        $routes->post('proses_scan', 'Admin\Presensi::proses_scan'); // Web Scan
         
         // Manual & Izin
         $routes->get('izin', 'Admin\Presensi::izin');
@@ -65,15 +77,14 @@ $routes->group('admin', ['filter' => 'role:admin,piket'], function($routes) {
         $routes->get('rekap', 'Admin\Presensi::rekap');
         $routes->get('cetak_harian', 'Admin\Presensi::cetak_harian');
         $routes->get('cetak_rekap', 'Admin\Presensi::cetak_rekap');
+        $routes->get('cetak_bulanan', 'Admin\Presensi::cetak_bulanan');
         
         // Helper Data
         $routes->get('get_siswa_by_kelas/(:num)', 'Admin\Presensi::get_siswa_by_kelas/$1');
         $routes->get('verifikasi/(:num)/(:segment)', 'Admin\Presensi::verifikasi/$1/$2');
-        $routes->get('cetak_bulanan', 'Admin\Presensi::cetak_bulanan');
-        
     });
 
-    // --- PRESENSI GURU ---
+    // --- 4. PRESENSI GURU ---
     $routes->group('presensi_guru', function($routes) {
         $routes->get('/', 'Admin\PresensiGuru::index');
         $routes->post('simpan_manual', 'Admin\PresensiGuru::simpan_manual');
@@ -81,14 +92,14 @@ $routes->group('admin', ['filter' => 'role:admin,piket'], function($routes) {
         $routes->get('cetak_rekap', 'Admin\PresensiGuru::cetak_rekap');
     });
 
-    // --- MONITORING JURNAL KBM ---
+    // --- 5. MONITORING JURNAL KBM ---
     $routes->get('jurnal', 'Admin\Jurnal::index');
     $routes->get('jurnal/cetak', 'Admin\Jurnal::cetak');
-});
 
-// Route API untuk Alat IoT (Tidak butuh session login, biasanya pakai token API)
+}); // <--- Tutup Group Admin di sini
+
+// --- ROUTE API (Di luar group Admin agar tidak kena filter login session) ---
 $routes->post('api/iot/scan', 'Admin\Presensi::proses_scan');
-
 
 // =========================================================================
 // 3. ADMIN ONLY ROUTES (Full Control)
@@ -180,6 +191,17 @@ $routes->get('jenis_ujian', 'Admin\Master::jenis_ujian');
         $routes->post('siswa', 'Admin\Import::siswa');
     });
 
+    $routes->get('sekolah', 'Admin\Sekolah::index');
+    $routes->post('sekolah/update', 'Admin\Sekolah::update');
+
+    // ==========================================
+    // PERSIAPAN RUTE PPDB (Penerimaan Siswa Baru)
+    // ==========================================
+    $routes->get('ppdb', 'Admin\Ppdb::index');
+    $routes->get('ppdb/detail/(:num)', 'Admin\Ppdb::detail/$1');
+    $routes->post('ppdb/update-status', 'Admin\Ppdb::updateStatus');
+    $routes->get('ppdb/delete/(:num)', 'Admin\Ppdb::delete/$1');
+
     // --- MANAJEMEN USER & SDM ---
     $routes->group('users', function($routes) {
         $routes->get('/', 'Admin::users');
@@ -187,6 +209,7 @@ $routes->get('jenis_ujian', 'Admin\Master::jenis_ujian');
         $routes->post('simpan_role', 'Admin::simpan_user_role');
         $routes->post('update/(:num)', 'Admin::users_update/$1');
     });
+    
 
     $routes->group('guru', function($routes) {
         $routes->get('/', 'Admin\Guru::index');
@@ -396,6 +419,13 @@ $routes->group('guru', ['filter' => 'role:guru'], function($routes) {
     $routes->get('bk/settings', 'Guru\Bk::settings');
     $routes->post('bk/save-settings', 'Guru\Bk::saveSettings');
     $routes->get('bk/detail-siswa/(:num)', 'Guru\Bk::detailSiswa/$1');
+
+    // --- FILEBOX ---
+    $routes->get('filebox', 'Admin\Filebox::index');
+    $routes->post('filebox/upload', 'Admin\Filebox::upload');
+    $routes->post('filebox/nilai', 'Admin\Filebox::nilai');
+    $routes->get('filebox/download/(:segment)', 'Admin\Filebox::download/$1');
+    $routes->get('filebox/hapus/(:num)', 'Admin\Filebox::hapus/$1');
     });
 
 
@@ -448,3 +478,79 @@ $routes->group('siswa', ['filter' => 'role:siswa'], function($routes) {
 
     $routes->get('bk', 'Siswa\Bk::index');
 });
+
+$routes->group('admin', ['filter' => 'role:admin,kepsek,guru'], function($routes) {
+    
+    // ... route piket dll ...
+
+    // --- FILEBOX (Bisa diakses Admin, Kepsek, Guru) ---
+    $routes->get('filebox', 'Admin\Filebox::index');
+    $routes->post('filebox/upload', 'Admin\Filebox::upload');
+    $routes->post('filebox/nilai', 'Admin\Filebox::nilai');
+    $routes->get('filebox/download/(:segment)', 'Admin\Filebox::download/$1');
+    $routes->get('filebox/hapus/(:num)', 'Admin\Filebox::hapus/$1');
+    $routes->post('filebox/revisi', 'Admin\Filebox::revisi');
+
+    });
+
+    $routes->group('admin', ['filter' => 'role:admin,piket,sarpras'], function($routes) {
+        // --- ROUTE SARPRAS MULTI-ROLE ---
+    // Karena sudah masuk group 'admin', URL-nya jadi: localhost:8080/admin/sarpras
+    $routes->get('sarpras', 'Admin\Sarpras::index');
+    $routes->post('sarpras/save', 'Admin\Sarpras::save');
+    $routes->post('sarpras/update', 'Admin\Sarpras::update');
+    $routes->get('sarpras/delete/(:num)', 'Admin\Sarpras::delete/$1');
+
+});
+
+$routes->group('admin', ['filter' => 'role:admin,tu'], function($routes) {
+    // ... route sarpras, piket, dll ...
+    
+    // ROUTE E-SURAT
+    $routes->get('surat', 'Admin\Surat::index');
+    $routes->post('surat/create', 'Admin\Surat::create');
+    $routes->get('surat/cetak/(:num)', 'Admin\Surat::cetak/$1');
+    $routes->get('surat/delete/(:num)', 'Admin\Surat::delete/$1');
+
+    // TEMPLATE SURAT
+    $routes->get('templatesurat', 'Admin\TemplateSurat::index');
+    $routes->post('templatesurat/save', 'Admin\TemplateSurat::save');
+    $routes->get('templatesurat/delete/(:num)', 'Admin\TemplateSurat::delete/$1');
+
+    // SURAT OTOMATIS
+    $routes->post('surat/generate', 'Admin\Surat::generate');
+});
+
+$routes->group('admin', ['filter' => 'role:admin,guru,siswa'], function($routes) {
+    
+    // ... route lainnya ...
+
+    // --- E-LIBRARY ---
+    $routes->get('library', 'Admin\Library::index');
+    $routes->post('library/upload', 'Admin\Library::upload');
+    $routes->get('library/baca/(:num)', 'Admin\Library::baca/$1');
+    $routes->get('library/delete/(:num)', 'Admin\Library::delete/$1');
+
+    // --- E-LEARNING (GMEET) ---
+    $routes->get('elearning', 'Admin\Elearning::index');
+    $routes->post('elearning/save', 'Admin\Elearning::save');
+    $routes->get('elearning/delete/(:num)', 'Admin\Elearning::delete/$1');
+
+    // GOOGLE AUTH ROUTES
+    $routes->get('google/connect', 'Admin\Google::connect');
+    $routes->get('google/callback', 'Admin\Google::callback');
+
+    });
+
+    $routes->group('admin', ['filter' => 'role:admin,guru'], function($routes) {
+    // ... route lain ...
+    
+    // GOOGLE AUTH
+    $routes->get('google/connect', 'Admin\Google::connect');
+    $routes->get('google/callback', 'Admin\Google::callback');
+});
+// 1. Route Download (SPESIFIK) - Taruh paling atas!
+$routes->get('verifikasi/download/(:any)', 'Admin\Surat::cetak_public/$1'); 
+
+// 2. Route Scan QR (UMUM) - Taruh di bawahnya
+$routes->get('verifikasi/(:any)', 'Admin\Surat::verifikasi/$1');

@@ -95,4 +95,85 @@ class Piket extends BaseController
             'jam_sekarang' => $jam_sekarang
         ]);
     }
+    public function jurnal()
+    {
+        $data = [
+            'title' => 'Jurnal Piket Harian',
+            'guru'  => $this->db->table('tbl_guru')->get()->getResultArray(),
+            'jurnal' => $this->db->table('tbl_jurnal_piket')
+                        ->select('tbl_jurnal_piket.*, g1.nama_lengkap as nama_guru, g2.nama_lengkap as nama_pengganti')
+                        ->join('tbl_guru g1', 'g1.id = tbl_jurnal_piket.guru_id')
+                        ->join('tbl_guru g2', 'g2.id = tbl_jurnal_piket.guru_pengganti_id', 'left')
+                        ->where('tanggal', date('Y-m-d'))
+                        ->get()->getResultArray()
+        ];
+        return view('admin/piket/jurnal', $data);
+    }
+
+    public function saveJurnal()
+    {
+        $this->db->table('tbl_jurnal_piket')->insert([
+            'tanggal'           => date('Y-m-d'),
+            'guru_id'           => $this->request->getPost('guru_id'),
+            'keterangan'        => $this->request->getPost('keterangan'),
+            'tugas'             => $this->request->getPost('tugas'),
+            'guru_pengganti_id' => $this->request->getPost('guru_pengganti_id'),
+            'created_at'        => date('Y-m-d H:i:s')
+        ]);
+        return redirect()->to('admin/piket/jurnal')->with('success', 'Jurnal berhasil disimpan.');
+    }
+
+    // --- FITUR IZIN KELUAR ---
+    public function izin()
+    {
+        // Gunakan filter kelas seperti di BK agar tidak berat
+        $filter_kelas = $this->request->getVar('kelas');
+        
+        $builder = $this->db->table('tbl_izin_keluar')
+            ->select('tbl_izin_keluar.*, tbl_siswa.nama_lengkap, tbl_kelas.nama_kelas')
+            ->join('tbl_siswa', 'tbl_siswa.id = tbl_izin_keluar.siswa_id')
+            ->join('tbl_kelas', 'tbl_kelas.id = tbl_siswa.kelas_id')
+            ->orderBy('waktu_keluar', 'DESC');
+
+        if ($filter_kelas) $builder->where('tbl_siswa.kelas_id', $filter_kelas);
+
+        $data = [
+            'title'      => 'Izin Keluar Siswa',
+            'izin'       => $builder->get()->getResultArray(),
+            'list_kelas' => $this->db->table('tbl_kelas')->get()->getResultArray(),
+            'siswa'      => $filter_kelas ? $this->db->table('tbl_siswa')->where('kelas_id', $filter_kelas)->get()->getResultArray() : []
+        ];
+        return view('admin/piket/izin', $data);
+    }
+
+    public function saveIzin()
+    {
+        $this->db->table('tbl_izin_keluar')->insert([
+            'siswa_id'     => $this->request->getPost('siswa_id'),
+            'alasan'       => $this->request->getPost('alasan'),
+            'waktu_keluar' => date('Y-m-d H:i:s'),
+            'pencatat_id'  => session()->get('id_user')
+        ]);
+        return redirect()->to('admin/piket/izin')->with('success', 'Izin keluar berhasil dibuat.');
+    }
+    // Tambahkan method ini di dalam class Piket
+public function cetakIzin($id)
+{
+    // Ambil data detail izin
+    $izin = $this->db->table('tbl_izin_keluar')
+        ->select('tbl_izin_keluar.*, tbl_siswa.nama_lengkap, tbl_siswa.nis, tbl_kelas.nama_kelas, users.username as nama_pencatat')
+        ->join('tbl_siswa', 'tbl_siswa.id = tbl_izin_keluar.siswa_id')
+        ->join('tbl_kelas', 'tbl_kelas.id = tbl_siswa.kelas_id')
+        ->join('users', 'users.id = tbl_izin_keluar.pencatat_id', 'left') // Join ke user yang input (Guru Piket)
+        ->where('tbl_izin_keluar.id', $id)
+        ->get()->getRowArray();
+
+    if (!$izin) {
+        return redirect()->to('admin/piket/izin')->with('error', 'Data izin tidak ditemukan.');
+    }
+
+    return view('admin/piket/cetak_izin', [
+        'izin' => $izin
+    ]);
+}
 }

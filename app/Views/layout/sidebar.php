@@ -80,7 +80,7 @@ function is_active($url) {
                         <li><a href="<?= base_url('admin/master/kelas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Data Kelas</a></li>
                         <li><a href="<?= base_url('admin/master/mapel') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Mata Pelajaran</a></li>
                         <li><a href="<?= base_url('admin/jam') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Jam Belajar (Bel)</a></li>
-                        <li><a href="<?= base_url('admin/sekolah/identitas') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Identitas Sekolah</a></li>
+                        <li><a href="<?= base_url('admin/sekolah') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Identitas Sekolah</a></li>
                     </ul>
                 </li>
 
@@ -102,6 +102,13 @@ function is_active($url) {
         <span class="ml-auto w-2 h-2 rounded-full bg-rose-500"></span>
     <?php endif; ?>
 </a>
+
+<li>
+    <a href="<?= base_url('admin/maintenance') ?>" class="<?= $baseClass ?> <?= is_active('admin/maintenance') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        <span class="ml-3 font-bold uppercase text-[10px] text-rose-500">Cleanup Data</span>
+    </a>
+</li>
 
                 <li>
                     <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-keuangan-adm" data-collapse-toggle="dropdown-keuangan-adm">
@@ -504,6 +511,19 @@ function is_active($url) {
                         <li><a href="<?= base_url('admin/jurnal') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-emerald-600">Jurnal Mengajar</a></li>
                     </ul>
                 </li>
+                <li>
+    <a href="<?= base_url('admin/piket/jurnal') ?>" class="<?= $baseClass ?> <?= is_active('admin/piket/jurnal') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+        <span class="ml-3 font-bold uppercase text-[10px]">Jurnal Piket</span>
+    </a>
+</li>
+
+<li>
+    <a href="<?= base_url('admin/piket/izin') ?>" class="<?= $baseClass ?> <?= is_active('admin/piket/izin') ? $activeClass : $inactiveClass ?>">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m0 10a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        <span class="ml-3 font-bold uppercase text-[10px]">Izin Keluar</span>
+    </a>
+</li>
                 <?php endif; ?>
 
             </ul>
@@ -529,6 +549,112 @@ function is_active($url) {
     </li>
 <?php endif; ?>
 
+<?php
+    // Inisialisasi Database (Jika belum ada di baris atas sidebar)
+    $db = \Config\Database::connect();
+
+    // Cek Hak Akses Filebox: Kepsek (ID 2) atau Guru (ID 8)
+    // Sesuai data di gambar tabel role
+    $isFileboxUser = $db->table('user_roles')
+             ->where('user_id', session()->get('id_user'))
+             ->whereIn('role_id', [2, 8]) // ID 2 = Kepsek, ID 8 = Guru
+             ->countAllResults();
+
+    // Tampilkan Menu jika: Admin (session) ATAU Punya Akses Filebox (DB)
+    if (session()->get('role') == 'admin' || $isFileboxUser > 0) : 
+?>
+    <li class="pt-4 pb-1 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">ADMINISTRASI</li>
+    
+    <li>
+        <a href="<?= base_url('admin/filebox') ?>" class="<?= $baseClass ?> <?= is_active('admin/filebox') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path></svg>
+            <span class="ml-3">Filebox (RPP/Silabus)</span>
+        </a>
+    </li>
+
+    <?php
+    // 1. Cek Apakah User Punya Role SARPRAS (ID 5)
+    // Sesuai gambar tabel role bos: ID 5 = sarpras
+    $db = \Config\Database::connect();
+    $isSarpras = $db->table('user_roles')
+             ->where('user_id', session()->get('id_user'))
+             ->where('role_id', 5) // ID 5 = Sarpras
+             ->countAllResults();
+
+    // 2. Tampilkan Menu Jika: ADMIN atau Punya Role SARPRAS
+    if (session()->get('role') == 'admin' || $isSarpras > 0) : 
+?>
+    <div class="px-3 mt-6 mb-2">
+        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Aset & Fasilitas</span>
+    </div>
+
+    <li>
+        <a href="<?= base_url('admin/sarpras') ?>" class="<?= $baseClass ?> <?= is_active('admin/sarpras') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            <span class="ml-3 font-bold uppercase text-[10px]">Inventaris Barang</span>
+        </a>
+    </li>
+
+<?php endif; ?>
+<?php endif; ?>
+
+<?php
+    $db = \Config\Database::connect();
+    $idUser = session()->get('id_user');
+
+    // --- CEK ROLE UNTUK PEMBELAJARAN (GURU & SISWA) ---
+    // ID 8 = Guru, ID 11 = Siswa (Sesuai gambar role)
+    $isPendidik = $db->table('user_roles')
+             ->where('user_id', $idUser)
+             ->whereIn('role_id', [8, 11]) 
+             ->countAllResults();
+
+    // --- CEK ROLE UNTUK ARSIP (KEPSEK & KURIKULUM) ---
+    // ID 2 = Kepsek, ID 3 = Kurikulum (Sesuai gambar role)
+    // Anggap TU = Admin, jadi Admin otomatis masuk
+    $isManajemen = $db->table('user_roles')
+             ->where('user_id', $idUser)
+             ->whereIn('role_id', [2, 3]) 
+             ->countAllResults();
+?>
+
+<?php if (session()->get('role') == 'admin' || $isPendidik > 0) : ?>
+    
+    <div class="px-3 mt-6 mb-2">
+        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">E-Learning</span>
+    </div>
+
+    <li>
+        <a href="<?= base_url('admin/elearning') ?>" class="<?= $baseClass ?> <?= is_active('admin/elearning') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <span class="ml-3 font-bold uppercase text-[10px]">Google Meet</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="<?= base_url('admin/library') ?>" class="<?= $baseClass ?> <?= is_active('admin/library') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            <span class="ml-3 font-bold uppercase text-[10px]">Perpustakaan</span>
+        </a>
+    </li>
+
+<?php endif; ?>
+
+
+<?php if (session()->get('role') == 'admin' || $isManajemen > 0) : ?>
+
+    <div class="px-3 mt-6 mb-2">
+        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Administrasi</span>
+    </div>
+
+    <li>
+        <a href="<?= base_url('admin/surat') ?>" class="<?= $baseClass ?> <?= is_active('admin/surat') ? $activeClass : $inactiveClass ?>">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span class="ml-3 font-bold uppercase text-[10px]">E-Arsip Surat</span>
+        </a>
+    </li>
+
+<?php endif; ?>
         <div class="mt-2 pt-3 border-t border-gray-100 dark:border-slate-800/50">
              <a href="<?= base_url('logout') ?>" class="flex items-center px-3 py-2 text-gray-500 rounded-lg hover:bg-red-50 hover:text-red-600 dark:text-slate-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all group">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>

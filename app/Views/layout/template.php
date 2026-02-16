@@ -1,21 +1,34 @@
+<?php
+// 1. AMBIL DATA IDENTITAS SEKOLAH LANGSUNG DARI DATABASE
+// Ini trik agar data sekolah tersedia di seluruh halaman tanpa edit Controller satu per satu
+$db = \Config\Database::connect();
+$sekolah = $db->table('tbl_sekolah')->where('id', 1)->get()->getRowArray();
+
+// 2. TENTUKAN VARIABEL DEFAULT (Jaga-jaga kalau database masih kosong)
+$app_name = $sekolah['nama_sekolah'] ?? 'SIAKAD SEKOLAH';
+$app_logo = !empty($sekolah['logo']) ? base_url('uploads/identitas/' . $sekolah['logo']) : base_url('assets/img/logo.svg');
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?? 'SIAKAD SISM-RJ' ?></title>
+    <title><?= $title ?? $app_name ?></title>
     
+    <link rel="icon" type="image/png" href="<?= $app_logo ?>">
+
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..0,800;1,200..0,800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..0,800;1,200..0,800&display=swap" rel="stylesheet">
 
-<style>
-    body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-</style>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Tambahan agar logo tidak gepeng */
+        .logo-sekolah { object-fit: contain; }
+    </style>
     
     <script>
         // Cek Tema saat loading awal
@@ -44,19 +57,25 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
-    <span class="sr-only">Open sidebar</span>
-    <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-       <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
-    </svg>
-</button>
-                    <a href="<?= base_url(session()->get('role_active') . '/dashboard') ?>" class="flex ms-2 md:me-24 items-center gap-2">
-                        <img src="<?= base_url('assets/img/logo.svg') ?>" class="h-9 w-9" alt="Logo" />
-                        <span class="self-center text-xl font-bold whitespace-nowrap dark:text-white uppercase tracking-tighter italic">SIAKAD</span>
+                        <span class="sr-only">Open sidebar</span>
+                        <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                           <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+                        </svg>
+                    </button>
+                    
+                    <a href="<?= base_url(session()->get('role_active') . '/dashboard') ?>" class="flex ms-2 md:me-24 items-center gap-3">
+                        <img src="<?= $app_logo ?>" class="h-10 w-10 logo-sekolah" alt="Logo Sekolah" />
+                        <div class="flex flex-col">
+                            <span class="self-center text-lg font-black whitespace-nowrap dark:text-white uppercase tracking-tight leading-none">
+                                <?= esc($app_name) ?>
+                            </span>
+                            <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400 tracking-widest">SISTEM INFORMASI AKADEMIK</span>
+                        </div>
                     </a>
                 </div>
                 
                 <div class="flex items-center gap-2 sm:gap-4">
-                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                    <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
                         <div id="ping-dot" class="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
                         <span id="ping-text" class="text-[11px] font-mono font-bold dark:text-gray-300">0 ms</span>
                     </div>
@@ -109,7 +128,8 @@
             const start = Date.now();
             const text = document.getElementById('ping-text');
             const dot = document.getElementById('ping-dot');
-            fetch('<?= base_url('favicon.ico') ?>', { mode: 'no-cors', cache: 'no-store' })
+            // Ganti URL ini ke base_url() agar tidak error 404
+            fetch('<?= base_url() ?>', { mode: 'no-cors', cache: 'no-store' })
                 .then(() => {
                     const diff = Date.now() - start;
                     text.innerText = diff + ' ms';
@@ -123,9 +143,9 @@
                 });
         }
         setInterval(checkPing, 5000);
-        checkPing();
+        checkPing(); // Jalankan pertama kali
 
-        // Dark Mode Logic
+        // Dark Mode Logic (Tetap sama)
         var themeToggleBtn = document.getElementById('theme-toggle');
         var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
         var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
@@ -146,36 +166,35 @@
             }
         });
     </script>
+    
     <?php if (session()->getFlashdata('access_denied')) : ?>
-<div id="denied-popup" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300">
-    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 max-w-sm w-full border-t-4 border-red-500 transform transition-all animate-bounce-short">
-        <div class="flex flex-col items-center text-center">
-            <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                </svg>
+    <div id="denied-popup" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 max-w-sm w-full border-t-4 border-red-500 transform transition-all animate-bounce-short">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-black text-gray-900 dark:text-white mb-2">Akses Terlarang!</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed font-medium">
+                    <?= session()->getFlashdata('access_denied') ?>
+                </p>
+                <button onclick="document.getElementById('denied-popup').remove()" class="mt-6 w-full py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold rounded-2xl transition-colors">
+                    Mengerti
+                </button>
             </div>
-            <h2 class="text-xl font-black text-gray-900 dark:text-white mb-2">Akses Terlarang!</h2>
-            <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed font-medium">
-                <?= session()->getFlashdata('access_denied') ?>
-            </p>
-            <button onclick="document.getElementById('denied-popup').remove()" class="mt-6 w-full py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold rounded-2xl transition-colors">
-                Mengerti
-            </button>
         </div>
     </div>
-</div>
-
-<script>
-    // Popup denied juga hilang otomatis dalam 5 detik jika tidak diklik
-    setTimeout(function() {
-        const popup = document.getElementById('denied-popup');
-        if (popup) {
-            popup.classList.add('opacity-0');
-            setTimeout(() => popup.remove(), 300);
-        }
-    }, 5000);
-</script>
-<?php endif; ?>
+    <script>
+        setTimeout(function() {
+            const popup = document.getElementById('denied-popup');
+            if (popup) {
+                popup.classList.add('opacity-0');
+                setTimeout(() => popup.remove(), 300);
+            }
+        }, 5000);
+    </script>
+    <?php endif; ?>
 </body>
 </html>
