@@ -4,11 +4,32 @@ namespace App\Libraries;
 
 class TripayService
 {
-    // --- ISI DENGAN DATA DARI DASHBOARD TRIPAY ANDA ---
-    private $apiKey       = 'DEV-rsVpftAi4jRUkGYGkU5zj15OCaT62kPmq9Sa36IU'; // API Key
-    private $privateKey   = 'BzhlB-aNk8w-AkaDG-7sVyY-96yrG';     // Private Key
-    private $merchantCode = 'T39326';      // Kode Merchant
-    private $mode         = 'sandbox';   // 'sandbox' atau 'production'
+    private $apiKey;
+    private $privateKey;
+    private $merchantCode;
+    private $mode;
+
+    public function __construct()
+    {
+        // AMBIL DATA DARI DATABASE TBL_SEKOLAH (ID 1)
+        $db = \Config\Database::connect();
+        $config = $db->table('tbl_sekolah')->where('id', 1)->get()->getRow();
+
+        if ($config) {
+            $this->apiKey       = $config->tripay_api_key;
+            $this->privateKey   = $config->tripay_private_key;
+            $this->merchantCode = $config->tripay_merchant_code;
+            
+            // Konversi enum 'Sandbox'/'Production' ke lowercase ('sandbox'/'production')
+            $this->mode         = strtolower($config->mode_transaksi); 
+        } else {
+            // Fallback jika data kosong (hindari error)
+            $this->apiKey       = '';
+            $this->privateKey   = '';
+            $this->merchantCode = '';
+            $this->mode         = 'sandbox';
+        }
+    }
 
     public function getBaseUrl()
     {
@@ -20,6 +41,11 @@ class TripayService
     // 1. AMBIL DAFTAR CHANNEL PEMBAYARAN (QRIS, ALFAMART, DLL)
     public function getChannels()
     {
+        // Cek jika API Key kosong
+        if (empty($this->apiKey)) {
+            return [];
+        }
+
         $url = $this->getBaseUrl() . 'merchant/payment-channel';
 
         $curl = curl_init();
@@ -28,7 +54,7 @@ class TripayService
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
+            CURLOPT_TIMEOUT => 30,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'GET',
@@ -41,15 +67,23 @@ class TripayService
         $err = curl_error($curl);
         curl_close($curl);
 
-        if ($err) return [];
+        if ($err) {
+            log_message('error', 'Tripay Error: ' . $err);
+            return [];
+        }
         
         $result = json_decode($response, true);
-        return $result['success'] ? $result['data'] : [];
+        return (isset($result['success']) && $result['success']) ? $result['data'] : [];
     }
 
     // 2. REQUEST TRANSAKSI BARU
     public function requestTransaction($data)
     {
+        // Cek Kelengkapan Config
+        if (empty($this->apiKey) || empty($this->privateKey) || empty($this->merchantCode)) {
+            return ['success' => false, 'message' => 'Konfigurasi Tripay di Database Sekolah Belum Lengkap!'];
+        }
+
         $url = $this->getBaseUrl() . 'transaction/create';
         
         // Buat Signature (Wajib: merchant_code + merchant_ref + amount)
@@ -74,7 +108,7 @@ class TripayService
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
+            CURLOPT_TIMEOUT => 30,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
@@ -88,7 +122,10 @@ class TripayService
         $err = curl_error($curl);
         curl_close($curl);
 
-        if ($err) return ['success' => false, 'message' => $err];
+        if ($err) {
+            log_message('error', 'Tripay Transaksi Error: ' . $err);
+            return ['success' => false, 'message' => $err];
+        }
 
         return json_decode($response, true);
     }

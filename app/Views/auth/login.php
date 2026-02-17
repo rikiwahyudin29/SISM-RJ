@@ -1,11 +1,22 @@
+<?php
+// 1. TARIK DATA SEKOLAH (Agar Logo & Nama Sekolah Dinamis)
+$db = \Config\Database::connect();
+$sekolah = $db->table('tbl_sekolah')->where('id', 1)->get()->getRowArray();
+
+// Setup Path Logo
+$pathLogo = !empty($sekolah['logo']) ? base_url('uploads/identitas/' . $sekolah['logo']) : base_url('assets/img/logo.svg');
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login System | SIAKAD</title>
+    <title>Login System | <?= $sekolah['nama_sekolah'] ?></title>
     
     <link href="<?= base_url('assets/css/flowbite.min.css') ?>" rel="stylesheet" />
+    
+    <link rel="icon" type="image/x-icon" href="<?= $pathLogo ?>">
     
     <script>
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -23,18 +34,23 @@
             <div class="flex flex-col justify-center">
                 <div class="w-full lg:max-w-md p-8 space-y-6 bg-white rounded-2xl shadow-xl dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                     
-                    <div class="flex items-center gap-3 mb-2">
-                        <img class="w-10 h-10" src="https://flowbite.com/docs/images/logo.svg" alt="logo">
-                        <span class="text-2xl font-bold text-gray-900 dark:text-white">SIAKAD</span>
+                    <div class="flex items-center gap-3 mb-4">
+                        <img class="w-12 h-12 object-contain" src="<?= $pathLogo ?>" alt="Logo Sekolah">
+                        <div class="flex flex-col justify-center">
+                            <span class="text-2xl font-black text-gray-900 dark:text-white leading-none tracking-tight">SIAKAD</span>
+                            <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide mt-1">
+                                <?= $sekolah['nama_sekolah'] ?>
+                            </span>
+                        </div>
                     </div>
                     
                     <div>
-                        <h1 class="text-2xl font-extrabold text-gray-900 dark:text-white">Selamat Datang</h1>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">Masuk untuk mengakses dashboard sekolah.</p>
+                        <h1 class="text-xl font-bold text-gray-900 dark:text-white">Selamat Datang 👋</h1>
+                        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">Masuk untuk mengakses dashboard akademik.</p>
                     </div>
 
                     <?php if (session()->getFlashdata('error')) : ?>
-                        <div class="flex items-center p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-700 dark:text-red-400 border border-red-200 dark:border-red-600" role="alert">
+                        <div class="flex items-center p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-700 dark:text-red-400 border border-red-200 dark:border-red-600 animate-pulse" role="alert">
                             <svg class="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
                             </svg>
@@ -46,8 +62,8 @@
                         <?= csrf_field() ?>
                         
                         <div>
-                            <label for="username" class="block mb-2 text-sm font-semibold text-gray-900 dark:text-white">Username / Email</label>
-                            <input type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Contoh: 123456" required autocomplete="username">
+                            <label for="username" class="block mb-2 text-sm font-semibold text-gray-900 dark:text-white">Username / Email / NIS</label>
+                            <input type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Masukkan ID Pengguna" required autocomplete="username" autofocus>
                         </div>
                         
                         <div>
@@ -62,17 +78,17 @@
                                 </div>
                                 <label for="remember" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Ingat saya</label>
                             </div>
-                            <a href="#" class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">Lupa password?</a>
-                        </div>
+                            </div>
 
-                        <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-bold rounded-lg text-sm px-5 py-3 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 shadow-md transition-all">
+                        <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-bold rounded-lg text-sm px-5 py-3 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
                             Masuk Sekarang
                         </button>
 
+                        <?php if (!empty($sekolah['google_client_id'])): ?>
                         <div class="flex items-center">
-                            <div class="w-full h-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
                             <div class="px-5 text-center text-gray-500 dark:text-gray-400 text-sm">atau</div>
-                            <div class="w-full h-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="w-full h-px bg-gray-200 dark:bg-gray-700"></div>
                         </div>
 
                         <a href="<?= base_url('auth/google') ?>" class="flex items-center justify-center w-full px-5 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700 transition duration-200 gap-2">
@@ -84,12 +100,27 @@
                             </svg>
                             Masuk dengan Google
                         </a>
+                        <?php endif; ?>
                     </form>
+
+                    <div class="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
+                        &copy; <?= date('Y') ?> <?= $sekolah['nama_sekolah'] ?>. All rights reserved.
+                    </div>
                 </div>
             </div>
 
-            <div class="hidden lg:flex items-center justify-center bg-blue-50 dark:bg-gray-800 rounded-2xl">
-                <img src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/authentication/illustration.svg" class="w-full max-w-lg p-10 transform hover:scale-105 transition duration-500" alt="Ilustrasi Sekolah">
+            <div class="hidden lg:flex flex-col items-center justify-center bg-blue-50 dark:bg-gray-800 rounded-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-blue-100 dark:bg-blue-900 opacity-50 blur-3xl"></div>
+                <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-purple-100 dark:bg-purple-900 opacity-50 blur-3xl"></div>
+                
+                <img src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/authentication/illustration.svg" class="w-full max-w-lg p-10 transform hover:scale-105 transition duration-500 relative z-10" alt="Ilustrasi Sekolah">
+                
+                <div class="text-center z-10 px-8 pb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Sistem Informasi Akademik</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">
+                        Kelola data akademik, keuangan, dan administrasi sekolah dalam satu pintu yang terintegrasi.
+                    </p>
+                </div>
             </div>
         </div>
     </section>

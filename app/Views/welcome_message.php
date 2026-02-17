@@ -1,329 +1,410 @@
+<?php
+// 1. SETUP LOGO & IDENTITAS
+$pathLogo = !empty($web['logo']) ? base_url('uploads/identitas/' . $web['logo']) : 'https://flowbite.com/docs/images/logo.svg';
+
+// 2. LOGIC YOUTUBE EMBED (AUTO CONVERT)
+// Fitur ini mengubah link youtube biasa menjadi embed player
+$yt_embed = '';
+if (!empty($web['link_yt'])) {
+    $url = $web['link_yt'];
+    if (preg_match('/youtu\.be\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
+        $yt_embed = "https://www.youtube.com/embed/" . $matches[1];
+    } elseif (preg_match('/v=([a-zA-Z0-9_-]+)/', $url, $matches)) {
+        $yt_embed = "https://www.youtube.com/embed/" . $matches[1];
+    } else {
+        $yt_embed = $url; 
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Informasi | <?= $web['nama_sekolah'] ?? 'Nama Sekolah' ?></title>
+    <title><?= $web['nama_sekolah'] ?> | Official Website</title>
     
+    <link rel="icon" type="image/x-icon" href="<?= $pathLogo ?>">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        .nav-transparent { background-color: transparent; box-shadow: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; padding-bottom: 1.5rem; }
-        .nav-scrolled { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-bottom: 1px solid #e5e7eb; padding-top: 1rem; padding-bottom: 1rem; }
-        .nav-transparent .nav-link { color: white; }
-        .nav-scrolled .nav-link { color: #374151; }
-        .nav-scrolled .nav-link:hover { color: #1d4ed8; } 
-        .nav-transparent .logo-text { color: white; }
-        .nav-scrolled .logo-text { color: #1e3a8a; }
-        .nav-transparent .btn-spmb { border-color: white; color: white; }
-        .nav-transparent .btn-spmb:hover { background-color: white; color: #1d4ed8; }
-        .nav-scrolled .btn-spmb { border-color: #1d4ed8; color: #1d4ed8; }
-        .nav-scrolled .btn-spmb:hover { background-color: #1d4ed8; color: white; }
-        .nav-transparent .mobile-icon { color: white; }
-        .nav-scrolled .mobile-icon { color: #374151; }
-        @media (max-width: 768px) {
-            #navbar-sticky ul { background-color: #1f2937; border: 1px solid #374151; margin-top: 10px; }
-            .nav-transparent .nav-link, .nav-scrolled .nav-link { color: white !important; padding-left: 15px; }
-            .nav-link:hover { background-color: #374151; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Navbar Effect */
+        .nav-transparent { background-color: transparent; padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        .nav-scrolled { 
+            background-color: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px); 
+            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1); 
+            padding-top: 1rem; 
+            padding-bottom: 1rem; 
         }
+        .nav-transparent .nav-link, .nav-transparent .brand-text { color: white; }
+        .nav-scrolled .nav-link, .nav-scrolled .brand-text { color: #1e293b; }
+        
+        .nav-link { position: relative; font-weight: 600; font-size: 0.95rem; }
+        .nav-link::after {
+            content: ''; position: absolute; width: 0; height: 2px; bottom: -5px; left: 0;
+            background-color: #3b82f6; transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        /* Lightbox (Fitur Galeri) */
+        .lightbox { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .lightbox.show { opacity: 1; }
+        .lightbox img { max-width: 90%; max-height: 85%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s ease; }
+        .lightbox.show img { transform: scale(1); }
+        .lightbox-close { position: absolute; top: 20px; right: 30px; font-size: 40px; color: white; cursor: pointer; z-index: 10000; }
     </style>
 </head>
-<body class="font-sans antialiased text-gray-700 bg-white">
+<body class="font-sans antialiased text-slate-600 bg-white">
 
     <nav id="mainNavbar" class="fixed w-full z-50 top-0 start-0 transition-all duration-300 ease-in-out nav-transparent">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
             <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
-                <div class="bg-blue-600 text-white p-2 rounded-lg shadow-lg">
-                    <i class="fas fa-graduation-cap fa-lg"></i>
-                </div>
-                <span class="self-center text-xl md:text-2xl font-bold whitespace-nowrap logo-text transition-colors duration-300">
-                    <?= $web['nama_sekolah'] ?? 'Sekolah Digital' ?>
+                <img src="<?= $pathLogo ?>" class="h-10 w-10 object-contain drop-shadow-md bg-white rounded-full p-1" alt="Logo">
+                <span class="self-center text-xl font-bold whitespace-nowrap brand-text transition-colors duration-300 uppercase tracking-tight">
+                    <?= $web['nama_sekolah'] ?>
                 </span>
             </a>
             
-            <div class="flex md:order-2 space-x-2 md:space-x-2 rtl:space-x-reverse">
-                <a href="<?= base_url('spmb') ?>" class="btn-spmb hidden md:block border bg-transparent focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center transition-all duration-300">
-                    <i class="fas fa-user-plus mr-1"></i> Daftar SPMB
+            <div class="flex md:order-2 space-x-2 rtl:space-x-reverse">
+                <a href="<?= base_url('auth') ?>" class="text-white bg-slate-900 hover:bg-slate-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-bold rounded-lg text-sm px-5 py-2.5 text-center shadow-lg transition-transform hover:scale-105 hidden md:block">
+                    <i class="fas fa-lock mr-2 text-slate-400"></i> Login
                 </a>
-                <a href="<?= base_url('auth') ?>" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-xs md:text-sm px-3 py-2 md:px-4 md:py-2 text-center shadow-lg transition-colors">
-                    <i class="fas fa-sign-in-alt mr-1"></i> Login
-                </a>
-                <button data-collapse-toggle="navbar-sticky" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center rounded-lg md:hidden hover:bg-white/10 focus:outline-none mobile-icon">
+                
+                <button data-collapse-toggle="navbar-sticky" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 bg-white/20 backdrop-blur-sm">
                     <span class="sr-only">Open main menu</span>
-                    <i class="fas fa-bars text-xl"></i>
+                    <i class="fas fa-bars text-xl text-white"></i>
                 </button>
             </div>
 
             <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
-                <ul class="flex flex-col p-4 md:p-0 mt-4 font-medium rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-transparent">
-                    <li><a href="#home" class="nav-link block py-2 px-3 rounded md:p-0 transition-colors duration-300">Home</a></li>
-                    <li><a href="#profile" class="nav-link block py-2 px-3 rounded md:p-0 transition-colors duration-300">Profile</a></li>
-                    <li><a href="#keunggulan" class="nav-link block py-2 px-3 rounded md:p-0 transition-colors duration-300">Keunggulan</a></li>
-                    <li><a href="#fitur-app" class="nav-link block py-2 px-3 rounded md:p-0 transition-colors duration-300">Aplikasi</a></li>
-                    <li><a href="#kegiatan" class="nav-link block py-2 px-3 rounded md:p-0 transition-colors duration-300">Kegiatan</a></li>
-                    <li><a href="#kontak" class="nav-link block py-2 px-3 rounded md:p-0 transition-colors duration-300">Kontak</a></li>
+                <ul class="flex flex-col p-4 md:p-0 mt-4 font-medium md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-transparent bg-slate-900/90 rounded-xl md:rounded-none">
+                    <li><a href="#home" class="nav-link block py-2 px-3 rounded md:p-0">Beranda</a></li>
+                    <li><a href="#spmb" class="nav-link block py-2 px-3 rounded md:p-0 text-yellow-300 hover:text-yellow-400">Info PPDB</a></li>
+                    <li><a href="#profile" class="nav-link block py-2 px-3 rounded md:p-0">Profil</a></li>
+                    <li><a href="#berita" class="nav-link block py-2 px-3 rounded md:p-0">Berita</a></li>
+                    <li><a href="#galeri" class="nav-link block py-2 px-3 rounded md:p-0">Galeri</a></li>
+                    <li><a href="#kontak" class="nav-link block py-2 px-3 rounded md:p-0">Kontak</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
-        
-        <div id="hero-carousel" class="absolute inset-0 z-0 w-full h-full" data-carousel="slide" data-carousel-interval="4000">
+        <div id="hero-carousel" class="absolute inset-0 z-0 w-full h-full" data-carousel="slide" data-carousel-interval="5000">
             <div class="relative h-full w-full overflow-hidden">
                 <?php if(!empty($sliders)): ?>
-                    <?php foreach($sliders as $slide): ?>
-                        <div class="hidden duration-1000 ease-in-out" data-carousel-item>
+                    <?php foreach($sliders as $index => $slide): ?>
+                        <div class="hidden duration-1000 ease-in-out" data-carousel-item="<?= $index === 0 ? 'active' : '' ?>">
                             <img src="<?= base_url('uploads/slider/' . $slide['gambar']) ?>" class="absolute block w-full h-full object-cover" alt="<?= $slide['judul'] ?>">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent opacity-90"></div>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="hidden duration-1000 ease-in-out" data-carousel-item>
-                        <img src="https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1986&auto=format&fit=crop" class="absolute block w-full h-full object-cover" alt="Default">
+                    <div class="hidden duration-1000 ease-in-out" data-carousel-item="active">
+                        <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop" class="absolute block w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-slate-900/70"></div>
                     </div>
                 <?php endif; ?>
             </div>
         </div>
 
-        <div class="absolute inset-0 bg-gray-900/60 z-10"></div>
-        
-        <div class="relative z-20 px-4 mx-auto max-w-screen-xl text-center mt-10 md:mt-0">
-            <span class="bg-blue-500/20 text-blue-100 border border-blue-400 text-xs font-bold inline-flex items-center px-3 py-1 rounded-full mb-4 md:mb-6 backdrop-blur-sm">
-                <i class="fas fa-rocket mr-2"></i> Penerimaan Siswa Baru
+        <div class="relative z-20 px-4 mx-auto max-w-screen-xl text-center mt-10 md:mt-0" data-aos="fade-up" data-aos-duration="1200">
+            <span class="bg-blue-600/30 text-blue-200 border border-blue-400/50 text-xs font-bold inline-flex items-center px-4 py-1.5 rounded-full mb-6 backdrop-blur-md uppercase tracking-wider">
+                <i class="fas fa-school mr-2"></i> Official Website
             </span>
-            <h1 class="mb-4 text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-white drop-shadow-md">
-                Mewujudkan Generasi Emas <br> 
-                Berbasis <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-300">Teknologi Digital</span>
+            <h1 class="mb-6 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-none text-white drop-shadow-xl">
+                <?= $web['nama_sekolah'] ?>
             </h1>
-            <p class="mb-8 text-sm md:text-xl font-normal text-gray-200 px-2 md:px-48 drop-shadow-sm">
-                <?= $web['deskripsi_hero'] ?? 'Deskripsi default sekolah...' ?>
+            <p class="mb-8 text-base md:text-xl font-light text-slate-300 px-2 md:px-48 drop-shadow-md leading-relaxed">
+                <?= $web['deskripsi_hero'] ?? 'Mewujudkan generasi cerdas, berkarakter, dan berdaya saing global.' ?>
             </p>
-            <div class="flex flex-col space-y-3 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-                <a href="<?= base_url('auth') ?>" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-800 transition-all shadow-lg">
-                    Masuk Sistem <i class="fas fa-arrow-right ml-2"></i>
+            <div class="flex flex-col sm:flex-row sm:justify-center gap-4">
+                <a href="<?= base_url('spmb/register') ?>" class="inline-flex justify-center items-center py-4 px-8 text-base font-bold text-center text-white rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 focus:ring-4 focus:ring-blue-800 transition-all shadow-xl shadow-blue-500/30 transform hover:-translate-y-1">
+                    Daftar PPDB Sekarang <i class="fas fa-arrow-right ml-2"></i>
                 </a>
-                <a href="#profile" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg border border-white hover:bg-white hover:text-gray-900 focus:ring-4 focus:ring-gray-400 transition-all backdrop-blur-sm bg-white/10">
-                    <i class="fas fa-info-circle mr-2"></i> Tentang Kami
+                <a href="#profile" class="inline-flex justify-center items-center py-4 px-8 text-base font-bold text-center text-white rounded-full border border-white/30 hover:bg-white/10 hover:border-white focus:ring-4 focus:ring-slate-700 transition-all backdrop-blur-sm">
+                    <i class="fas fa-play-circle mr-2"></i> Profil Sekolah
                 </a>
             </div>
         </div>
-    </section>
-
-    <section class="relative z-30 mb-12 px-4 mt-6 md:-mt-16">
-        <div class="max-w-screen-xl mx-auto bg-white rounded-xl shadow-xl p-6 md:p-8 border border-gray-100">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                <div>
-                    <dt class="text-2xl md:text-3xl font-bold text-blue-600"><?= number_format($stats['siswa']) ?>+</dt>
-                    <dd class="text-gray-500 text-xs md:text-sm mt-1 uppercase font-semibold">Siswa Aktif</dd>
-                </div>
-                <div>
-                    <dt class="text-2xl md:text-3xl font-bold text-blue-600"><?= number_format($stats['guru']) ?></dt>
-                    <dd class="text-gray-500 text-xs md:text-sm mt-1 uppercase font-semibold">Guru & Staff</dd>
-                </div>
-                <div>
-                    <dt class="text-2xl md:text-3xl font-bold text-blue-600"><?= number_format($stats['ekskul']) ?>+</dt>
-                    <dd class="text-gray-500 text-xs md:text-sm mt-1 uppercase font-semibold">Ekstrakurikuler</dd>
-                </div>
-                <div>
-                    <dt class="text-2xl md:text-3xl font-bold text-blue-600">100%</dt>
-                    <dd class="text-gray-500 text-xs md:text-sm mt-1 uppercase font-semibold">Digital System</dd>
-                </div>
-            </div>
+        
+        <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
+            <svg class="relative block w-[calc(100%+1.3px)] h-[80px] md:h-[150px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="fill-white"></path>
+            </svg>
         </div>
     </section>
 
-    <section id="profile" class="py-12 md:py-16 bg-white">
-        <div class="max-w-screen-xl px-4 mx-auto lg:grid lg:grid-cols-2 lg:gap-16 items-center">
-            <div class="mb-8 lg:mb-0">
-                <img class="rounded-lg shadow-lg w-full h-auto object-cover" 
-                     src="<?= !empty($web['foto_kepsek']) ? base_url('uploads/profile/'.$web['foto_kepsek']) : 'https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto=format&fit=crop' ?>" 
-                     alt="Profile">
-            </div>
-            <div class="text-gray-500 sm:text-lg">
-                <h2 class="mb-4 text-3xl md:text-4xl tracking-tight font-extrabold text-gray-900">Sambutan Kepala Sekolah</h2>
-                <p class="mb-4 font-light text-sm md:text-base">
-                    "<?= $web['sambutan_kepsek'] ?? 'Sambutan belum diisi di dashboard admin.' ?>"
-                </p>
-                <div class="border-l-4 border-blue-500 pl-4 italic text-gray-700 bg-gray-50 py-3 rounded-r-lg text-sm md:text-base">
-                    "Mencerdaskan kehidupan bangsa melalui teknologi dan akhlak mulia."
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="keunggulan" class="bg-gray-50 py-12 md:py-16">
-         <div class="py-8 px-4 mx-auto max-w-screen-xl sm:py-16 lg:px-6">
-            <div class="max-w-screen-md mb-8 lg:mb-16 mx-auto text-center">
-                <h2 class="mb-4 text-3xl md:text-4xl tracking-tight font-extrabold text-gray-900">Mengapa Memilih Kami?</h2>
-                <p class="text-gray-500 text-sm md:text-xl">Kombinasi kurikulum terbaik, fasilitas modern, dan lingkungan yang kondusif.</p>
-            </div>
-            <div class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-12 md:space-y-0">
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                    <div class="flex justify-center items-center mb-4 w-12 h-12 rounded-full bg-blue-100 text-blue-600">
-                        <i class="fas fa-book-open text-xl"></i>
-                    </div>
-                    <h3 class="mb-2 text-xl font-bold text-gray-900">Kurikulum Merdeka</h3>
-                    <p class="text-gray-500 text-sm">Penerapan kurikulum terbaru yang berpusat pada pengembangan minat dan bakat.</p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                    <div class="flex justify-center items-center mb-4 w-12 h-12 rounded-full bg-green-100 text-green-600">
-                        <i class="fas fa-mosque text-xl"></i>
-                    </div>
-                    <h3 class="mb-2 text-xl font-bold text-gray-900">Lingkungan Islami</h3>
-                    <p class="text-gray-500 text-sm">Menanamkan nilai-nilai akhlak mulia dan tahfidz Al-Qur'an.</p>
-                </div>
-                 <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                    <div class="flex justify-center items-center mb-4 w-12 h-12 rounded-full bg-purple-100 text-purple-600">
-                        <i class="fas fa-laptop-code text-xl"></i>
-                    </div>
-                    <h3 class="mb-2 text-xl font-bold text-gray-900">Smart Classroom</h3>
-                    <p class="text-gray-500 text-sm">Setiap kelas dilengkapi proyektor dan CCTV.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="fitur-app" class="py-16 md:py-20 bg-gradient-to-br from-slate-900 to-slate-800 text-white overflow-hidden">
-        <div class="max-w-screen-xl px-4 mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <div class="order-1 lg:order-1">
-                <span class="bg-blue-600 text-white text-xs font-semibold px-2.5 py-0.5 rounded">SMART SCHOOL SYSTEM V.2.0</span>
-                <h2 class="mt-4 mb-4 text-3xl md:text-4xl font-extrabold tracking-tight">Sekolah dalam Genggaman Anda</h2>
-                <p class="mb-6 text-slate-300 text-sm md:text-base">Sistem kami mengintegrasikan Akademik, Keuangan, dan Kesiswaan.</p>
-                <div class="mt-8">
-                     <a href="<?= base_url('login') ?>" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-800 font-medium rounded-lg text-sm px-6 py-3 focus:outline-none transition block w-full md:w-auto text-center">
-                        <i class="fas fa-desktop mr-2"></i> Akses Portal Digital
-                    </a>
-                </div>
-            </div>
-            <div class="mt-4 lg:mt-0 relative group order-2 lg:order-2 w-full">
-                <div class="relative mx-auto border-gray-800 bg-gray-800 border-[8px] rounded-t-xl h-auto w-full max-w-[512px] shadow-2xl">
-                    <div class="rounded-lg overflow-hidden bg-white aspect-video">
-                        <img src="https://flowbite.s3.amazonaws.com/docs/device-mockups/laptop-screen.png" class="w-full h-full object-cover" alt="App Dashboard">
-                    </div>
-                </div>
-                <div class="relative mx-auto bg-gray-900 rounded-b-xl rounded-t-sm h-[15px] md:h-[21px] w-[80%] max-w-[597px]">
-                    <div class="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-xl w-[20%] h-[5px] bg-gray-800"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="kegiatan" class="py-12 md:py-16 bg-white">
-        <div class="py-8 px-4 mx-auto max-w-screen-xl lg:px-6">
-            <div class="mx-auto max-w-screen-sm text-center mb-8 lg:mb-16">
-                <h2 class="mb-4 text-3xl md:text-4xl tracking-tight font-extrabold text-gray-900">Kegiatan Terbaru</h2>
-                <p class="font-light text-gray-500 text-sm md:text-xl">Berita terkini seputar kegiatan dan prestasi sekolah.</p>
-            </div> 
+    <section id="spmb" class="relative py-20 bg-white">
+        <div class="max-w-screen-xl px-4 mx-auto text-center" data-aos="fade-up">
+            <span class="text-blue-600 font-bold uppercase tracking-widest text-xs mb-2 block">Penerimaan Peserta Didik Baru</span>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-8">Bergabunglah Bersama Kami</h2>
             
-            <div class="grid gap-8 mb-6 lg:mb-16 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                <?php if(!empty($kegiatan)): ?>
-                    <?php foreach($kegiatan as $news): ?>
-                        <div class="bg-white rounded-lg border border-gray-200 shadow-md">
-                            <a href="<?= base_url('berita/detail/' . $news['slug']) ?>">
-                                <img class="rounded-t-lg w-full h-48 object-cover" src="<?= base_url('uploads/kegiatan/' . $news['gambar']) ?>" alt="<?= $news['judul'] ?>" />
-                            </a>
-                            <div class="p-5">
-                                <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded">Berita</span>
-                                <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 mt-2 truncate"><?= $news['judul'] ?></h5>
-                                <p class="mb-3 font-normal text-gray-700 text-sm line-clamp-3">
-                                    <?= strip_tags($news['isi_berita']) // Asumsi kolom isi_berita ?>
-                                </p>
-                                <a href="<?= base_url('berita/detail/' . $news['slug']) ?>" class="inline-flex items-center text-sm font-medium text-blue-600 hover:underline">
-                                    Baca Selengkapnya <i class="fas fa-arrow-right ml-2"></i>
-                                </a>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <p class="text-center w-full col-span-3 text-gray-500">Belum ada kegiatan terbaru.</p>
-                <?php endif; ?>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="p-8 bg-slate-50 rounded-2xl border border-slate-100 hover:shadow-lg transition-all group">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-4 mx-auto group-hover:scale-110 transition-transform">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">1. Daftar Online</h3>
+                    <p class="text-slate-500 text-sm">Isi formulir biodata diri dan sekolah asal melalui menu PPDB di website ini.</p>
+                </div>
+                <div class="p-8 bg-slate-50 rounded-2xl border border-slate-100 hover:shadow-lg transition-all group">
+                    <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-4 mx-auto group-hover:scale-110 transition-transform">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">2. Verifikasi</h3>
+                    <p class="text-slate-500 text-sm">Panitia akan memverifikasi berkas pendaftaran Anda secara digital.</p>
+                </div>
+                <div class="p-8 bg-slate-50 rounded-2xl border border-slate-100 hover:shadow-lg transition-all group">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4 mx-auto group-hover:scale-110 transition-transform">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">3. Pengumuman</h3>
+                    <p class="text-slate-500 text-sm">Cek status kelulusan secara real-time dan cetak bukti pendaftaran.</p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div>
+                        <h4 class="text-4xl md:text-5xl font-extrabold mb-1"><?= $stats['pendaftar'] ?></h4>
+                        <p class="text-blue-200 text-sm uppercase font-semibold">Pendaftar</p>
+                    </div>
+                    <div>
+                        <h4 class="text-4xl md:text-5xl font-extrabold mb-1"><?= $stats['siswa'] ?></h4>
+                        <p class="text-blue-200 text-sm uppercase font-semibold">Siswa Aktif</p>
+                    </div>
+                    <div>
+                        <h4 class="text-4xl md:text-5xl font-extrabold mb-1"><?= $stats['guru'] ?></h4>
+                        <p class="text-blue-200 text-sm uppercase font-semibold">Guru</p>
+                    </div>
+                    <div class="col-span-2 md:col-span-1 flex flex-col justify-center">
+                        <a href="<?= base_url('spmb/register') ?>" class="w-full bg-white text-blue-700 hover:bg-blue-50 font-bold py-3 px-6 rounded-xl shadow-lg transition-all transform hover:-translate-y-1">
+                            Daftar Sekarang
+                        </a>
+                        <p class="mt-2 text-xs text-blue-200 opacity-80">*Kuota Terbatas</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section id="gallery" class="py-16 bg-gray-50">
-        <div class="max-w-screen-xl px-4 mx-auto">
-             <h2 class="mb-8 text-3xl md:text-4xl tracking-tight font-extrabold text-center text-gray-900">Galeri Sekolah</h2>
-             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <?php if(!empty($gallery)): ?>
-                    <?php foreach($gallery as $img): ?>
-                        <div>
-                            <img class="h-40 w-full object-cover rounded-lg hover:scale-105 transition duration-300" 
-                                 src="<?= base_url('uploads/gallery/' . $img['gambar']) ?>" alt="<?= $img['judul'] ?>">
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+    <section id="profile" class="py-20 bg-slate-50">
+        <div class="max-w-screen-xl px-4 mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            <div class="relative" data-aos="fade-right">
+                <div class="absolute inset-0 bg-blue-600 transform rotate-3 rounded-2xl shadow-lg"></div>
+                <?php 
+                // Logika Cerdas Foto Kepsek
+                if (!empty($web['foto_kepsek'])) {
+                    if (file_exists(FCPATH . 'uploads/profil/' . $web['foto_kepsek'])) {
+                        $fotoKepsek = base_url('uploads/profil/' . $web['foto_kepsek']);
+                    } elseif (file_exists(FCPATH . 'uploads/identitas/' . $web['foto_kepsek'])) {
+                        $fotoKepsek = base_url('uploads/identitas/' . $web['foto_kepsek']);
+                    } else {
+                        $fotoKepsek = 'https://ui-avatars.com/api/?name='.urlencode($web['nama_kepsek']).'&background=0D8ABC&color=fff&size=512'; 
+                    }
+                } else {
+                    $fotoKepsek = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=2000&auto=format&fit=crop';
+                }
+                ?>
+                <img src="<?= $fotoKepsek ?>" alt="Kepala Sekolah" class="relative rounded-2xl shadow-xl w-full h-[400px] object-cover border-4 border-white">
+                
+                <div class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg max-w-xs border border-white">
+                    <h4 class="font-bold text-slate-900 text-lg"><?= $web['nama_kepsek'] ?? 'Nama Kepala Sekolah' ?></h4>
+                    <p class="text-slate-500 text-sm">Kepala Sekolah</p>
+                </div>
             </div>
-        </div>
-    </section>
-
-    <section id="spmb" class="bg-blue-700 py-16">
-        <div class="py-8 px-4 mx-auto max-w-screen-xl text-center text-white">
-            <h2 class="mb-4 text-3xl md:text-4xl font-extrabold tracking-tight">Siap Bergabung Bersama Kami?</h2>
-            <p class="mb-8 font-light text-gray-200 text-sm md:text-xl">Pendaftaran Peserta Didik Baru (PPDB) telah dibuka.</p>
-            <div class="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0">
-                <a href="<?= base_url('spmb/register') ?>" class="text-blue-700 bg-white hover:bg-gray-100 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-lg px-8 py-3 mr-0 md:mr-2 focus:outline-none transition">
-                    Daftar Sekarang
-                </a>
-                <a href="<?= base_url('spmb/info') ?>" class="text-white border border-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-lg px-8 py-3 focus:outline-none transition">
-                    Info Syarat & Biaya
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <footer id="kontak" class="bg-gray-900 text-white">
-        <div class="mx-auto w-full max-w-screen-xl p-4 py-8">
-            <div class="md:flex md:justify-between">
-                <div class="mb-6 md:mb-0 max-w-sm">
-                    <a href="#" class="flex items-center mb-4">
-                        <i class="fas fa-graduation-cap text-3xl mr-3 text-blue-500"></i>
-                        <span class="self-center text-2xl font-semibold whitespace-nowrap">
-                            <?= $web['nama_sekolah'] ?? 'Nama Sekolah' ?>
-                        </span>
+            
+            <div data-aos="fade-left">
+                <span class="text-blue-600 font-bold uppercase tracking-widest text-xs mb-2 block">Sambutan Pimpinan</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6">Selamat Datang di <?= $web['nama_sekolah'] ?></h2>
+                <div class="prose prose-lg text-slate-600 mb-6 text-justify">
+                    <?= $web['sambutan_kepsek'] ?? '<p>Sambutan kepala sekolah belum diisi.</p>' ?>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="#galeri" class="text-blue-600 font-bold hover:text-blue-800 transition flex items-center">
+                        Lihat Dokumentasi <i class="fas fa-arrow-right ml-2"></i>
                     </a>
-                    <p class="text-gray-400 text-sm">
-                        <?= $web['alamat'] ?? 'Alamat Sekolah' ?><br>
-                        Email: <?= $web['email'] ?? 'email@sekolah.sch.id' ?><br>
-                        Telp: <?= $web['no_telp'] ?? '0812...' ?>
-                    </p>
-                </div>
-                <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
-                    <div>
-                        <h2 class="mb-4 text-sm font-semibold text-white uppercase">Menu Utama</h2>
-                        <ul class="text-gray-400 font-medium text-sm">
-                            <li class="mb-2"><a href="#profile" class="hover:text-blue-400">Profile</a></li>
-                            <li class="mb-2"><a href="#keunggulan" class="hover:text-blue-400">Keunggulan</a></li>
-                            <li class="mb-2"><a href="#kegiatan" class="hover:text-blue-400">Berita</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h2 class="mb-4 text-sm font-semibold text-white uppercase">Aplikasi</h2>
-                        <ul class="text-gray-400 font-medium text-sm">
-                            <li class="mb-2"><a href="/login" class="hover:text-blue-400">Login Guru</a></li>
-                            <li class="mb-2"><a href="/login" class="hover:text-blue-400">Login Siswa</a></li>
-                            <li class="mb-2"><a href="/spmb" class="hover:text-blue-400">E-SPMB</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                         <h2 class="mb-4 text-sm font-semibold text-white uppercase">Lokasi</h2>
-                         <div class="w-full h-24 bg-gray-700 rounded overflow-hidden">
-                             <iframe src="<?= $web['map_link'] ?? '' ?>" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-                         </div>
-                    </div>
                 </div>
             </div>
-            <hr class="my-6 border-gray-800 sm:mx-auto lg:my-8" />
-            <div class="flex flex-col md:flex-row items-center justify-between">
-                <span class="text-sm text-gray-500 text-center md:text-left mb-4 md:mb-0">© <?= date('Y') ?> <?= $web['nama_sekolah'] ?? 'Sekolah' ?>. All Rights Reserved.</span>
+        </div>
+
+        <?php if(!empty($yt_embed)): ?>
+        <div class="max-w-screen-xl px-4 mx-auto mt-20" data-aos="fade-up">
+            <div class="text-center mb-8">
+                <span class="text-red-600 font-bold uppercase tracking-widest text-xs mb-2 block">Video Profil</span>
+                <h2 class="text-2xl font-bold text-slate-900">Tur Virtual Sekolah</h2>
+            </div>
+            <div class="relative w-full max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
+                <div class="aspect-w-16 aspect-h-9">
+                    <iframe class="w-full h-[500px]" src="<?= $yt_embed ?>" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+    </section>
+
+    <section id="berita" class="py-20 bg-white">
+        <div class="max-w-screen-xl px-4 mx-auto">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <span class="text-blue-600 font-bold uppercase tracking-widest text-xs mb-2 block">Informasi Terkini</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Berita & Artikel</h2>
+            </div>
+
+            <?php if(!empty($berita)): ?>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <?php foreach($berita as $b): ?>
+                <div class="bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-xl transition-all overflow-hidden group" data-aos="fade-up" data-aos-delay="100">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="<?= base_url('uploads/berita/'.$b['gambar']) ?>" alt="<?= $b['judul'] ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold text-slate-800 shadow-sm">
+                            <?= date('d M Y', strtotime($b['created_at'])) ?>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+                            <?= $b['judul'] ?>
+                        </h3>
+                        <div class="text-slate-500 text-sm line-clamp-3 mb-4">
+                            <?= strip_tags($b['isi']) ?>
+                        </div>
+                        <a href="<?= base_url('berita/detail/'.$b['slug']) ?>" class="inline-flex items-center text-blue-600 font-semibold text-sm hover:underline">
+                            Baca Selengkapnya <i class="fas fa-long-arrow-alt-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+                <div class="text-center p-12 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                    <p class="text-slate-500">Belum ada berita yang dipublikasikan.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <section id="galeri" class="py-20 bg-slate-900 text-white">
+        <div class="max-w-screen-xl px-4 mx-auto">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <span class="text-blue-400 font-bold uppercase tracking-widest text-xs mb-2 block">Dokumentasi</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold">Galeri Kegiatan</h2>
+                </div>
+            </div>
+
+            <?php if(!empty($galeri)): ?>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <?php foreach($galeri as $i => $g): ?>
+                <div class="relative group overflow-hidden rounded-xl h-48 md:h-64 cursor-pointer <?= ($i==0 || $i==3) ? 'md:col-span-2' : '' ?>" 
+                     data-aos="zoom-in"
+                     onclick="openLightbox('<?= base_url('uploads/galeri/'.$g['gambar']) ?>')">
+                    
+                    <img src="<?= base_url('uploads/galeri/'.$g['gambar']) ?>" alt="<?= $g['judul'] ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                        <div>
+                            <span class="text-blue-400 text-xs font-bold uppercase mb-1 block"><?= $g['kategori'] ?></span>
+                            <h4 class="text-white font-bold text-lg"><?= $g['judul'] ?></h4>
+                            <p class="text-xs text-gray-300 mt-1"><i class="fas fa-search-plus"></i> Lihat Foto</p>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+                <div class="text-center text-slate-500 py-10">Belum ada foto galeri.</div>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <footer id="kontak" class="bg-white border-t border-slate-100 pt-16 pb-8">
+        <div class="max-w-screen-xl px-4 mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+                <div class="md:col-span-1">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <img src="<?= $pathLogo ?>" class="h-12 w-12 object-contain" alt="Logo">
+                        <span class="text-xl font-extrabold text-slate-900 uppercase tracking-tight">
+                            <?= $web['nama_sekolah'] ?>
+                        </span>
+                    </div>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-6">
+                        <?= $web['alamat'] ?>
+                    </p>
+                    <div class="flex space-x-4">
+                        <?php if(!empty($web['facebook'])): ?>
+                            <a href="<?= $web['facebook'] ?>" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all"><i class="fab fa-facebook-f"></i></a>
+                        <?php endif; ?>
+                        <?php if(!empty($web['instagram'])): ?>
+                            <a href="<?= $web['instagram'] ?>" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-pink-600 hover:text-white transition-all"><i class="fab fa-instagram"></i></a>
+                        <?php endif; ?>
+                        <?php if(!empty($web['youtube'])): ?>
+                            <a href="<?= $web['youtube'] ?>" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-red-600 hover:text-white transition-all"><i class="fab fa-youtube"></i></a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-slate-900 font-bold mb-6">Akses Cepat</h4>
+                    <ul class="space-y-3 text-sm text-slate-500">
+                        <li><a href="#home" class="hover:text-blue-600 transition">Beranda</a></li>
+                        <li><a href="#profile" class="hover:text-blue-600 transition">Profil Sekolah</a></li>
+                        <li><a href="<?= base_url('spmb/register') ?>" class="hover:text-blue-600 transition font-bold text-blue-600">Info PPDB</a></li>
+                        <li><a href="<?= base_url('auth') ?>" class="hover:text-blue-600 transition">Login Guru/Siswa</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-slate-900 font-bold mb-6">Hubungi Kami</h4>
+                    <ul class="space-y-4 text-sm text-slate-500">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 w-5 text-blue-600"></i>
+                            <span><?= $web['alamat'] ?></span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope w-5 text-blue-600"></i>
+                            <span><?= $web['email'] ?></span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone-alt w-5 text-blue-600"></i>
+                            <span><?= $web['no_telp'] ?></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
+                <p>&copy; <?= date('Y') ?> <?= $web['nama_sekolah'] ?>. All rights reserved.</p>
+                <p>Powered by Smart School System.</p>
             </div>
         </div>
     </footer>
 
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="">
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
+        // Init Animation
+        AOS.init({
+            once: true,
+            offset: 100,
+            duration: 800,
+        });
+
+        // Navbar Scroll Effect
         const navbar = document.getElementById('mainNavbar');
         window.addEventListener('scroll', function() {
             if (window.scrollY > 50) {
@@ -334,6 +415,21 @@
                 navbar.classList.add('nav-transparent');
             }
         });
+
+        // Lightbox Logic (Zoom Gambar)
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lightbox.style.display = 'flex';
+            setTimeout(() => { lightbox.classList.add('show'); }, 10);
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('show');
+            setTimeout(() => { lightbox.style.display = 'none'; }, 300);
+        }
     </script>
 </body>
 </html>

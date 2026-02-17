@@ -124,3 +124,17 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+# Uploads (Jangan upload foto siswa/ijazah asli ke GitHub)
+# Kita hanya upload folder kosongnya saja
+/public/uploads/ppdb/*
+!/public/uploads/ppdb/index.html
+!/public/uploads/ppdb/.gitkeep
+
+/public/uploads/identitas/*
+!/public/uploads/identitas/index.html
+!/public/uploads/identitas/.gitkeep
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db

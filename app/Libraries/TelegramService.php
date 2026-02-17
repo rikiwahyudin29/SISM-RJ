@@ -2,35 +2,28 @@
 
 namespace App\Libraries;
 
-use App\Models\PengaturanModel;
-
 class TelegramService
 {
     private $token;
 
     public function __construct()
     {
-        // Panggil Model Pengaturan
-        $model = new PengaturanModel();
-        
-        // Cari baris di database yang kuncinya 'telegram_token'
-        // Ingat: tabelmu strukturnya id, kunci, nilai
-        $data = $model->where('kunci', 'telegram_token')->first();
+        $db = \Config\Database::connect();
+        // Ambil token bot dari tbl_sekolah ID 1
+        $config = $db->table('tbl_sekolah')->where('id', 1)->get()->getRow();
 
-        // Cek apakah datanya ketemu dan kolom 'nilai' tidak kosong
-        if ($data && !empty($data['nilai'])) {
-            $this->token = $data['nilai']; 
+        if ($config && !empty($config->tele_bot_token)) {
+            $this->token = $config->tele_bot_token;
         } else {
-            // Default kosong jika belum diisi di dashboard
-            $this->token = ''; 
+            $this->token = '';
         }
     }
 
     public function kirim($chatId, $pesan)
     {
-        // Kalau token kosong, langsung berhenti (jangan kirim)
-        if (empty($this->token)) {
-            log_message('error', 'Gagal kirim Telegram: Token belum disetting di Dashboard Admin.');
+        // Kalau token atau Chat ID kosong, berhenti
+        if (empty($this->token) || empty($chatId)) {
+            log_message('error', 'Gagal kirim Telegram: Token atau Chat ID belum disetting di Data Sekolah.');
             return false;
         }
 

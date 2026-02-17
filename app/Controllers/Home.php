@@ -2,49 +2,60 @@
 
 namespace App\Controllers;
 
-use App\Models\PengaturanModel;
-use App\Models\SiswaModel;
-use App\Models\GuruModel;
-use App\Models\SliderModel;
-use App\Models\KegiatanModel;
-use App\Models\GalleryModel;
-
 class Home extends BaseController
 {
+    protected $db;
+
+    public function __construct()
+    {
+        $this->db = \Config\Database::connect();
+    }
+
     public function index()
     {
-        $db = \Config\Database::connect();
+        // 1. DATA IDENTITAS SEKOLAH
+        $sekolah = $this->db->table('tbl_sekolah')->where('id', 1)->get()->getRowArray();
 
-        // 1. Ambil Pengaturan Web
-        $builder = $db->table('tbl_pengaturan');
-        $query   = $builder->get()->getResultArray();
-        $setting = [];
-        foreach ($query as $row) {
-            $setting[$row['kunci']] = $row['nilai'];
-        }
+        // [TAMBAHAN] Ambil Data Profil Web (Agar fitur CMS Sambutan & Foto Kepsek tetap jalan)
+        $webProfil = $this->db->table('tbl_web_profil')->where('id', 1)->get()->getRowArray();
+        
+        // Gabungkan: Data Sekolah + Data CMS Web
+        // Jika $webProfil kosong (belum ada tabel), pakai $sekolah saja
+        $dataWeb = $webProfil ? array_merge($sekolah, $webProfil) : $sekolah;
 
-        // 2. Hitung Statistik Real-time (BAGIAN INI YANG SAYA PERBAIKI)
-        // Saya hapus ->where('status', 'aktif') agar tidak error
-        $jml_siswa  = $db->table('tbl_siswa')->countAllResults(); 
-        $jml_guru   = $db->table('tbl_guru')->countAllResults();
-        // Pastikan tabel tbl_ekskul ada, kalau belum ada matikan baris di bawah ini
-        $jml_ekskul = $db->table('tbl_ekskul')->countAllResults(); 
+        // 2. DATA CMS (Slider, Berita, Galeri)
+        $sliders = $this->db->table('tbl_slider')
+            ->where('is_active', 1)
+            ->orderBy('urutan', 'ASC')
+            ->get()->getResultArray();
 
-        // 3. Ambil Data List (Slider, Berita, Gallery)
-        $sliders  = $db->table('tbl_slider')->orderBy('urutan', 'ASC')->get()->getResultArray();
-        $kegiatan = $db->table('tbl_kegiatan')->orderBy('tanggal', 'DESC')->limit(3)->get()->getResultArray(); 
-        $gallery  = $db->table('tbl_gallery')->orderBy('id', 'DESC')->limit(8)->get()->getResultArray();
+        $berita = $this->db->table('tbl_berita')
+            ->where('is_published', 1)
+            ->orderBy('created_at', 'DESC')
+            ->limit(3) // Ambil 3 berita terbaru
+            ->get()->getResultArray();
 
+        $galeri = $this->db->table('tbl_galeri')
+            ->orderBy('id', 'DESC')
+            ->limit(8) // Ambil 8 foto terbaru
+            ->get()->getResultArray();
+
+        // 3. STATISTIK REAL-TIME (Sesuai Request Bos)
+        $stats = [
+            'guru'      => $this->db->table('tbl_guru')->countAllResults(),
+            'siswa'     => $this->db->table('tbl_siswa')->where('status_siswa', 'Aktif')->countAllResults(),
+            'pendaftar' => $this->db->table('tbl_pendaftar')->countAllResults(), // Data dari Modul PPDB
+            // Hitung jurusan real jika tabel ada, kalau tidak default 5
+            'jurusan'   => $this->db->tableExists('tbl_jurusan') ? $this->db->table('tbl_jurusan')->countAllResults() : 5 
+        ];
+
+        // Packing Data untuk View
         $data = [
-            'web'       => $setting,
-            'stats'     => [
-                'siswa'  => $jml_siswa,
-                'guru'   => $jml_guru,
-                'ekskul' => $jml_ekskul
-            ],
-            'sliders'   => $sliders,
-            'kegiatan'  => $kegiatan,
-            'gallery'   => $gallery
+            'web'     => $dataWeb, // Menggunakan data gabungan agar lengkap
+            'sliders' => $sliders,
+            'berita'  => $berita,
+            'galeri'  => $galeri,
+            'stats'   => $stats
         ];
 
         return view('welcome_message', $data);

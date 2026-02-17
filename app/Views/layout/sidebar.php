@@ -90,6 +90,8 @@ function is_active($url) {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
         </svg>
     </div>
+
+    
     <span class="font-semibold text-sm">Integrasi Dapodik</span>
     
     <?php 
@@ -125,7 +127,40 @@ function is_active($url) {
                         <li><a href="<?= base_url('admin/keuangan/log') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Log Aktivitas</a></li>
                     </ul>
                 </li>
+<li class="<?= $headerClass ?>">Website & Publikasi</li>
 
+                <li>
+                    <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-cms" data-collapse-toggle="dropdown-cms">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="ml-3 flex-1 text-left whitespace-nowrap">Konten Web</span>
+                        <svg class="w-3 h-3 text-gray-400 transition-transform group-aria-expanded:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <ul id="dropdown-cms" class="<?= (strpos(uri_string(), 'admin/cms') !== false) ? 'block' : 'hidden' ?> py-1 space-y-0.5">
+                        <li><a href="<?= base_url('admin/cms/slider') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Slider Banner</a></li>
+                        <li><a href="<?= base_url('admin/cms/berita') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Berita & Artikel</a></li>
+                        <li><a href="<?= base_url('admin/cms/halaman') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Halaman Statis</a></li>
+                        <li><a href="<?= base_url('admin/cms/galeri') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Galeri Foto</a></li>
+                    </ul>
+                    <li>
+    <a href="<?= base_url('admin/cms/profil') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">
+        Konfigurasi Web
+    </a>
+</li>
+                </li>
+
+                <li>
+                    <button type="button" class="<?= $baseClass ?> w-full <?= $inactiveClass ?>" aria-controls="dropdown-spmb" data-collapse-toggle="dropdown-spmb">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                        <span class="ml-3 flex-1 text-left whitespace-nowrap">PPDB Online</span>
+                        <span class="inline-flex items-center justify-center px-2 ml-3 text-[10px] font-medium text-gray-800 bg-gray-200 rounded-full dark:bg-gray-700 dark:text-gray-300">New</span>
+                        <svg class="w-3 h-3 text-gray-400 transition-transform group-aria-expanded:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <ul id="dropdown-spmb" class="<?= (strpos(uri_string(), 'admin/spmb') !== false) ? 'block' : 'hidden' ?> py-1 space-y-0.5">
+                        <li><a href="<?= base_url('admin/spmb/dashboard') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Dashboard PPDB</a></li>
+                        <li><a href="<?= base_url('admin/spmb/pendaftar') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Data Pendaftar</a></li>
+                        <li><a href="<?= base_url('admin/spmb/laporan') ?>" class="flex items-center w-full p-2 pl-10 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors">Laporan</a></li>
+                    </ul>
+                </li>
                 <li class="<?= $headerClass ?>">Akademik & Ujian</li>
 
                 <li>

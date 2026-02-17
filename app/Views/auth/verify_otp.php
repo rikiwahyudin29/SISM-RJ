@@ -1,9 +1,21 @@
+<?php
+// 1. TARIK DATA SEKOLAH (Agar Logo & Nama Sekolah Dinamis)
+$db = \Config\Database::connect();
+$sekolah = $db->table('tbl_sekolah')->where('id', 1)->get()->getRowArray();
+
+// Setup Path Logo
+$pathLogo = !empty($sekolah['logo']) ? base_url('uploads/identitas/' . $sekolah['logo']) : base_url('assets/img/logo.svg');
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifikasi OTP Telegram | SIAKAD</title>
+    <title>Verifikasi OTP | <?= $sekolah['nama_sekolah'] ?></title>
+    
+    <link rel="icon" type="image/x-icon" href="<?= $pathLogo ?>">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
     <style>
@@ -19,7 +31,13 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="mb-8 text-center animate-fade-in">
+        <img src="<?= $pathLogo ?>" class="h-16 w-16 mx-auto mb-3 object-contain drop-shadow-md bg-white rounded-full p-1" alt="Logo Sekolah">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-white tracking-tight uppercase"><?= $sekolah['nama_sekolah'] ?></h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold tracking-widest uppercase mt-1"><?= $sekolah['kabupaten'] ?></p>
+    </div>
 
     <div class="max-w-md w-full bg-white dark:bg-gray-800 shadow-2xl rounded-3xl p-8 border border-gray-100 dark:border-gray-700">
         <div class="text-center mb-8">
@@ -31,14 +49,11 @@
             
             <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Cek Telegram Anda</h2>
             <p class="text-gray-500 dark:text-gray-400 mt-3 text-sm leading-relaxed">
-                Kode unik telah dikirim ke akun Telegram bot <br>
+                Kode unik telah dikirim ke akun Telegram bot sekolah.<br>
                 <span class="font-bold text-sky-600 dark:text-sky-400 text-lg tracking-wide">
                     <?php 
-                        // UBAH: Ambil ID Telegram dari session (sesuai AuthController)
                         $teleID = session()->get('temp_telegram');
-                        
                         if ($teleID) {
-                            // Masking ID Telegram: 123****89
                             $len = strlen($teleID);
                             if($len > 4) {
                                 echo substr($teleID, 0, 3) . '****' . substr($teleID, -2); 
@@ -103,13 +118,16 @@
             </div>
         </div>
     </div>
+    
+    <div class="mt-8 text-center text-xs text-gray-400 dark:text-gray-500">
+        &copy; <?= date('Y') ?> <?= $sekolah['nama_sekolah'] ?>
+    </div>
 
     <script>
         const inputs = document.querySelectorAll('.otp-input');
         const hiddenInput = document.getElementById('otp_code_hidden');
         const form = document.getElementById('otp-form');
 
-        // --- Fitur Auto Focus & Input Control (Tetap Sama) ---
         inputs.forEach((input, index) => {
             input.addEventListener('input', (e) => {
                 e.target.value = e.target.value.replace(/[^0-9]/g, '');

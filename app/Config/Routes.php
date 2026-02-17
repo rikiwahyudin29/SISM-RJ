@@ -549,8 +549,52 @@ $routes->group('admin', ['filter' => 'role:admin,guru,siswa'], function($routes)
     $routes->get('google/connect', 'Admin\Google::connect');
     $routes->get('google/callback', 'Admin\Google::callback');
 });
+
+// GROUP CMS ADMIN
+$routes->group('admin/cms', ['filter' => 'role:admin'], function($routes) {
+    // Slider
+    $routes->get('slider', 'Admin\Cms::slider');
+    $routes->post('slider/save', 'Admin\Cms::save_slider');
+    $routes->post('slider/delete/(:num)', 'Admin\Cms::delete_slider/$1');
+    
+    // Berita
+    $routes->get('berita', 'Admin\Cms::berita');
+    $routes->get('berita/add', 'Admin\Cms::berita_add');
+    $routes->get('berita/edit/(:num)', 'Admin\Cms::berita_edit/$1');
+    $routes->post('berita/save', 'Admin\Cms::save_berita');
+    $routes->post('berita/delete/(:num)', 'Admin\Cms::delete_berita/$1');
+    
+    // Halaman (Profil, Info SPMB)
+    $routes->get('halaman', 'Admin\Cms::halaman');
+    $routes->get('halaman/edit/(:any)', 'Admin\Cms::halaman_edit/$1');
+    $routes->post('halaman/save', 'Admin\Cms::save_halaman');
+    
+    // Galeri
+    $routes->get('galeri', 'Admin\Cms::galeri');
+    $routes->post('galeri/save', 'Admin\Cms::save_galeri');
+    $routes->post('galeri/delete/(:num)', 'Admin\Cms::delete_galeri/$1');
+
+    $routes->get('profil', 'Admin\Cms::profil');
+$routes->post('save_profil', 'Admin\Cms::save_profil');
+    });
+
+// GROUP SPMB (ADMIN)
+$routes->group('admin/spmb', ['filter' => 'role:admin'], function($routes) {
+    $routes->get('dashboard', 'Admin\Spmb::dashboard');
+    $routes->get('pendaftar', 'Admin\Spmb::pendaftar');
+    $routes->get('detail/(:num)', 'Admin\Spmb::detail/$1');
+    $routes->post('update_status', 'Admin\Spmb::update_status');
+    $routes->post('delete/(:num)', 'Admin\Spmb::delete/$1');
+    $routes->get('cetak_formulir/(:num)', 'Admin\Spmb::cetak_formulir/$1');
+    // $routes->get('laporan', 'Admin\Spmb::laporan'); // Nanti kita buat
+});
 // 1. Route Download (SPESIFIK) - Taruh paling atas!
 $routes->get('verifikasi/download/(:any)', 'Admin\Surat::cetak_public/$1'); 
 
 // 2. Route Scan QR (UMUM) - Taruh di bawahnya
 $routes->get('verifikasi/(:any)', 'Admin\Surat::verifikasi/$1');
+
+$routes->get('spmb/register', 'Spmb::register');
+$routes->post('spmb/save', 'Spmb::save');
+$routes->get('spmb/success/(:any)', 'Spmb::success/$1');
+$routes->get('spmb/cetak/(:num)', 'Spmb::cetak/$1');
